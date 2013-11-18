@@ -56,6 +56,11 @@
         }
       ],
     }],
+    ['OS == "android"', {
+      'includes': [
+        '../third_party/libnetxt/libnetxt_vars.gypi',
+      ],
+    }],
     # In component mode, we build all of content as a single DLL.
     # However, in the static mode, we need to build content as multiple
     # targets in order to prevent dependencies from getting introduced

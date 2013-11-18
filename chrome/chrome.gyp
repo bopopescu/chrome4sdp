@@ -98,6 +98,7 @@
     # by Native Client only.
     # NOTE: Most new includes should go in the OS!="ios" condition below.
     '../third_party/libsweadrenoext/libsweadrenoext_vars.gypi',
+    '../third_party/libnetxt/libnetxt_vars.gypi',
     '../build/chrome_settings.gypi',
     '../build/util/version.gypi',
     '../build/win_precompile.gypi',

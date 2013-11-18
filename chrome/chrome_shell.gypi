@@ -94,6 +94,7 @@
         'libchromeshell',
         '../media/media.gyp:media_java',
         '<@(libsweadrenoext_dependencies)',
+        '<@(libnetxt_dependencies)',
       ],
       'variables': {
         'apk_name': 'ChromeShell',
@@ -104,7 +105,9 @@
         'asset_location': '<(PRODUCT_DIR)/assets/<(package_name)',
         'native_lib_target': 'libchromeshell',
         'additional_native_libs': [
-              '<@(libsweadrenoext_native_libs)',],
+              '<@(libsweadrenoext_native_libs)',
+              '<@(libnetxt_native_libs)',
+        ],
         'additional_input_paths': [
           '<@(chrome_android_pak_output_resources)',
         ],

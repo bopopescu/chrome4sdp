@@ -323,6 +323,10 @@ hooks = [
       'binutils'
   },
   {
+    'pattern': '.',
+    'action': ['python', 'src/build/libnetxt_init.py'],
+  },
+  {
     'action': [
       'python',
       'src/tools/clang/scripts/update.py',

@@ -25,11 +25,19 @@
   'defines': [
     'COMPONENT_BUILD',
     'NET_IMPLEMENTATION',
+    'LIBNETXT_CMB_PLUGIN_NAME=libswenetxt_plugin',
   ],
   'export_dependent_settings': [
     '../base/base.gyp:base',
   ],
   'conditions': [
+    ['OS=="android"', {
+      'sources': [
+         '../cutils/properties.c',
+         '../cutils/properties.h',
+         '../cutils/log.h',
+      ],
+    }],
     ['chromeos==1', {
       'sources!': [
          'base/network_change_notifier_linux.cc',
