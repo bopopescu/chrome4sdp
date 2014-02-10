@@ -1,3 +1,4 @@
+// Copyright (c) 2014 The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -60,6 +61,8 @@ class AsyncResourceHandler : public ResourceHandler,
   void ResumeIfDeferred();
   void OnDefer();
 
+  bool IsAggregationEnabled();
+
   scoped_refptr<ResourceBuffer> buffer_;
   ResourceDispatcherHostImpl* rdh_;
 
@@ -76,6 +79,9 @@ class AsyncResourceHandler : public ResourceHandler,
   bool sent_first_data_msg_;
 
   int64_t reported_transfer_size_;
+
+  int bytes_read_;
+  char* last_allocation_memory_;
 
   DISALLOW_COPY_AND_ASSIGN(AsyncResourceHandler);
 };

@@ -1,3 +1,4 @@
+// Copyright (c) 2014 The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -31,6 +32,8 @@
 #include "net/base/net_util.h"
 #include "net/log/net_log.h"
 #include "net/url_request/redirect_info.h"
+#include "net/libnetxt/plugin_api.h"
+#include "net/stat_hub/stat_hub_api.h"
 
 using base::TimeTicks;
 
@@ -39,6 +42,8 @@ namespace {
 
 static int kBufferSize = 1024 * 512;
 static int kMinAllocationSize = 1024 * 4;
+static int kCalibratedBufSize = 1500;
+static int kMaxAllocationSizeAggregated = 1024 * 64;
 static int kMaxAllocationSize = 1024 * 32;
 
 void GetNumericArg(const std::string& name, int* result) {
@@ -84,7 +89,8 @@ AsyncResourceHandler::AsyncResourceHandler(
       has_checked_for_sufficient_resources_(false),
       sent_received_response_msg_(false),
       sent_first_data_msg_(false),
-      reported_transfer_size_(0) {
+      reported_transfer_size_(0),
+      bytes_read_(0) {
   InitializeResourceBufferConstants();
 }
 
@@ -227,6 +233,25 @@ bool AsyncResourceHandler::OnBeforeNetworkStart(const GURL& url, bool* defer) {
   return true;
 }
 
+bool AsyncResourceHandler::IsAggregationEnabled() {
+  static int aggregation_enabled_ = -1;
+  if (-1==aggregation_enabled_) {
+    char value[PROPERTY_VALUE_MAX] = { '\0' };
+    LIBNETXT_API(SysPropertyGet)( "net.ipc.buf.agg.on", value, "1");
+    aggregation_enabled_  = atoi(value);
+    LIBNETXT_LOGD("Buffer Aggregation is: %s", (aggregation_enabled_)?"ON":"OFF");
+  }
+
+  const ResourceRequestInfoImpl* info = GetRequestInfo();
+  if (!info->filter())
+    return false;
+
+  return
+    ((aggregation_enabled_>0)?true:false) &&
+    (info->GetResourceType() != ResourceType:: RESOURCE_TYPE_MAIN_FRAME) &&
+    (info->GetResourceType() != ResourceType:: RESOURCE_TYPE_SUB_FRAME);
+}
+
 bool AsyncResourceHandler::OnWillRead(scoped_refptr<net::IOBuffer>* buf,
                                       int* buf_size,
                                       int min_size) {
@@ -235,12 +260,43 @@ bool AsyncResourceHandler::OnWillRead(scoped_refptr<net::IOBuffer>* buf,
   if (!EnsureResourceBufferIsInitialized())
     return false;
 
-  DCHECK(buffer_->CanAllocate());
-  char* memory = buffer_->Allocate(&allocation_size_);
-  CHECK(memory);
+  //The DCHECK(buffer_->CanAllocate()) is necessary only if an allocation is needed.
+  //In case of reuse of previously allocated buffer it should be avoided.
 
-  *buf = new DependentIOBuffer(buffer_.get(), memory);
-  *buf_size = allocation_size_;
+  if(IsAggregationEnabled()) {
+    if (bytes_read_) {
+      *buf = new DependentIOBuffer(buffer_.get(), last_allocation_memory_ + bytes_read_);
+      *buf_size = allocation_size_ - bytes_read_;
+    }
+    else {
+      DCHECK(buffer_->CanAllocate());
+      char* memory = buffer_->Allocate(&allocation_size_);
+      CHECK(memory);
+
+      last_allocation_memory_ = memory;
+      *buf = new DependentIOBuffer(buffer_.get(), memory);
+      *buf_size = allocation_size_;
+    }
+  }
+  else {
+    DCHECK(buffer_->CanAllocate());
+    char* memory = buffer_->Allocate(&allocation_size_);
+    CHECK(memory);
+
+    *buf = new DependentIOBuffer(buffer_.get(), memory);
+    *buf_size = allocation_size_;
+  }
+
+  static int calibrated_buf_enabled_ = -1;
+  if (-1==calibrated_buf_enabled_) {
+    char value[PROPERTY_VALUE_MAX] = { '\0' };
+    LIBNETXT_API(SysPropertyGet)( "net.ipc.buf.clb.on", value, "0");
+    calibrated_buf_enabled_  = atoi(value);
+  }
+
+  if(calibrated_buf_enabled_>0 && *buf_size>kCalibratedBufSize) {
+    *buf_size = kCalibratedBufSize;
+  }
 
   return true;
 }
@@ -248,8 +304,30 @@ bool AsyncResourceHandler::OnWillRead(scoped_refptr<net::IOBuffer>* buf,
 bool AsyncResourceHandler::OnReadCompleted(int bytes_read, bool* defer) {
   DCHECK_GE(bytes_read, 0);
 
+  if(IsAggregationEnabled()) {
+    if (!bytes_read) {
+      if (!bytes_read_) {
+        return true;
+      }
+      //EOF - send message
+    }
+    else {
+      bytes_read_ += bytes_read;
+      if (bytes_read_<allocation_size_ && sent_first_data_msg_) {
+        return true;
+      }
+      //EOC - send message
+    }
+    bytes_read = bytes_read_;
+    bytes_read_ = 0;
+    if (STAT_HUB_IS_VERBOSE_LEVEL_DEBUG) {
+        LIBNETXT_LOGD("Send aggregated buffer with size: %d", bytes_read);
+    }
+  }
+  else {
   if (!bytes_read)
     return true;
+  }
 
   ResourceMessageFilter* filter = GetFilter();
   if (!filter)
@@ -362,10 +440,15 @@ bool AsyncResourceHandler::EnsureResourceBufferIsInitialized() {
     }
   }
 
+  int allocation_size = kMaxAllocationSize;
+  if(IsAggregationEnabled()) {
+    allocation_size = kMaxAllocationSizeAggregated;
+  }
+
   buffer_ = new ResourceBuffer();
   return buffer_->Initialize(kBufferSize,
                              kMinAllocationSize,
-                             kMaxAllocationSize);
+                             allocation_size);
 }
 
 void AsyncResourceHandler::ResumeIfDeferred() {
