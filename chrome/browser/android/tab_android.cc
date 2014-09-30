@@ -600,6 +600,11 @@ TabAndroid::TabLoadStatus TabAndroid::LoadUrl(
       STAT_HUB_API(CmdCommit)(cmd);
     }
 
+    std::string str = fixed_url.spec().c_str();
+    std::string str1 = "http";
+    if(str.substr(0,str1.size()) == str1)
+      LOG(INFO) << "Browser Started Loading URL: " << str;
+
     if (j_extra_headers) {
       load_params.extra_headers = base::android::ConvertJavaStringToUTF8(
           env,

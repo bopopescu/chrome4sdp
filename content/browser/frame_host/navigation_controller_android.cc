@@ -190,6 +190,11 @@ void NavigationControllerAndroid::LoadUrl(
     STAT_HUB_API(CmdCommit)(cmd);
   }
 
+  std::string str = ConvertJavaStringToUTF8(env, url).c_str();
+  std::string str1 = "http";
+  if(str.substr(0,str1.size()) == str1)
+    LOG(INFO) << "Browser Started Loading URL: " << str;
+
   params.load_type =
       static_cast<NavigationController::LoadURLType>(load_url_type);
   params.transition_type = ui::PageTransitionFromInt(transition_type);
