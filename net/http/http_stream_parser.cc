@@ -1,4 +1,4 @@
-// Copyright (c) 2012, 2013, The Linux Foundation. All rights reserved.
+// Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -22,6 +22,8 @@
 #include "net/http/http_util.h"
 #include "net/socket/client_socket_handle.h"
 #include "net/socket/ssl_client_socket.h"
+#include "net/socket/alt_client_socket.h"
+#include "net/socket/alt_transaction.h"
 #include "net/http/http_getzip_factory.h"
 
 namespace net {
@@ -220,12 +222,17 @@ HttpStreamParser::HttpStreamParser(ClientSocketHandle* connection,
       net_log_(net_log),
       sent_last_chunk_(false),
       upload_error_(OK),
-      weak_ptr_factory_(this) {
+      weak_ptr_factory_(this),
+      alt_transaction_(NULL) {
   io_callback_ = base::Bind(&HttpStreamParser::OnIOComplete,
                             weak_ptr_factory_.GetWeakPtr());
 }
 
 HttpStreamParser::~HttpStreamParser() {
+    if (alt_transaction_) {
+        AltTransaction::DeleteTransaction(alt_transaction_);
+        alt_transaction_ = NULL;
+    }
 }
 
 int HttpStreamParser::SendRequest(const std::string& request_line,
@@ -255,6 +262,12 @@ int HttpStreamParser::SendRequest(const std::string& request_line,
   if (result != OK)
     return result;
   response_->socket_address = HostPortPair::FromIPEndPoint(ip_endpoint);
+
+  //Add Alternative transport Headers
+  alt_transaction_ = AltTransaction::HandleRequest(
+          request_->url.spec().c_str(),
+          const_cast<HttpRequestHeaders &>(headers),
+          connection_->socket());
 
   //Shutr only for GET/HEAD requests
   if((!(using_proxy_)) && ((request_line.find(HttpRequestHeaders::kGetMethod) == 0) ||
@@ -368,6 +381,15 @@ int HttpStreamParser::ReadResponseHeaders(const CompletionCallback& callback) {
 }
 
 void HttpStreamParser::Close(bool not_reusable) {
+  //Restore original transport socket if alternative transport was used
+  if (alt_transaction_ ) {
+      if (alt_transaction_->GetSocket()) {
+          net::StreamSocket* org_socket = alt_transaction_->GetSocket()->PassOriginalSocket().release();
+          connection_->ReplaceSocket(org_socket);
+      }
+      AltTransaction::DeleteTransaction(alt_transaction_);
+      alt_transaction_ = NULL;
+  }
   if (not_reusable && connection_->socket())
     connection_->socket()->Disconnect();
   connection_->Reset();
@@ -883,6 +905,26 @@ int HttpStreamParser::HandleReadHeaderResult(int result) {
       return ERR_RESPONSE_HEADERS_TOO_BIG;
     }
   } else {
+
+    if (alt_transaction_ && !alt_transaction_->IsDelayed()) {
+      //Check Alternative Transport Headers
+      StreamSocket* alt_socket = AltTransaction::HandleResponse(
+              alt_transaction_,
+              *response_->headers.get(),
+              connection_->socket());
+      if (alt_socket) {
+          connection_->ReplaceSocket(alt_socket);
+          if (alt_transaction_->IsDelayed()) {
+              //Postpone state change until alternative transaction ir ready
+              response_header_start_offset_ = -1;
+              response_body_length_ = -1;
+              read_buf_->set_offset(0);
+              received_bytes_ = 0;
+              io_state_ = STATE_READ_HEADERS;
+              return OK;
+          }
+      }
+    }
     CalculateResponseBodySize();
     // If the body is zero length, the caller may not call ReadResponseBody,
     // which is where any extra data is copied to read_buf_, so we move the
