@@ -283,6 +283,7 @@
         ],
         'generated_src_dirs': [ '<(native_libraries_java_dir)' ],
         'native_libs_paths': [
+          '<@(additional_native_libs)',
           '<(SHARED_LIB_DIR)/<(native_lib_target).>(android_product_extension)',
           '<@(chromium_linker_path)'
         ],
