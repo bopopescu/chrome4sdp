@@ -81,7 +81,7 @@ if __name__ == '__main__':
     build_out = os.path.join(src, "out/", build)
     outdir = os.path.join(build_out, "breakpad_symbols")
     if options.output:
-        outdir = os.path.abspath(os.path.join(options.output, "breakpad_symbols"))
+        outdir = os.path.abspath(options.output)
         minidump_stackwalk = os.path.relpath(os.path.join(build_out, minidump_stackwalk), src)
     libpath = os.path.join(build_out, "lib")
     if not os.path.exists(generator):
@@ -99,7 +99,10 @@ if __name__ == '__main__':
                 #chmod +x
                 os.chmod(fpath, fstat.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
             #construct the command
-            cmd = ["python", generator,"--build-dir=" + build_out, "--symbols-dir=" + outdir]
+            cmd = ["python",
+                   generator,
+                   "--build-dir=" + build_out,
+                   "--symbols-dir=" + os.path.join(outdir, "breakpad_symbols")]
             cmd.append("--binary=" + fpath)
             if clear: # Clear the directory just the first time
                 cmd.append("--clear")
@@ -116,4 +119,8 @@ if __name__ == '__main__':
         print "Copying %s and %s into %s" % (dmp2minidump, minidump_stackwalk, outdir)
         copy(os.path.join(src, dmp2minidump), os.path.join(outdir, dmp2minidump))
         copy(os.path.join(src, minidump_stackwalk), os.path.join(outdir, minidump_stackwalk))
+        os.chmod(os.path.join(outdir, dmp2minidump),
+                 stat.S_IRWXU|stat.S_IROTH|stat.S_IXOTH|stat.S_IRGRP|stat.S_IXGRP)
+        os.chmod(os.path.join(outdir, minidump_stackwalk),
+                 stat.S_IRWXU|stat.S_IROTH|stat.S_IXOTH|stat.S_IRGRP|stat.S_IXGRP)
     exit(0)
