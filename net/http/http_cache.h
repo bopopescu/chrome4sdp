@@ -1,3 +1,4 @@
+// Copyright (c) 2012, 2013 The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -89,7 +90,8 @@ class NET_EXPORT HttpCache : public HttpTransactionFactory,
     // |callback| because the object can be deleted from within the callback.
     virtual int CreateBackend(NetLog* net_log,
                               scoped_ptr<disk_cache::Backend>* backend,
-                              const CompletionCallback& callback) = 0;
+                              const CompletionCallback& callback,
+                              base::FilePath** stat_db_path=NULL) = 0;
   };
 
   // A default backend factory for the common use cases.
@@ -111,7 +113,8 @@ class NET_EXPORT HttpCache : public HttpTransactionFactory,
     // BackendFactory implementation.
     int CreateBackend(NetLog* net_log,
                       scoped_ptr<disk_cache::Backend>* backend,
-                      const CompletionCallback& callback) override;
+                      const CompletionCallback& callback,
+                      base::FilePath** stat_db_path=NULL) override;
 
    private:
     CacheType type_;
@@ -441,6 +444,8 @@ class NET_EXPORT HttpCache : public HttpTransactionFactory,
   scoped_ptr<base::Clock> clock_;
 
   base::WeakPtrFactory<HttpCache> weak_factory_;
+
+  base::FilePath* stat_db_path_;
 
   DISALLOW_COPY_AND_ASSIGN(HttpCache);
 };

@@ -1,3 +1,4 @@
+// Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -41,8 +42,11 @@
 #include "net/http/http_network_session.h"
 #include "net/http/http_request_info.h"
 #include "net/http/http_util.h"
+#include "net/http/redirect_bridge.h"
 #include "net/ssl/ssl_cert_request_info.h"
 #include "net/ssl/ssl_config_service.h"
+#include "net/stat_hub/stat_hub_api.h"
+#include "net/stat_hub/stat_hub_cmd_api.h"
 
 using base::Time;
 using base::TimeDelta;
@@ -245,6 +249,17 @@ static bool HeaderMatches(const HttpRequestHeaders& headers,
   return false;
 }
 
+static void StatHubNotifyDone(const HttpRequestInfo* request, bool& report_to_stathub) {
+    if (NULL != request && report_to_stathub) {
+        StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_CH_TRANS_CACHE, SH_ACTION_DID_FINISH, 0);
+        if (NULL!=cmd) {
+            cmd->AddParamAsString(request->url.spec().c_str());
+            STAT_HUB_API(CmdCommit)(cmd);
+            report_to_stathub = false;
+        }
+    }
+}
+
 //-----------------------------------------------------------------------------
 
 HttpCache::Transaction::Transaction(RequestPriority priority, HttpCache* cache)
@@ -275,7 +290,8 @@ HttpCache::Transaction::Transaction(RequestPriority priority, HttpCache* cache)
       transaction_pattern_(PATTERN_UNDEFINED),
       total_received_bytes_(0),
       websocket_handshake_stream_base_create_helper_(NULL),
-      weak_factory_(this) {
+      weak_factory_(this),
+      report_to_stathub_(false) {
   static_assert(HttpCache::Transaction::kNumValidationHeaders ==
                     arraysize(kValidationHeaders),
                 "invalid number of validation headers");
@@ -289,6 +305,7 @@ HttpCache::Transaction::~Transaction() {
   // after this point.
   callback_.Reset();
 
+  StatHubNotifyDone(request_, report_to_stathub_);
   if (cache_) {
     if (entry_) {
       bool cancel_request = reading_ && response_.headers.get();
@@ -373,6 +390,13 @@ int HttpCache::Transaction::Start(const HttpRequestInfo* request,
 
   SetRequest(net_log, request);
 
+  StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_CH_TRANS_CACHE, SH_ACTION_WILL_START, 0);
+  if (NULL!=cmd) {
+      cmd->AddParamAsString(request->url.spec().c_str());
+      cmd->AddParamAsString(request->extra_headers.ToString().c_str());
+      STAT_HUB_API(CmdCommit)(cmd);
+      report_to_stathub_ = true;
+  }
   // We have to wait until the backend is initialized so we start the SM.
   next_state_ = STATE_GET_BACKEND;
   int rv = DoLoop(OK);
@@ -381,6 +405,11 @@ int HttpCache::Transaction::Start(const HttpRequestInfo* request,
   // determine if we are still inside Start.
   if (rv == ERR_IO_PENDING)
     callback_ = callback;
+  else {
+      if (rv != OK) {
+        StatHubNotifyDone(request, report_to_stathub_);
+      }
+  }
 
   return rv;
 }
@@ -490,6 +519,9 @@ int HttpCache::Transaction::Read(IOBuffer* buf, int buf_len,
   if (rv == ERR_IO_PENDING) {
     DCHECK(callback_.is_null());
     callback_ = callback;
+  }
+  else {
+    StatHubNotifyDone(request_, report_to_stathub_);
   }
   return rv;
 }
@@ -632,8 +664,6 @@ void HttpCache::Transaction::GetConnectionAttempts(
   out->insert(out->begin(), old_connection_attempts_.begin(),
               old_connection_attempts_.end());
 }
-
-//-----------------------------------------------------------------------------
 
 // A few common patterns: (Foo* means Foo -> FooComplete)
 //
@@ -2301,6 +2331,7 @@ ValidationType HttpCache::Transaction::RequiresValidation() {
   if (response_.vary_data.is_valid() &&
       !response_.vary_data.MatchesRequest(*request_,
                                           *response_.headers.get())) {
+    ObserveRevalidation(&response_, request_, cache_.get());
     vary_mismatch_ = true;
     return VALIDATION_SYNCHRONOUS;
   }
@@ -2331,8 +2362,14 @@ ValidationType HttpCache::Transaction::RequiresValidation() {
 
   if (validation_required_by_headers == VALIDATION_ASYNCHRONOUS) {
     // Asynchronous revalidation is only supported for GET and HEAD methods.
-    if (request_->method != "GET" && request_->method != "HEAD")
+    if (request_->method != "GET" && request_->method != "HEAD") {
+      ObserveRevalidation(&response_, request_, cache_.get());
       return VALIDATION_SYNCHRONOUS;
+    }
+  }
+
+  if (validation_required_by_headers == VALIDATION_SYNCHRONOUS) {
+    ObserveRevalidation(&response_, request_, cache_.get());
   }
 
   return validation_required_by_headers;

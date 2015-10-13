@@ -1,3 +1,4 @@
+// Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -49,10 +50,14 @@
 #include "net/socket/client_socket_handle.h"
 #include "net/socket/client_socket_pool.h"
 #include "net/socket/stream_socket.h"
+#include "net/socket/tcp_fin_aggregation.h"
+#include "net/socket/tcp_fin_aggregation_factory.h"
 
 namespace net {
 
 class ClientSocketHandle;
+class HttpNetworkSession;
+class ITCPFinAggregation;
 
 // ConnectJob provides an abstract interface for "connecting" a socket.
 // The connection may involve host resolution, tcp connection, ssl connection,
@@ -148,6 +153,29 @@ class NET_EXPORT_PRIVATE ConnectJob {
 
 namespace internal {
 
+// Entry for a persistent socket which became idle at time |start_time|.
+  struct IdleSocket {
+    IdleSocket() : socket(NULL) {}
+
+    // An idle socket can't be used if it is disconnected or has been used
+    // before and has received data unexpectedly (hence no longer idle).  The
+    // unread data would be mistaken for the beginning of the next response if
+    // we were to use the socket for a new request.
+    //
+    // Note that a socket that has never been used before (like a preconnected
+    // socket) may be used even with unread data.  This may be, e.g., a SPDY
+    // SETTINGS frame.
+    bool IsUsable() const;
+
+    // An idle socket should be removed if it can't be reused, or has been idle
+    // for too long. |now| is the current time value (TimeTicks::Now()).
+    // |timeout| is the length of time to wait before timing out an idle socket.
+    bool ShouldCleanup(base::TimeTicks now, base::TimeDelta timeout) const;
+
+    StreamSocket* socket;
+    base::TimeTicks start_time;
+  };
+
 // ClientSocketPoolBaseHelper is an internal class that implements almost all
 // the functionality from ClientSocketPoolBase without using templates.
 // ClientSocketPoolBase adds templated definitions built on top of
@@ -229,7 +257,9 @@ class NET_EXPORT_PRIVATE ClientSocketPoolBaseHelper
       int max_sockets_per_group,
       base::TimeDelta unused_idle_socket_timeout,
       base::TimeDelta used_idle_socket_timeout,
-      ConnectJobFactory* connect_job_factory);
+      ConnectJobFactory* connect_job_factory,
+      HttpNetworkSession* network_session = NULL,
+      bool enable_adaptive_connectivity = false);
 
   ~ClientSocketPoolBaseHelper() override;
 
@@ -273,6 +303,17 @@ class NET_EXPORT_PRIVATE ClientSocketPoolBaseHelper
   int idle_socket_count() const {
     return idle_socket_count_;
   }
+  // Called when the number of idle sockets changes.
+  void IncrementIdleCount();
+  void DecrementIdleCount();
+  void InitTcpFin();
+
+  class Group;
+  typedef std::map<std::string, Group*> GroupMap;
+
+  void RemoveGroup(const std::string& group_name);
+  void RemoveGroup(GroupMap::iterator it);
+  GroupMap group_map_;
 
   // See ClientSocketPool::IdleSocketCountInGroup() for documentation on this
   // function.
@@ -345,32 +386,20 @@ class NET_EXPORT_PRIVATE ClientSocketPoolBaseHelper
   // NetworkChangeNotifier::IPAddressObserver methods:
   void OnIPAddressChanged() override;
 
- private:
-  // Entry for a persistent socket which became idle at time |start_time|.
-  struct IdleSocket {
-    IdleSocket() : socket(NULL) {}
+  void set_max_sockets_per_group(int max_socket_per_group) {
+      max_sockets_per_group_ = max_socket_per_group;
+  }
+  int max_sockets_per_group() {
+      return max_sockets_per_group_;
+  }
 
-    // An idle socket can't be used if it is disconnected or has been used
-    // before and has received data unexpectedly (hence no longer idle).  The
-    // unread data would be mistaken for the beginning of the next response if
-    // we were to use the socket for a new request.
-    //
-    // Note that a socket that has never been used before (like a preconnected
-    // socket) may be used even with unread data.  This may be, e.g., a SPDY
-    // SETTINGS frame.
-    bool IsUsable() const;
-
-    // An idle socket should be removed if it can't be reused, or has been idle
-    // for too long. |now| is the current time value (TimeTicks::Now()).
-    // |timeout| is the length of time to wait before timing out an idle socket.
-    bool ShouldCleanup(base::TimeTicks now, base::TimeDelta timeout) const;
-
-    StreamSocket* socket;
-    base::TimeTicks start_time;
-  };
+  void InitAdaptiveConnectivity() {
+      enable_adaptive_connectivity_=true;
+  }
 
   typedef PriorityQueue<const Request*> RequestQueue;
-  typedef std::map<const ClientSocketHandle*, const Request*> RequestMap;
+
+  HttpNetworkSession* network_session_;
 
   // A Group is allocated per group_name when there are idle sockets or pending
   // requests.  Otherwise, the Group object is removed from the map.
@@ -497,7 +526,9 @@ class NET_EXPORT_PRIVATE ClientSocketPoolBaseHelper
     base::OneShotTimer<Group> backup_job_timer_;
   };
 
-  typedef std::map<std::string, Group*> GroupMap;
+ private:
+  friend class base::RefCounted<ClientSocketPoolBaseHelper>;
+  typedef std::map<const ClientSocketHandle*, const Request*> RequestMap;
 
   typedef std::set<ConnectJob*> ConnectJobSet;
 
@@ -514,12 +545,6 @@ class NET_EXPORT_PRIVATE ClientSocketPoolBaseHelper
       PendingCallbackMap;
 
   Group* GetOrCreateGroup(const std::string& group_name);
-  void RemoveGroup(const std::string& group_name);
-  void RemoveGroup(GroupMap::iterator it);
-
-  // Called when the number of idle sockets changes.
-  void IncrementIdleCount();
-  void DecrementIdleCount();
 
   // Start cleanup timer for idle sockets.
   void StartIdleSocketTimer();
@@ -532,9 +557,7 @@ class NET_EXPORT_PRIVATE ClientSocketPoolBaseHelper
 
   // Called when timer_ fires.  This method scans the idle sockets removing
   // sockets that timed out or can't be reused.
-  void OnCleanupTimerFired() {
-    CleanupIdleSockets(false);
-  }
+  void OnCleanupTimerFired();
 
   // Removes |job| from |group|, which must already own |job|.
   void RemoveConnectJob(ConnectJob* job, Group* group);
@@ -606,8 +629,6 @@ class NET_EXPORT_PRIVATE ClientSocketPoolBaseHelper
   // this pool is stalled.
   void TryToCloseSocketsInLayeredPools();
 
-  GroupMap group_map_;
-
   // Map of the ClientSocketHandles for which we have a pending Task to invoke a
   // callback.  This is necessary since, before we invoke said callback, it's
   // possible that the request is cancelled.
@@ -630,7 +651,16 @@ class NET_EXPORT_PRIVATE ClientSocketPoolBaseHelper
   const int max_sockets_;
 
   // The maximum number of sockets kept per group.
-  const int max_sockets_per_group_;
+  int max_sockets_per_group_;
+
+ // Pointer to ITCPFinAggregation interface that implements
+  // TCP Fin Aggregation feature.
+  ITCPFinAggregation* tcp_fin_aggregation;
+
+  // TCP Fin Aggregation feature
+  bool net_tcp_fin_aggr_feature_enabled_sys_property_;
+
+  bool enable_adaptive_connectivity_;
 
   // Whether to use timer to cleanup idle sockets.
   bool use_cleanup_timer_;
@@ -718,13 +748,15 @@ class ClientSocketPoolBase {
                        int max_sockets_per_group,
                        base::TimeDelta unused_idle_socket_timeout,
                        base::TimeDelta used_idle_socket_timeout,
-                       ConnectJobFactory* connect_job_factory)
+                       ConnectJobFactory* connect_job_factory,
+                       HttpNetworkSession* network_session = NULL)
       : helper_(self,
                 max_sockets,
                 max_sockets_per_group,
                 unused_idle_socket_timeout,
                 used_idle_socket_timeout,
-                new ConnectJobFactoryAdaptor(connect_job_factory)) {}
+                new ConnectJobFactoryAdaptor(connect_job_factory),
+                network_session) {}
 
   virtual ~ClientSocketPoolBase() {}
 
@@ -739,6 +771,10 @@ class ClientSocketPoolBase {
 
   void RemoveHigherLayeredPool(HigherLayeredPool* higher_pool) {
     helper_.RemoveHigherLayeredPool(higher_pool);
+  }
+
+  void InitTcpFin() {
+    helper_.InitTcpFin();
   }
 
   // RequestSocket bundles up the parameters into a Request and then forwards to
@@ -822,6 +858,10 @@ class ClientSocketPoolBase {
     return helper_.CleanupIdleSockets(force);
   }
 
+  void IncrementIdleCount() {helper_.IncrementIdleCount();}
+
+  void DecrementIdleCount() {helper_.DecrementIdleCount();}
+
   scoped_ptr<base::DictionaryValue> GetInfoAsValue(const std::string& name,
                                         const std::string& type) const {
     return helper_.GetInfoAsValue(name, type);
@@ -837,6 +877,14 @@ class ClientSocketPoolBase {
 
   bool CloseOneIdleConnectionInHigherLayeredPool() {
     return helper_.CloseOneIdleConnectionInHigherLayeredPool();
+  }
+
+  void InitAdaptiveConnectivity(){
+      helper_.InitAdaptiveConnectivity();
+  };
+
+  int max_sockets_per_group() {
+      return helper_.max_sockets_per_group();
   }
 
  private:

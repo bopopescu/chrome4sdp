@@ -1,3 +1,4 @@
+// Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -18,6 +19,12 @@
 #include "base/values.h"
 #include "net/base/net_errors.h"
 #include "net/log/net_log.h"
+#include "net/http/http_network_session.h"
+#include "net/http/preconnect.h"
+#include "net/http/tcp_connections_bridge.h"
+#include "url/gurl.h"
+#include "net/libnetxt/libnetxt_base.h"
+#include "net/socket/adaptive_connectivity_bridge.h"
 
 using base::TimeDelta;
 
@@ -41,7 +48,7 @@ bool g_cleanup_timer_enabled = false;
 // Note: It's important to close idle sockets that have received data as soon
 // as possible because the received data may cause BSOD on Windows XP under
 // some conditions.  See http://crbug.com/4606.
-const int kCleanupInterval = 10;  // DO NOT INCREASE THIS TIMEOUT.
+int kCleanupInterval = 2;
 
 // Indicate whether or not we should establish a new transport layer connection
 // after a certain timeout has passed without receiving an ACK.
@@ -167,12 +174,16 @@ ClientSocketPoolBaseHelper::ClientSocketPoolBaseHelper(
     int max_sockets_per_group,
     base::TimeDelta unused_idle_socket_timeout,
     base::TimeDelta used_idle_socket_timeout,
-    ConnectJobFactory* connect_job_factory)
+    ConnectJobFactory* connect_job_factory,
+    HttpNetworkSession* network_session,
+    bool enable_adaptive_connectivity)
     : idle_socket_count_(0),
       connecting_socket_count_(0),
       handed_out_socket_count_(0),
       max_sockets_(max_sockets),
       max_sockets_per_group_(max_sockets_per_group),
+      tcp_fin_aggregation(NULL),
+      enable_adaptive_connectivity_(enable_adaptive_connectivity),
       use_cleanup_timer_(g_cleanup_timer_enabled),
       unused_idle_socket_timeout_(unused_idle_socket_timeout),
       used_idle_socket_timeout_(used_idle_socket_timeout),
@@ -185,6 +196,8 @@ ClientSocketPoolBaseHelper::ClientSocketPoolBaseHelper(
   DCHECK_LE(max_sockets_per_group, max_sockets);
 
   NetworkChangeNotifier::AddIPAddressObserver(this);
+  network_session_ = network_session;
+
 }
 
 ClientSocketPoolBaseHelper::~ClientSocketPoolBaseHelper() {
@@ -204,6 +217,20 @@ ClientSocketPoolBaseHelper::~ClientSocketPoolBaseHelper() {
        it != lower_pools_.end();
        ++it) {
     (*it)->RemoveHigherLayeredPool(pool_);
+  }
+}
+
+void ClientSocketPoolBaseHelper::InitTcpFin()
+{
+  LIBNETXT_LOGD("ClientSocketPoolBaseHelper::InitTCPFin called this:%p",this);
+  tcp_fin_aggregation = net::TCPFinAggregationFactory::GetTCPFinFactoryInstance(this)->GetTCPFinAggregation();
+  if (NULL == tcp_fin_aggregation)
+  {
+    LIBNETXT_LOGD("Failed to create TCP Fin Aggregation interface.");
+  } else {
+    LIBNETXT_LOGD("Successfully got TCP Fin Aggregation interface. Initializing cleanup interval.");
+    int new_cleanup_interval = tcp_fin_aggregation->GetCleanupInterval(kCleanupInterval);
+    kCleanupInterval = new_cleanup_interval;
   }
 }
 
@@ -276,9 +303,10 @@ int ClientSocketPoolBaseHelper::RequestSocket(
   CHECK(request->handle());
 
   // Cleanup any timed-out idle sockets if no timer is used.
-  if (!use_cleanup_timer_)
+  if ((!use_cleanup_timer_) && ((NULL == tcp_fin_aggregation) || (((NULL != tcp_fin_aggregation) &&
+            !tcp_fin_aggregation->IsEnabled())))) {
     CleanupIdleSockets(false);
-
+  }
   request->net_log().BeginEvent(NetLog::TYPE_SOCKET_POOL);
   Group* group = GetOrCreateGroup(group_name);
 
@@ -312,8 +340,10 @@ void ClientSocketPoolBaseHelper::RequestSockets(
   DCHECK(!request.handle());
 
   // Cleanup any timed out idle sockets if no timer is used.
-  if (!use_cleanup_timer_)
+  if ((!use_cleanup_timer_) && ((NULL == tcp_fin_aggregation) || (((NULL != tcp_fin_aggregation) &&
+            !tcp_fin_aggregation->IsEnabled())))) {
     CleanupIdleSockets(false);
+  }
 
   if (num_sockets > max_sockets_per_group_) {
     num_sockets = max_sockets_per_group_;
@@ -449,6 +479,14 @@ int ClientSocketPoolBaseHelper::RequestSocketInternal(
     }
   }
 
+  if (!preconnecting) {
+    /* avoid calling ObserveConnections() for group_name that
+     * begins with "ssl/" "pm/" etc.
+     */
+    if(group_name.find("/") == std::string::npos){
+        ObserveConnections(network_session_, GURL(std::string("http://") + group_name));
+    }
+  }
   return rv;
 }
 
@@ -663,13 +701,13 @@ scoped_ptr<base::DictionaryValue> ClientSocketPoolBaseHelper::GetInfoAsValue(
   return dict.Pass();
 }
 
-bool ClientSocketPoolBaseHelper::IdleSocket::IsUsable() const {
+bool IdleSocket::IsUsable() const {
   if (socket->WasEverUsed())
     return socket->IsConnectedAndIdle();
   return socket->IsConnected();
 }
 
-bool ClientSocketPoolBaseHelper::IdleSocket::ShouldCleanup(
+bool IdleSocket::ShouldCleanup(
     base::TimeTicks now,
     base::TimeDelta timeout) const {
   bool timed_out = (now - start_time) >= timeout;
@@ -720,6 +758,9 @@ ClientSocketPoolBaseHelper::Group* ClientSocketPoolBaseHelper::GetOrCreateGroup(
     return it->second;
   Group* group = new Group;
   group_map_[group_name] = group;
+  if (enable_adaptive_connectivity_) {
+      adaptive_connectivity::ObserveGroupCreation(this);
+  }
   return group;
 }
 
@@ -733,6 +774,10 @@ void ClientSocketPoolBaseHelper::RemoveGroup(const std::string& group_name) {
 void ClientSocketPoolBaseHelper::RemoveGroup(GroupMap::iterator it) {
   delete it->second;
   group_map_.erase(it);
+
+  if (enable_adaptive_connectivity_){
+      adaptive_connectivity::ObserveGroupRemoval(this);
+  }
 }
 
 // static
@@ -759,6 +804,16 @@ void ClientSocketPoolBaseHelper::IncrementIdleCount() {
 void ClientSocketPoolBaseHelper::DecrementIdleCount() {
   if (--idle_socket_count_ == 0)
     timer_.Stop();
+}
+
+void ClientSocketPoolBaseHelper::OnCleanupTimerFired() {
+  if((NULL != tcp_fin_aggregation) && (tcp_fin_aggregation->IsEnabled()))
+  {
+    tcp_fin_aggregation->ReaperCleanup();
+  }
+  else {
+    CleanupIdleSockets(false);
+  }
 }
 
 // static

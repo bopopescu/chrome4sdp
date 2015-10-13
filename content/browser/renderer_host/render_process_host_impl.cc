@@ -1,3 +1,4 @@
+// Copyright (c) 2013-2015 The Linux Foundation. All rights reserved.
 // Copyright 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -211,6 +212,8 @@
 #include "content/common/media/aec_dump_messages.h"
 #include "content/common/media/media_stream_messages.h"
 #endif
+
+#include "net/stat_hub/stat_hub_message_filter.h"
 
 extern bool g_exited_main_message_loop;
 
@@ -952,6 +955,7 @@ void RenderProcessHostImpl::CreateMessageFilters() {
     bluetooth_dispatcher_host_ = new BluetoothDispatcherHost(GetID());
     AddFilter(bluetooth_dispatcher_host_.get());
   }
+  AddFilter(new stat_hub::StatHubMessageFilter());
 }
 
 void RenderProcessHostImpl::RegisterMojoServices() {

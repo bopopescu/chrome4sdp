@@ -1,3 +1,4 @@
+// Copyright (c) 2012, 2013, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -113,7 +114,8 @@ class NET_EXPORT_PRIVATE SOCKSClientSocketPool
       int max_sockets_per_group,
       HostResolver* host_resolver,
       TransportClientSocketPool* transport_pool,
-      NetLog* net_log);
+      NetLog* net_log,
+      HttpNetworkSession* network_session = NULL);
 
   ~SOCKSClientSocketPool() override;
 

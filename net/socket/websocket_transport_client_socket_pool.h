@@ -119,7 +119,7 @@ class NET_EXPORT_PRIVATE WebSocketTransportClientSocketPool
                                      int max_sockets_per_group,
                                      HostResolver* host_resolver,
                                      ClientSocketFactory* client_socket_factory,
-                                     NetLog* net_log);
+                                     NetLog* net_log, HttpNetworkSession* network_session = NULL);
 
   ~WebSocketTransportClientSocketPool() override;
 

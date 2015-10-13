@@ -238,6 +238,7 @@
       'child/simple_webmimeregistry_impl.h',
       'child/site_isolation_stats_gatherer.cc',
       'child/site_isolation_stats_gatherer.h',
+      'child/stat_hub_api_ipc.cc',
       'child/sync_load_response.cc',
       'child/sync_load_response.h',
       'child/thread_safe_sender.cc',

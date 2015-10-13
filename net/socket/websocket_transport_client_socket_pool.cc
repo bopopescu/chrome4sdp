@@ -233,12 +233,13 @@ WebSocketTransportClientSocketPool::WebSocketTransportClientSocketPool(
     int max_sockets_per_group,
     HostResolver* host_resolver,
     ClientSocketFactory* client_socket_factory,
-    NetLog* net_log)
+    NetLog* net_log, HttpNetworkSession* network_session)
     : TransportClientSocketPool(max_sockets,
                                 max_sockets_per_group,
                                 host_resolver,
                                 client_socket_factory,
-                                net_log),
+                                net_log,
+                                network_session),
       connect_job_delegate_(this),
       pool_net_log_(net_log),
       client_socket_factory_(client_socket_factory),

@@ -1,3 +1,4 @@
+// Copyright (c) 2013-2014 The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -104,7 +105,7 @@ void PopulateNetworkSessionParams(
   // TODO(sgurun) remove once crbug.com/329681 is fixed.
   params->next_protos = net::NextProtosSpdy31();
   params->use_alternative_services = true;
-
+  params->enable_tcp_fin = true; //enable tcp fin for regular browser context
   ApplyCmdlineOverridesToNetworkSessionParams(params);
 }
 
@@ -234,7 +235,7 @@ void AwURLRequestContextGetter::InitializeURLRequestContext() {
           net::DISK_CACHE,
           net::CACHE_BACKEND_SIMPLE,
           cache_path_,
-          20 * 1024 * 1024,  // 20M
+          50 * 1024 * 1024,  // 50M
           BrowserThread::GetMessageLoopProxyForThread(BrowserThread::CACHE)));
 
   main_http_factory_.reset(main_cache);

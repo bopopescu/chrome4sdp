@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -76,6 +77,7 @@
 #include "content/public/common/top_controls_state.h"
 #include "jni/Tab_jni.h"
 #include "net/base/escape.h"
+#include "net/stat_hub/stat_hub_cmd_api.h"
 #include "skia/ext/image_operations.h"
 #include "third_party/WebKit/public/platform/WebReferrerPolicy.h"
 #include "ui/base/resource/resource_bundle.h"
@@ -590,6 +592,14 @@ TabAndroid::TabLoadStatus TabAndroid::LoadUrl(
     }
 
     content::NavigationController::LoadURLParams load_params(fixed_url);
+
+    StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_WK_PAGE, SH_ACTION_WILL_START_LOAD, 0);
+    if (NULL!=cmd) {
+      cmd->AddParamAsString(fixed_url.spec().c_str());
+      cmd->AddParamAsBool(true);
+      STAT_HUB_API(CmdCommit)(cmd);
+    }
+
     if (j_extra_headers) {
       load_params.extra_headers = base::android::ConvertJavaStringToUTF8(
           env,

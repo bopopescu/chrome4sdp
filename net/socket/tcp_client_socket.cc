@@ -13,6 +13,8 @@
 #include "net/base/ip_endpoint.h"
 #include "net/base/net_errors.h"
 #include "net/base/net_util.h"
+#include "net/http/http_getzip_factory.h"
+#include "net/libnetxt/plugin_api.h"
 
 namespace net {
 
@@ -24,6 +26,7 @@ TCPClientSocket::TCPClientSocket(const AddressList& addresses,
       current_address_index_(-1),
       next_connect_state_(CONNECT_STATE_NONE),
       previously_disconnected_(false) {
+  HttpGetZipFactory::GetGETZipManager()->OpenGetZipConnection(static_cast<StreamSocket*>(this));
 }
 
 TCPClientSocket::TCPClientSocket(scoped_ptr<TCPSocket> connected_socket,
@@ -37,10 +40,12 @@ TCPClientSocket::TCPClientSocket(scoped_ptr<TCPSocket> connected_socket,
 
   socket_->SetDefaultOptionsForClient();
   use_history_.set_was_ever_connected();
+  HttpGetZipFactory::GetGETZipManager()->OpenGetZipConnection(static_cast<StreamSocket*>(this));
 }
 
 TCPClientSocket::~TCPClientSocket() {
   Disconnect();
+  HttpGetZipFactory::GetGETZipManager()->StopGetZipConnection(static_cast<StreamSocket*>(this));
 }
 
 int TCPClientSocket::Bind(const IPEndPoint& address) {

@@ -136,8 +136,13 @@ void InitLibnetxtPluginApi(LibnetxtPluginApi* plugin_api) {
     LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, ConvertHeadersBackToHTTPResponse)
     LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, DnsResolve)
     LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, GetTimeTicksNow)
+    LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, NetPreconnect)
 
     //Additional APIs
+    InitStatHubLibnetxtPluginApi(plugin_api);
+    InitTcpFinAggLibnetxtPluginApi(plugin_api);
+    InitGetZipLibnetxtPluginApi(plugin_api);
+
 }
 
 //=========================================================================

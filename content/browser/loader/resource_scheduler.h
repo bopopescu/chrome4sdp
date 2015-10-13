@@ -250,6 +250,9 @@ class CONTENT_EXPORT ResourceScheduler : public base::NonThreadSafe {
   // whether the client is ACTIVE (user-observable) or BACKGROUND.
   ClientState GetClientState(ClientId client_id) const;
 
+  //get max number of sockets per host from request's socket pool
+  size_t GetMaxSocketsPerHostForRequest(const net::URLRequest& request) const;
+
   // Returns the client ID for the given |child_id| and |route_id| combo.
   ClientId MakeClientId(int child_id, int route_id);
 

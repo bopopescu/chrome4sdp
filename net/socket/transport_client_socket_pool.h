@@ -1,3 +1,4 @@
+// Copyright (c) 2012-2014 The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -233,7 +234,8 @@ class NET_EXPORT_PRIVATE TransportClientSocketPool : public ClientSocketPool {
       int max_sockets_per_group,
       HostResolver* host_resolver,
       ClientSocketFactory* client_socket_factory,
-      NetLog* net_log);
+      NetLog* net_log,
+      HttpNetworkSession* network_session = NULL);
 
   ~TransportClientSocketPool() override;
 
@@ -264,6 +266,15 @@ class NET_EXPORT_PRIVATE TransportClientSocketPool : public ClientSocketPool {
       const std::string& type,
       bool include_nested_pools) const override;
   base::TimeDelta ConnectionTimeout() const override;
+
+  void InitTcpFin();
+
+  //adaptive connectivity is specific for transport socket pool
+  void InitAdaptiveConnectivity();
+
+  int max_sockets_per_group()  {
+    return base_.max_sockets_per_group();
+  }
 
   // HigherLayeredPool implementation.
   bool IsStalled() const override;
@@ -299,6 +310,8 @@ class NET_EXPORT_PRIVATE TransportClientSocketPool : public ClientSocketPool {
         ConnectJob::Delegate* delegate) const override;
 
     base::TimeDelta ConnectionTimeout() const override;
+
+    void InitTcpFin();
 
    private:
     ClientSocketFactory* const client_socket_factory_;

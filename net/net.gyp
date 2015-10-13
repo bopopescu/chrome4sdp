@@ -106,6 +106,7 @@
       'target_name': 'net',
       'dependencies': [
         '../base/base.gyp:base_i18n',
+        '../sql/sql.gyp:sql',
         '../third_party/icu/icu.gyp:icui18n',
         '../third_party/icu/icu.gyp:icuuc',
         '../third_party/protobuf/protobuf.gyp:protobuf_lite',
@@ -1362,6 +1363,7 @@
             'android/java/src/org/chromium/net/NetworkChangeNotifier.java',
             'android/java/src/org/chromium/net/ProxyChangeListener.java',
             'android/java/src/org/chromium/net/X509Util.java',
+            'android/java/src/org/codeaurora/net/NetworkServices.java',
           ],
           'variables': {
             'jni_gen_package': 'net',

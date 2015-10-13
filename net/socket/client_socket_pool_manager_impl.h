@@ -1,3 +1,4 @@
+// Copyright (c) 2012-2014 The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -63,7 +64,9 @@ class ClientSocketPoolManagerImpl : public base::NonThreadSafe,
                               CertPolicyEnforcer* cert_policy_enforcer,
                               const std::string& ssl_session_cache_shard,
                               SSLConfigService* ssl_config_service,
-                              HttpNetworkSession::SocketPoolType pool_type);
+                              HttpNetworkSession::SocketPoolType pool_type,
+                              HttpNetworkSession* network_session = NULL,
+                              bool enable_tcp_fin=false);
   ~ClientSocketPoolManagerImpl() override;
 
   void FlushSocketPoolsWithError(int error) override;

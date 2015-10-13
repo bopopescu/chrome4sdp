@@ -1,3 +1,4 @@
+// Copyright (c) 2012, 2013, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -650,6 +651,9 @@ NET_ERROR(ALTERNATIVE_CERT_NOT_VALID_FOR_ORIGIN, -368)
 // Request is throttled because of a Backoff header.
 // See: crbug.com/486891.
 NET_ERROR(TEMPORARY_BACKOFF, -369)
+
+NET_ERROR(GETZIP, -399)
+
 
 // The cache does not have the requested entry.
 NET_ERROR(CACHE_MISS, -400)

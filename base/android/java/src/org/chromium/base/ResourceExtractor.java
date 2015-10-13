@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -26,6 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+
+import org.chromium.base.SWEResourceExtractor;
 
 /**
  * Handles extracting the necessary resources bundled in an APK and moving them to a location on
@@ -333,6 +336,9 @@ public class ResourceExtractor {
      * are needed to block until the task completes.
      */
     public void startExtractingResources() {
+        ResourceFetcher.Init(mContext);
+        SWEResourceExtractor.ExtractLibnetxtResources(mContext);
+
         if (mExtractTask != null) {
             return;
         }

@@ -1,3 +1,4 @@
+// Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -508,7 +509,8 @@ TransportClientSocketPool::TransportClientSocketPool(
     int max_sockets_per_group,
     HostResolver* host_resolver,
     ClientSocketFactory* client_socket_factory,
-    NetLog* net_log)
+    NetLog* net_log,
+    HttpNetworkSession* network_session)
     : base_(NULL,
             max_sockets,
             max_sockets_per_group,
@@ -516,11 +518,16 @@ TransportClientSocketPool::TransportClientSocketPool(
             ClientSocketPool::used_idle_socket_timeout(),
             new TransportConnectJobFactory(client_socket_factory,
                                            host_resolver,
-                                           net_log)) {
+                                           net_log),
+                                           network_session) {
   base_.EnableConnectBackupJobs();
 }
 
 TransportClientSocketPool::~TransportClientSocketPool() {}
+
+void TransportClientSocketPool::InitTcpFin() {
+  base_.InitTcpFin();
+}
 
 int TransportClientSocketPool::RequestSocket(
     const std::string& group_name,
@@ -613,6 +620,10 @@ scoped_ptr<base::DictionaryValue> TransportClientSocketPool::GetInfoAsValue(
 
 base::TimeDelta TransportClientSocketPool::ConnectionTimeout() const {
   return base_.ConnectionTimeout();
+}
+
+void TransportClientSocketPool::InitAdaptiveConnectivity() {
+    base_.InitAdaptiveConnectivity();
 }
 
 bool TransportClientSocketPool::IsStalled() const {

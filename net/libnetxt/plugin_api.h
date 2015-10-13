@@ -171,4 +171,6 @@ LIBNETXT_API_DEF_1(LibNetXt, DnsResolve, void, const char*)
 
 LIBNETXT_API_DEF_0(LibNetXt, GetTimeTicksNow, base::TimeTicks)
 
+LIBNETXT_API_DEF_3(LibNetXt, NetPreconnect, void, net::HttpNetworkSession*, GURL const&, int)
+
 #endif /* PLUGIN_API_H_ */

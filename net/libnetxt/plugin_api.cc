@@ -55,6 +55,7 @@
 #include "net/http/http_request_headers.h"
 #include "net/http/http_response_info.h"
 #include "net/http/http_response_headers.h"
+#include "net/http/preconnect.h"
 #include "net/socket/client_socket_pool_manager.h"
 #include "url/gurl.h"
 
@@ -288,4 +289,8 @@ void LIBNETXT_API(PostTask)(const base::Closure& task){
 
 std::string LibNetXtConvertHeadersBackToHTTPResponse(const std::string& a){
     return net::HttpUtil::ConvertHeadersBackToHTTPResponse(a);
+}
+
+void LIBNETXT_API(NetPreconnect)(net::HttpNetworkSession* session, GURL const& url, int numOfConnections) {
+    net::Preconnect::DoPreconnect(session, url, numOfConnections);
 }

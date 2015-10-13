@@ -1,3 +1,4 @@
+// Copyright (c) 2014, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -129,6 +130,7 @@ class NET_EXPORT HttpNetworkSession
     int quic_threshold_timeouts_streams_open;
     QuicTagVector quic_connection_options;
     ProxyDelegate* proxy_delegate;
+    bool enable_tcp_fin;
   };
 
   enum SocketPoolType {

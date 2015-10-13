@@ -1,3 +1,4 @@
+// Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -36,7 +37,8 @@ namespace {
 
 ClientSocketPoolManager* CreateSocketPoolManager(
     HttpNetworkSession::SocketPoolType pool_type,
-    const HttpNetworkSession::Params& params) {
+    const HttpNetworkSession::Params& params,
+    net::HttpNetworkSession* network_session) {
   // TODO(yutak): Differentiate WebSocket pool manager and allow more
   // simultaneous connections for WebSockets.
   return new ClientSocketPoolManagerImpl(
@@ -46,7 +48,8 @@ ClientSocketPoolManager* CreateSocketPoolManager(
       params.host_resolver, params.cert_verifier, params.channel_id_service,
       params.transport_security_state, params.cert_transparency_verifier,
       params.cert_policy_enforcer, params.ssl_session_cache_shard,
-      params.ssl_config_service, pool_type);
+      params.ssl_config_service, pool_type, network_session,
+      params.enable_tcp_fin);
 }
 
 }  // unnamed namespace
@@ -114,7 +117,8 @@ HttpNetworkSession::Params::Params()
       quic_max_recent_disabled_reasons(kQuicMaxRecentDisabledReasons),
       quic_threshold_public_resets_post_handshake(0),
       quic_threshold_timeouts_streams_open(0),
-      proxy_delegate(NULL) {
+      proxy_delegate(NULL),
+      enable_tcp_fin(false) {
   quic_supported_versions.push_back(QUIC_VERSION_25);
 }
 
@@ -130,9 +134,9 @@ HttpNetworkSession::HttpNetworkSession(const Params& params)
       proxy_service_(params.proxy_service),
       ssl_config_service_(params.ssl_config_service),
       normal_socket_pool_manager_(
-          CreateSocketPoolManager(NORMAL_SOCKET_POOL, params)),
+          CreateSocketPoolManager(NORMAL_SOCKET_POOL, params, this)),
       websocket_socket_pool_manager_(
-          CreateSocketPoolManager(WEBSOCKET_SOCKET_POOL, params)),
+          CreateSocketPoolManager(WEBSOCKET_SOCKET_POOL, params, this)),
       quic_stream_factory_(
           params.host_resolver,
           params.client_socket_factory

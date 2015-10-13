@@ -1,3 +1,4 @@
+// Copyright (c) 2013 The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -42,6 +43,8 @@
 #include "net/proxy/proxy_info.h"
 #include "net/ssl/ssl_cert_request_info.h"
 #include "net/ssl/ssl_config_service.h"
+#include "net/stat_hub/stat_hub_api.h"
+#include "net/stat_hub/stat_hub_cmd_api.h"
 #include "net/url_request/http_user_agent_settings.h"
 #include "net/url_request/url_request.h"
 #include "net/url_request/url_request_backoff_manager.h"
@@ -426,6 +429,17 @@ void URLRequestHttpJob::DestroyTransaction() {
   receive_headers_end_ = base::TimeTicks();
 }
 
+static void updateUrlRequest(URLRequest& request, net::HttpRequestInfo& request_info) {
+    StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_CH_URL_REQUEST, SH_ACTION_WILL_START, 0);
+    if (cmd) {
+        cmd->AddParamAsString(request_info.url.spec().c_str());
+        cmd->AddParamAsString(request_info.extra_headers.ToString().c_str());
+        cmd->AddParamAsBool(false);
+        cmd->AddParamAsPtr((void*)request.context());
+        STAT_HUB_API(CmdCommit)(cmd);
+    }
+}
+
 void URLRequestHttpJob::StartTransaction() {
   // TODO(mmenke): Remove ScopedTracker below once crbug.com/456327 is fixed.
   tracked_objects::ScopedTracker tracking_profile(
@@ -491,6 +505,11 @@ void URLRequestHttpJob::StartTransactionInternal() {
   } else {
     DCHECK(request_->context()->http_transaction_factory());
 
+    if ((STAT_HUB_API(IsPreloaded)(request_info_.url.spec().c_str())&SH_PRELOADED_TO_DISKCACHE)) {
+        request_info_.load_flags |=  net::LOAD_PREFERRING_CACHE;
+        STAT_HUB_API(ReleasePreloaded)(request_info_.url.spec().c_str());
+    }
+
     rv = request_->context()->http_transaction_factory()->CreateTransaction(
         priority_, &transaction_);
 
@@ -515,6 +534,7 @@ void URLRequestHttpJob::StartTransactionInternal() {
 
       if (!throttling_entry_.get() ||
           !throttling_entry_->ShouldRejectRequest(*request_)) {
+        updateUrlRequest(*request_, request_info_);
         rv = transaction_->Start(
             &request_info_, start_callback_, request_->net_log());
         start_time_ = base::TimeTicks::Now();
@@ -944,6 +964,15 @@ void URLRequestHttpJob::OnStartCompleted(int result) {
       }
     }
 
+    std::string url_to_stat_hub = request_info_.url.spec();
+    StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_CH_URL_REQUEST, SH_ACTION_DID_START, 0);
+    if (cmd) {
+        cmd->AddParamAsString(url_to_stat_hub.c_str());
+        if (response_info_ && response_info_->headers.get()) {
+            cmd->AddParamAsBuf(response_info_->headers->raw_headers().data(), response_info_->headers->raw_headers().size());
+        }
+        STAT_HUB_API(CmdCommit)(cmd);
+    }
     SaveCookiesAndNotifyHeadersComplete(OK);
   } else if (IsCertificateError(result)) {
     // We encountered an SSL certificate error.

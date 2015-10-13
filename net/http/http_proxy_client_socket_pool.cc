@@ -1,3 +1,4 @@
+// Copyright (c) 2012, 2013, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -436,7 +437,8 @@ HttpProxyClientSocketPool::HttpProxyClientSocketPool(
     int max_sockets_per_group,
     TransportClientSocketPool* transport_pool,
     SSLClientSocketPool* ssl_pool,
-    NetLog* net_log)
+    NetLog* net_log,
+    HttpNetworkSession* network_session)
     : transport_pool_(transport_pool),
       ssl_pool_(ssl_pool),
       base_(this,
@@ -444,7 +446,8 @@ HttpProxyClientSocketPool::HttpProxyClientSocketPool(
             max_sockets_per_group,
             ClientSocketPool::unused_idle_socket_timeout(),
             ClientSocketPool::used_idle_socket_timeout(),
-            new HttpProxyConnectJobFactory(transport_pool, ssl_pool, net_log)) {
+            new HttpProxyConnectJobFactory(transport_pool, ssl_pool, net_log),
+            network_session) {
   // We should always have a |transport_pool_| except in unit tests.
   if (transport_pool_)
     base_.AddLowerLayeredPool(transport_pool_);

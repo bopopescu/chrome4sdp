@@ -1,5 +1,5 @@
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Copyright (c) 2014, 2015, The Linux Foundation. All rights reserved.
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -722,9 +722,6 @@ void RenderThreadImpl::Init() {
   // been initialized by the Zygote before this instance became a Renderer.
   media::InitializeMediaLibrary();
 
-  memory_pressure_listener_.reset(new base::MemoryPressureListener(
-      base::Bind(&RenderThreadImpl::OnMemoryPressure, base::Unretained(this))));
-
   is_gather_pixel_refs_enabled_ = false;
 
   int num_raster_threads = 0;
@@ -1073,6 +1070,8 @@ void RenderThreadImpl::EnsureWebKitInitialized() {
   blink_platform_impl_.reset(
       new RendererBlinkPlatformImpl(renderer_scheduler_.get()));
   blink::initialize(blink_platform_impl_.get());
+  memory_pressure_listener_.reset(new base::MemoryPressureListener(
+      base::Bind(&RenderThreadImpl::OnMemoryPressure, base::Unretained(this))));
 
   v8::Isolate* isolate = blink::mainThreadIsolate();
   isolate->SetCreateHistogramFunction(CreateHistogram);

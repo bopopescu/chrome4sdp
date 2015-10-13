@@ -1,3 +1,4 @@
+// Copyright (c) 2013, 2014, The Linux Foundation. All rights reserved.
 // Copyright 2013 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -12,6 +13,7 @@
 #include "content/public/browser/navigation_controller.h"
 #include "content/public/browser/ssl_host_state_delegate.h"
 #include "jni/NavigationControllerImpl_jni.h"
+#include "net/stat_hub/stat_hub_cmd_api.h"
 #include "ui/gfx/android/java_bitmap.h"
 
 using base::android::AttachCurrentThread;
@@ -180,6 +182,13 @@ void NavigationControllerAndroid::LoadUrl(
   DCHECK(url);
   NavigationController::LoadURLParams params(
       GURL(ConvertJavaStringToUTF8(env, url)));
+
+  StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_WK_PAGE, SH_ACTION_WILL_START_LOAD, 0);
+  if (NULL!=cmd) {
+    cmd->AddParamAsString(ConvertJavaStringToUTF8(env, url).c_str());
+    cmd->AddParamAsBool(true);
+    STAT_HUB_API(CmdCommit)(cmd);
+  }
 
   params.load_type =
       static_cast<NavigationController::LoadURLType>(load_url_type);
