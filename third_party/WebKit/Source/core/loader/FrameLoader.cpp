@@ -94,6 +94,11 @@
 #include "wtf/text/CString.h"
 #include "wtf/text/WTFString.h"
 
+#include "net/libnetxt/libnetxt_base.h"
+
+#undef LOG_TAG
+#define LOG_TAG "Pageload"
+
 using blink::WebURLRequest;
 
 namespace blink {
@@ -1359,6 +1364,15 @@ void FrameLoader::startLoad(FrameLoadRequest& frameLoadRequest, FrameLoadType ty
         client()->dispatchWillSubmitForm(frameLoadRequest.form());
 
     StatHub::pageLoadProgressReport(SH_PAGELOAD_PR_DID_START_LOAD, m_frame, (!m_frame->tree().parent()), 0, request.url().string().utf8().data());
+
+    if(isLoadingMainFrame())
+    {
+      Settings* settings = NULL;
+      if(NULL != m_frame->document() && (settings = m_frame->document()->settings()))
+      {
+        LIBNETXT_LOGI("FrameLoader - Renderer start loading URL: %s, view mode: %d", request.url().string().utf8().data(), (settings->scriptEnabled()?1:0));
+      }
+    }
 
     m_progressTracker->progressStarted();
     if (m_provisionalDocumentLoader->isClientRedirect())

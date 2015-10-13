@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2006 Samuel Weinig (sam.weinig@gmail.com)
  * Copyright (C) 2004, 2005, 2006, 2008 Apple Inc. All rights reserved.
+ * Copyright (c) 2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +39,10 @@
 #include "third_party/skia/include/core/SkCanvas.h"
 #include "wtf/PassRefPtr.h"
 #include "wtf/text/WTFString.h"
+#include "net/libnetxt/libnetxt_base.h"
+
+#undef LOG_TAG
+#define LOG_TAG "Pageload"
 
 namespace blink {
 
@@ -309,6 +314,16 @@ void BitmapImage::draw(SkCanvas* canvas, const SkPaint& paint, const FloatRect& 
 
     if (currentFrameIsLazyDecoded())
         PlatformInstrumentation::didDrawLazyPixelRef(image->uniqueID());
+
+    {
+      static bool s_firstDraw = true;
+      if(s_firstDraw)
+      {
+         LIBNETXT_LOGI("BitmapImage - First Pixel is Drawn!");
+         s_firstDraw = false;
+      }
+    //image->draw(ctxt, normSrcRect, normDstRect, compositeOp);
+    }
 
     if (ImageObserver* observer = imageObserver())
         observer->didDraw(this);
