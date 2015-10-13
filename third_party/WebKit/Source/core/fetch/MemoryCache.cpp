@@ -3,6 +3,7 @@
     Copyright (C) 2001 Dirk Mueller (mueller@kde.org)
     Copyright (C) 2002 Waldo Bastian (bastian@kde.org)
     Copyright (C) 2004, 2005, 2006, 2007, 2008 Apple Inc. All rights reserved.
+    Copyright (c) 2011-2015, The Linux Foundation. All rights reserved
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -26,6 +27,7 @@
 #include "core/fetch/ResourcePtr.h"
 #include "platform/Logging.h"
 #include "platform/TraceEvent.h"
+#include "platform/network/StatHub.h"
 #include "platform/weborigin/SecurityOrigin.h"
 #include "platform/weborigin/SecurityOriginHash.h"
 #include "public/platform/Platform.h"
@@ -678,6 +680,11 @@ MemoryCache::Statistics MemoryCache::getStatistics()
 
 void MemoryCache::evictResources()
 {
+    StatHubCmd cmd = StatHub::cmdCreate(SH_CMD_MM_CACHE_CLEAR);
+    if (cmd) {
+        StatHub::cmdCommit(cmd);
+    }
+
     while (true) {
         ResourceMapIndex::iterator resourceMapIter = m_resourceMaps.begin();
         if (resourceMapIter == m_resourceMaps.end())

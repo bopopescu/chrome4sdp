@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2006, 2007, 2008, 2010 Apple Inc. All rights reserved.
  * Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies)
+ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -69,6 +70,7 @@
 #include "core/page/WindowFeatures.h"
 #include "core/page/scrolling/ScrollingCoordinator.h"
 #include "platform/EventDispatchForbiddenScope.h"
+#include "platform/network/StatHub.h"
 #include "public/platform/Platform.h"
 #include "public/platform/WebScreenInfo.h"
 
@@ -1381,6 +1383,9 @@ void LocalDOMWindow::dispatchLoadEvent()
 
     TRACE_EVENT_INSTANT1("devtools.timeline", "MarkLoad", TRACE_EVENT_SCOPE_THREAD, "data", InspectorMarkLoadEvent::data(frame()));
     InspectorInstrumentation::loadEventFired(frame());
+    if (frame()) {
+         StatHub::pageLoadProgressReport(SH_PAGELOAD_PR_ON_LOAD, frame(), (!frame()->tree().parent()));
+    }
 }
 
 bool LocalDOMWindow::dispatchEvent(PassRefPtrWillBeRawPtr<Event> prpEvent, PassRefPtrWillBeRawPtr<EventTarget> prpTarget)

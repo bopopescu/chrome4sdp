@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 Apple Inc.  All rights reserved.
+ * Copyright (c) 2012, 2013, 2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -83,6 +84,7 @@ private:
     double m_progressNotificationTimeInterval;
     bool m_finalProgressChangedSent;
     double m_progressValue;
+    unsigned int m_progressValueNorm;
 
     HashMap<unsigned long, OwnPtr<ProgressItem>> m_progressItems;
 };

@@ -785,6 +785,8 @@
       'network/ResourceResponse.h',
       'network/ResourceTimingInfo.cpp',
       'network/ResourceTimingInfo.h',
+      'network/StatHub.cpp',
+      'network/StatHub.h',
       'network/WebSocketHandshakeRequest.cpp',
       'network/WebSocketHandshakeRequest.h',
       'network/WebSocketHandshakeResponse.cpp',

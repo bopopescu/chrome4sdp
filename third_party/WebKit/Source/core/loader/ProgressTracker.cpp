@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 Apple Inc.  All rights reserved.
+ * Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +37,7 @@
 #include "core/loader/FrameLoaderClient.h"
 #include "platform/Logging.h"
 #include "platform/network/ResourceResponse.h"
+#include "platform/network/StatHub.h"
 #include "wtf/CurrentTime.h"
 #include "wtf/text/CString.h"
 
@@ -80,6 +82,7 @@ ProgressTracker::ProgressTracker(LocalFrame* frame)
     , m_progressNotificationTimeInterval(0.1)
     , m_finalProgressChangedSent(false)
     , m_progressValue(0)
+    , m_progressValueNorm(0)
 {
 }
 
@@ -111,6 +114,7 @@ void ProgressTracker::reset()
     m_totalPageAndResourceBytesToLoad = 0;
     m_totalBytesReceived = 0;
     m_progressValue = 0;
+    m_progressValueNorm = 0;
     m_lastNotifiedProgressValue = 0;
     m_lastNotifiedProgressTime = 0;
     m_finalProgressChangedSent = false;
@@ -120,7 +124,10 @@ void ProgressTracker::progressStarted()
 {
     if (!m_frame->isLoading()) {
         reset();
+        StatHub::pageLoadProgressReport(SH_PAGELOAD_PR_PROGRESS_UPDATE,
+            m_frame, (!m_frame->tree().parent()), 0);
         m_progressValue = initialProgressValue;
+        m_progressValueNorm = (unsigned int)(m_progressValue*100);
         m_frame->loader().client()->didStartLoading(NavigationToDifferentDocument);
     }
     m_frame->setIsLoading(true);
@@ -145,6 +152,11 @@ void ProgressTracker::finishedParsing()
 
 void ProgressTracker::sendFinalProgress()
 {
+
+    bool isMainFrame = (!m_frame->tree().parent());
+    m_progressValueNorm = 100;
+    StatHub::pageLoadProgressReport(SH_PAGELOAD_PR_PROGRESS_UPDATE, m_frame, isMainFrame, m_progressValueNorm);
+
     if (!m_finalProgressChangedSent) {
         m_progressValue = 1;
         m_frame->loader().client()->progressEstimateChanged(m_progressValue);
@@ -249,6 +261,12 @@ void ProgressTracker::incrementProgress(unsigned long identifier, int length)
 
     double now = currentTime();
     double notifiedProgressTimeDelta = now - m_lastNotifiedProgressTime;
+
+    if ((unsigned int)(m_progressValue*100) != m_progressValueNorm) {
+        m_progressValueNorm = (unsigned int)(m_progressValue*100);
+        StatHub::pageLoadProgressReport(SH_PAGELOAD_PR_PROGRESS_UPDATE,
+            m_frame, (!m_frame->tree().parent()), m_progressValueNorm);
+    }
 
     double notificationProgressDelta = m_progressValue - m_lastNotifiedProgressValue;
     if (notificationProgressDelta >= m_progressNotificationInterval || notifiedProgressTimeDelta >= m_progressNotificationTimeInterval) {

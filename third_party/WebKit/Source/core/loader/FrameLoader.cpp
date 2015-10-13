@@ -6,6 +6,7 @@
  * Copyright (C) Research In Motion Limited 2009. All rights reserved.
  * Copyright (C) 2011 Kris Jordan <krisjordan@gmail.com>
  * Copyright (C) 2011 Google Inc. All rights reserved.
+ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -84,6 +85,7 @@
 #include "platform/UserGestureIndicator.h"
 #include "platform/network/HTTPParsers.h"
 #include "platform/network/ResourceRequest.h"
+#include "platform/network/StatHub.h"
 #include "platform/scroll/ScrollAnimator.h"
 #include "platform/weborigin/SecurityOrigin.h"
 #include "platform/weborigin/SecurityPolicy.h"
@@ -586,6 +588,7 @@ void FrameLoader::checkCompleted()
         if (m_frame->isMainFrame())
             m_frame->document()->viewportDescription().reportMobilePageStats(m_frame);
         client()->dispatchDidFinishLoad();
+        StatHub::pageLoadProgressReport(SH_PAGELOAD_PR_DID_FINISH_LOAD, m_frame, m_frame->isMainFrame());
     }
 
     Frame* parent = m_frame->tree().parent();
@@ -1221,6 +1224,7 @@ void FrameLoader::receivedMainResourceError(DocumentLoader* loader, const Resour
         if (!m_provisionalDocumentLoader && m_frame->isLoading()) {
             client()->dispatchDidFailLoad(error, historyCommitType);
             m_progressTracker->progressCompleted();
+            StatHub::pageLoadProgressReport(SH_PAGELOAD_PR_FAILD_LOAD, m_frame, m_frame->isMainFrame());
         }
     }
     checkCompleted();
@@ -1353,6 +1357,8 @@ void FrameLoader::startLoad(FrameLoadRequest& frameLoadRequest, FrameLoadType ty
 
     if (frameLoadRequest.form())
         client()->dispatchWillSubmitForm(frameLoadRequest.form());
+
+    StatHub::pageLoadProgressReport(SH_PAGELOAD_PR_DID_START_LOAD, m_frame, (!m_frame->tree().parent()), 0, request.url().string().utf8().data());
 
     m_progressTracker->progressStarted();
     if (m_provisionalDocumentLoader->isClientRedirect())

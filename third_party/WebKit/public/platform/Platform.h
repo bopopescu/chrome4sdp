@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
  * Copyright (C) 2012 Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,6 +107,7 @@ class WebServiceWorkerCacheStorage;
 class WebSocketHandle;
 class WebSpeechSynthesizer;
 class WebSpeechSynthesizerClient;
+class WebStatHub;
 class WebStorageNamespace;
 class WebSyncProvider;
 struct WebFloatPoint;
@@ -732,6 +734,9 @@ public:
     // Background Sync API------------------------------------------------------------
 
     virtual WebSyncProvider* backgroundSyncProvider() { return nullptr; }
+
+    // StatHub ------------------------------------------------------------
+    virtual WebStatHub* statHub() { return 0; }
 
 protected:
     BLINK_PLATFORM_EXPORT Platform();

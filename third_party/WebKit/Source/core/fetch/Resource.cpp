@@ -4,6 +4,7 @@
     Copyright (C) 2002 Waldo Bastian (bastian@kde.org)
     Copyright (C) 2006 Samuel Weinig (sam.weinig@gmail.com)
     Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Apple Inc. All rights reserved.
+    Copyright (c) 2011-2015, The Linux Foundation. All rights reserved
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -37,6 +38,7 @@
 #include "platform/Logging.h"
 #include "platform/SharedBuffer.h"
 #include "platform/TraceEvent.h"
+#include "platform/network/StatHub.h"
 #include "platform/weborigin/KURL.h"
 #include "public/platform/Platform.h"
 #include "wtf/CurrentTime.h"
@@ -178,6 +180,8 @@ Resource::Resource(const ResourceRequest& request, Type type)
 #endif
     memoryCache()->registerLiveResource(*this);
 
+    m_statHubHash = StatHub::hash(url());
+
     // Currently we support the metadata caching only for HTTP family.
     if (m_resourceRequest.url().protocolIsInHTTPFamily())
         m_cacheHandler = CacheHandler::create(this);
@@ -318,6 +322,17 @@ void Resource::finish()
     finishOnePart();
     if (!errorOccurred())
         m_status = Cached;
+
+    if (m_statHubHash) {
+        StatHubCmd cmd = StatHub::cmdCreate(SH_CMD_RESOURCE_DID_FINISH_LOAD);
+        if (cmd) {
+            StatHub::cmdAddParamAsUint32(cmd, m_statHubHash);
+            StatHub::cmdAddParamAsBool(cmd, !(m_response.cacheControlContainsNoCache() || m_response.cacheControlContainsNoStore()));
+            StatHub::cmdAddParamAsUint32(cmd, (unsigned int) type());
+            StatHub::cmdCommit(cmd);
+        }
+    }
+
 }
 
 bool Resource::passesAccessControlCheck(SecurityOrigin* securityOrigin) const

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2006, 2007, 2008 Apple Inc. All rights reserved.
  * Copyright (C) 2011 Google Inc. All rights reserved.
+ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -67,6 +68,7 @@
 #include "platform/mhtml/MHTMLArchive.h"
 #include "platform/network/ContentSecurityPolicyResponseHeaders.h"
 #include "platform/plugins/PluginData.h"
+#include "platform/network/StatHub.h"
 #include "platform/weborigin/SchemeRegistry.h"
 #include "platform/weborigin/SecurityPolicy.h"
 #include "public/platform/Platform.h"
@@ -257,6 +259,12 @@ void DocumentLoader::notifyFinished(Resource* resource)
     ASSERT(m_mainResource);
 
     RefPtrWillBeRawPtr<DocumentLoader> protect(this);
+
+    StatHubCmd cmd = StatHub::cmdCreate(SH_CMD_MAIN_URL_DID_FINISH);
+    if (NULL!=cmd) {
+       StatHub::cmdAddParamAsString(cmd, m_request.url().string().utf8().data());
+       StatHub::cmdCommit(cmd);
+    }
 
     if (!m_mainResource->errorOccurred() && !m_mainResource->wasCanceled()) {
         finishedLoading(m_mainResource->loadFinishTime());

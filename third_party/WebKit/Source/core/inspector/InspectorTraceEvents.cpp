@@ -1,4 +1,5 @@
 // Copyright 2014 The Chromium Authors. All rights reserved.
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -29,6 +30,7 @@
 #include "platform/graphics/GraphicsLayer.h"
 #include "platform/network/ResourceRequest.h"
 #include "platform/network/ResourceResponse.h"
+#include "platform/network/StatHub.h"
 #include "platform/weborigin/KURL.h"
 #include "wtf/Vector.h"
 #include <inttypes.h>
@@ -393,7 +395,8 @@ PassRefPtr<TraceEvent::ConvertableToTraceFormat> InspectorScrollInvalidationTrac
 
 PassRefPtr<TraceEvent::ConvertableToTraceFormat> InspectorSendRequestEvent::data(unsigned long identifier, LocalFrame* frame, const ResourceRequest& request)
 {
-    String requestId = IdentifiersFactory::requestId(identifier);
+    identifier = StatHub::timeLineIdentifier(request.url(), identifier);
+    String requestId = StatHub::timeLineRequestId(identifier);
 
     RefPtr<TracedValue> value = TracedValue::create();
     value->setString("requestId", requestId);
@@ -406,7 +409,7 @@ PassRefPtr<TraceEvent::ConvertableToTraceFormat> InspectorSendRequestEvent::data
 
 PassRefPtr<TraceEvent::ConvertableToTraceFormat> InspectorReceiveResponseEvent::data(unsigned long identifier, LocalFrame* frame, const ResourceResponse& response)
 {
-    String requestId = IdentifiersFactory::requestId(identifier);
+    String requestId = StatHub::timeLineRequestId(identifier);
 
     RefPtr<TracedValue> value = TracedValue::create();
     value->setString("requestId", requestId);
@@ -418,7 +421,7 @@ PassRefPtr<TraceEvent::ConvertableToTraceFormat> InspectorReceiveResponseEvent::
 
 PassRefPtr<TraceEvent::ConvertableToTraceFormat> InspectorReceiveDataEvent::data(unsigned long identifier, LocalFrame* frame, int encodedDataLength)
 {
-    String requestId = IdentifiersFactory::requestId(identifier);
+    String requestId = StatHub::timeLineRequestId(identifier);
 
     RefPtr<TracedValue> value = TracedValue::create();
     value->setString("requestId", requestId);
@@ -429,7 +432,7 @@ PassRefPtr<TraceEvent::ConvertableToTraceFormat> InspectorReceiveDataEvent::data
 
 PassRefPtr<TraceEvent::ConvertableToTraceFormat> InspectorResourceFinishEvent::data(unsigned long identifier, double finishTime, bool didFail)
 {
-    String requestId = IdentifiersFactory::requestId(identifier);
+    String requestId = StatHub::timeLineRequestId(identifier);
 
     RefPtr<TracedValue> value = TracedValue::create();
     value->setString("requestId", requestId);

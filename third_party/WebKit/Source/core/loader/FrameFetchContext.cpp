@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2013 Google Inc. All rights reserved.
+ * Copyright (c) 2013-2015, The Linux Foundation. All rights reserved
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -61,7 +62,10 @@
 #include "platform/Logging.h"
 #include "platform/network/ResourceTimingInfo.h"
 #include "platform/weborigin/SchemeRegistry.h"
+#include "platform/network/StatHub.h"
 #include "platform/weborigin/SecurityPolicy.h"
+#include <wtf/text/CString.h>
+#include <wtf/text/StringBuilder.h>
 
 namespace blink {
 
@@ -220,6 +224,24 @@ void FrameFetchContext::dispatchWillSendRequest(unsigned long identifier, Resour
     frame()->loader().client()->dispatchWillSendRequest(m_documentLoader, identifier, request, redirectResponse);
     TRACE_EVENT_INSTANT1("devtools.timeline", "ResourceSendRequest", TRACE_EVENT_SCOPE_THREAD, "data", InspectorSendRequestEvent::data(identifier, frame(), request));
     InspectorInstrumentation::willSendRequest(frame(), identifier, ensureLoaderForNotifications(), request, redirectResponse, initiatorInfo);
+    StatHubCmd cmd = StatHub::cmdCreate(SH_CMD_RESOURCE_WILL_SEND_REQUEST);
+    if (cmd) {
+        StringBuilder stringBuilder;
+        String separator = ": ";
+
+        HTTPHeaderMap::const_iterator end = request.httpHeaderFields().end();
+        for (HTTPHeaderMap::const_iterator it = request.httpHeaderFields().begin(); it != end; ++it) {
+            stringBuilder.append(it->key);
+            stringBuilder.append(separator);
+            stringBuilder.append(it->value);
+            stringBuilder.append('\n');
+        }
+
+        StatHub::cmdAddParamAsString(cmd, request.url().string().utf8().data());
+        StatHub::cmdAddParamAsString(cmd, request.httpMethod().utf8().data());
+        StatHub::cmdAddParamAsString(cmd, stringBuilder.toString().utf8().data());
+        StatHub::cmdCommit(cmd);
+    }
 }
 
 void FrameFetchContext::dispatchDidReceiveResponse(unsigned long identifier, const ResourceResponse& response, ResourceLoader* resourceLoader)

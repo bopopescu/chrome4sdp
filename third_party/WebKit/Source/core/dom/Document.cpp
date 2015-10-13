@@ -8,6 +8,7 @@
  * Copyright (C) 2008, 2009, 2011, 2012 Google Inc. All rights reserved.
  * Copyright (C) 2010 Nokia Corporation and/or its subsidiary(-ies)
  * Copyright (C) Research In Motion Limited 2010-2011. All rights reserved.
+ * Copyright (c) 2011-2015, The Linux Foundation. All rights reserved
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -205,6 +206,7 @@
 #include "platform/TraceEvent.h"
 #include "platform/network/ContentSecurityPolicyParsers.h"
 #include "platform/network/HTTPParsers.h"
+#include "platform/network/StatHub.h"
 #include "platform/scroll/ScrollbarTheme.h"
 #include "platform/text/PlatformLocale.h"
 #include "platform/text/SegmentedString.h"
@@ -2848,6 +2850,14 @@ void Document::setURL(const KURL& url)
     const KURL& newURL = url.isEmpty() ? blankURL() : url;
     if (newURL == m_url)
         return;
+
+    if (newURL.protocolIsInHTTPFamily()) {
+        StatHubCmd cmd = StatHub::cmdCreate(SH_CMD_MAIN_URL_WILL_START);
+        if (cmd) {
+            StatHub::cmdAddParamAsString(cmd, newURL.string().utf8().data());
+            StatHub::cmdCommit(cmd);
+        }
+    }
 
     m_url = newURL;
     updateBaseURL();
