@@ -254,6 +254,9 @@ bool IsGpuRasterizationEnabled() {
   else if (command_line.HasSwitch(switches::kEnableGpuRasterization))
     return true;
 
+  if (base::SysInfo::IsLowEndDevice())
+    return false;
+
   if (IsGpuRasterizationBlacklisted()) {
     return false;
   }
