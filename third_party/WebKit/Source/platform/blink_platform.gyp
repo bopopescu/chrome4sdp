@@ -177,6 +177,20 @@
   {
     'target_name': 'blink_platform',
     'type': '<(component)',
+    'variables': {
+      'variables': {
+        'prebuilt%': '<!(python <(DEPTH)/build/dir_exists.py ../../../skia/src/lib/target/)',
+        'skia_swe_source%': '<!(python <(DEPTH)/build/dir_exists.py ../../../skia/src/ext/)',
+     },
+     'prebuilt%': '<(prebuilt)',
+     'skia_swe_source%': '<(skia_swe_source)',
+     'more_defines':[],
+     'conditions' : [
+       ['prebuilt == "True" or skia_swe_source == "True"', {
+         'more_defines':['USE_SKCANVAS_PLAYBACK=1'],
+       }],
+      ],
+     },
     'dependencies': [
       '../config.gyp:config',
       '../wtf/wtf.gyp:wtf',
@@ -213,6 +227,7 @@
       'COMPONENT_BUILD',
       'BLINK_PLATFORM_IMPLEMENTATION=1',
       'INSIDE_BLINK',
+      '>@(more_defines)',
     ],
     'include_dirs': [
       '<(angle_path)/include',

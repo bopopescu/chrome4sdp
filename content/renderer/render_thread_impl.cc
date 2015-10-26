@@ -1403,6 +1403,32 @@ RenderThreadImpl::CreateOffscreenContext3d() {
 }
 
 scoped_refptr<cc_blink::ContextProviderWebContext>
+RenderThreadImpl::OffscreenCanvasContextProvider() {
+  DCHECK(IsMainThread());
+  if (!offscreen_canvas_contexts_.get() ||
+      offscreen_canvas_contexts_->DestroyedOnMainThread()) {
+    offscreen_canvas_contexts_ = NULL;
+#if defined(OS_ANDROID)
+    SynchronousCompositorFactory* factory =
+        SynchronousCompositorFactory::GetInstance();
+    if (factory && factory->OverrideWithFactory()) {
+      offscreen_canvas_contexts_ = factory->CreateOffscreenContextProvider(
+          GetOffscreenAttribs(), "Offscreen-CanvasThread");
+    }
+#endif
+    if (!offscreen_canvas_contexts_.get()) {
+      offscreen_canvas_contexts_ = ContextProviderCommandBuffer::Create(
+          CreateOffscreenContext3d(), OFFSCREEN_CANVASTHREAD_CONTEXT);
+    }
+    if (offscreen_canvas_contexts_.get() &&
+        !offscreen_canvas_contexts_->BindToCurrentThread())
+      offscreen_canvas_contexts_ = NULL;
+  }
+  return offscreen_canvas_contexts_;
+}
+
+
+scoped_refptr<cc_blink::ContextProviderWebContext>
 RenderThreadImpl::SharedMainThreadContextProvider() {
   DCHECK(IsMainThread());
   if (!shared_main_thread_contexts_.get() ||

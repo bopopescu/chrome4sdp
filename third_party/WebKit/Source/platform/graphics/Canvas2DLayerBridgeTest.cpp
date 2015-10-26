@@ -67,6 +67,11 @@ public:
         return 0;
     }
 
+    bool bindToCurrentThread() override
+    {
+        return true;
+    }
+
 private:
     WebGraphicsContext3D* m_context3d;
 };

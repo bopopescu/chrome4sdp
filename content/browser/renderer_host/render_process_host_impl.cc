@@ -1430,6 +1430,7 @@ void RenderProcessHostImpl::PropagateBrowserCommandLineToRenderer(
 #if defined(OS_CHROMEOS)
     switches::kDisableVaapiAcceleratedVideoEncode,
 #endif
+    switches::kDisableParallelCanvasMode,
     switches::kDisableWebRefiner,
   };
   renderer_cmd->CopySwitchesFrom(browser_cmd, kSwitchNames,

@@ -1627,6 +1627,11 @@ ImageData* CanvasRenderingContext2D::getImageData(float sx, float sy, float sw, 
     if (!logicalRect.isExpressibleAsIntRect())
         return nullptr;
 
+    //getImageData will call glReadPixels in accelerated mode
+    //This isn't likely to be used by animated performance oriented canvas applications
+    //It doesn't make sense to use parallel canvas feature in these instances
+    canvas()->disableParallelCanvas();
+
     IntRect imageDataRect = enclosingIntRect(logicalRect);
     ImageBuffer* buffer = canvas()->buffer();
     if (!buffer || isContextLost())
@@ -1649,6 +1654,10 @@ void CanvasRenderingContext2D::putImageData(ImageData* data, float dx, float dy)
 
 void CanvasRenderingContext2D::putImageData(ImageData* data, float dx, float dy, float dirtyX, float dirtyY, float dirtyWidth, float dirtyHeight)
 {
+    //putImageData needs to access pixel data directly
+    //This isn't likely to be used by animated performance oriented canvas applications
+    //It doesn't make sense to use parallel canvas feature in these instances
+    canvas()->disableParallelCanvas();
     ImageBuffer* buffer = canvas()->buffer();
     if (!buffer)
         return;

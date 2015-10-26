@@ -479,6 +479,8 @@
       'graphics/BitmapImage.cpp',
       'graphics/BitmapImage.h',
       'graphics/Canvas2DImageBufferSurface.h',
+      'graphics/Canvas2DLayerAsync.cpp',
+      'graphics/Canvas2DLayerAsync.h',
       'graphics/Canvas2DLayerBridge.cpp',
       'graphics/Canvas2DLayerBridge.h',
       'graphics/Color.cpp',

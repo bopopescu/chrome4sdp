@@ -99,6 +99,11 @@ void ImageBuffer::disableDeferral() const
     return m_surface->disableDeferral();
 }
 
+void ImageBuffer::disableParallelCanvas() const
+{
+    return m_surface->disableParallelCanvas();
+}
+
 bool ImageBuffer::writePixels(const SkImageInfo& info, const void* pixels, size_t rowBytes, int x, int y)
 {
     return m_surface->writePixels(info, pixels, rowBytes, x, y);

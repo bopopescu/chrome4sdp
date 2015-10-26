@@ -121,6 +121,7 @@ public:
 
     SkCanvas* drawingCanvas() const;
     void disableDeferral() const;
+    void disableParallelCanvas() const;
     SkCanvas* existingDrawingCanvas() const;
 
     void setRenderingContext(PassOwnPtrWillBeRawPtr<CanvasRenderingContext>);

@@ -75,6 +75,8 @@ const int MaxCanvasArea = 32768 * 8192; // Maximum canvas area in CSS pixels
 // In Skia, we will also limit width/height to 32767.
 const int MaxSkiaDim = 32767; // Maximum width/height in CSS pixels.
 
+static const int MinCanvasSizeForThreadedRendering = 80 * 81;
+
 bool canCreateImageBuffer(const IntSize& size)
 {
     if (size.isEmpty())
@@ -583,6 +585,11 @@ bool HTMLCanvasElement::shouldAccelerate(const IntSize& size) const
     }
 
     // Do not use acceleration for small canvas.
+    if (blink::Platform::current()->isThreadedCanvasRenderingEnabled()) {
+        if (canvasPixelCount < MinCanvasSizeForThreadedRendering)
+            return false;
+    }
+
     if (canvasPixelCount < settings->minimumAccelerated2dCanvasSize())
         return false;
 
@@ -754,6 +761,12 @@ void HTMLCanvasElement::updateExternallyAllocatedMemory() const
 SkCanvas* HTMLCanvasElement::drawingCanvas() const
 {
     return buffer() ? m_imageBuffer->canvas() : nullptr;
+}
+
+void HTMLCanvasElement::disableParallelCanvas() const
+{
+    if (buffer())
+        m_imageBuffer->disableParallelCanvas();
 }
 
 void HTMLCanvasElement::disableDeferral() const

@@ -93,6 +93,7 @@ public:
 
     SkCanvas* canvas() const;
     void disableDeferral() const;
+    void disableParallelCanvas() const;
 
     // Called at the end of a task that rendered a whole frame
     void finalizeFrame(const FloatRect &dirtyRect);

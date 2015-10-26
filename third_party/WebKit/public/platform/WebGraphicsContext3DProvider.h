@@ -45,6 +45,7 @@ public:
 
     virtual WebGraphicsContext3D* context3d() = 0;
     virtual GrContext* grContext() = 0;
+    virtual bool bindToCurrentThread() = 0;
 };
 
 } // namespace blink

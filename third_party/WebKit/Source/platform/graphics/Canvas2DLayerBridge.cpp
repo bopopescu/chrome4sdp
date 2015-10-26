@@ -32,6 +32,7 @@
 #include "SkSurface.h"
 
 #include "platform/TraceEvent.h"
+#include "platform/graphics/Canvas2DLayerAsync.h"
 #include "platform/graphics/GraphicsLayer.h"
 #include "platform/graphics/ImageBuffer.h"
 #include "public/platform/Platform.h"
@@ -42,6 +43,7 @@
 #include "third_party/skia/include/core/SkPictureRecorder.h"
 #include "third_party/skia/include/core/SkSurface.h"
 #include "wtf/RefCountedLeakCounter.h"
+#include "wtf/TemporaryChange.h"
 
 namespace {
 enum {
@@ -83,6 +85,11 @@ PassRefPtr<Canvas2DLayerBridge> Canvas2DLayerBridge::create(const IntSize& size,
         return nullptr;
     RefPtr<Canvas2DLayerBridge> layerBridge;
     layerBridge = adoptRef(new Canvas2DLayerBridge(contextProvider.release(), surface.release(), msaaSampleCount, opacityMode));
+#if defined(USE_SKCANVAS_PLAYBACK)
+    if (blink::Platform::current()->isThreadedCanvasRenderingEnabled())
+        layerBridge->m_asyncPlayback = AsyncCanvasPlayback::create(layerBridge.get(),size,msaaSampleCount);
+#endif
+    layerBridge->m_playbackInRenderThread = layerBridge->m_asyncPlayback ? true : false;
     return layerBridge.release();
 }
 
@@ -103,6 +110,9 @@ Canvas2DLayerBridge::Canvas2DLayerBridge(PassOwnPtr<WebGraphicsContext3DProvider
     , m_lastFilter(GL_LINEAR)
     , m_opacityMode(opacityMode)
     , m_size(m_surface->width(), m_surface->height())
+    , m_playbackInRenderThread(false)
+    , m_asyncPlayback(0)
+    , m_ignoreImmediateDrawNotification(false)
 {
     ASSERT(m_surface);
     ASSERT(m_contextProvider);
@@ -125,6 +135,12 @@ Canvas2DLayerBridge::~Canvas2DLayerBridge()
 {
     ASSERT(m_destructionInProgress);
     m_layer.clear();
+    if (m_playbackInRenderThread) {
+        m_asyncPlayback->waitForPlaybackTaskComplete();
+        m_asyncPlayback->threadSafeDestroy();
+        m_playbackInRenderThread = false;
+        m_asyncPlayback = 0;
+    }
     ASSERT(m_mailboxes.size() == 0);
 #ifndef NDEBUG
     canvas2DLayerBridgeInstanceCounter.decrement();
@@ -148,8 +164,34 @@ SkCanvas* Canvas2DLayerBridge::canvas()
     return m_recorder->getRecordingCanvas();
 }
 
+RefPtr<SkPicture> Canvas2DLayerBridge::recording()
+{
+    if (m_picture.get())
+        return m_picture.release();
+    else
+        return RefPtr<SkPicture>();
+}
+
+void Canvas2DLayerBridge::disableParallelCanvas()
+{
+    if (m_playbackInRenderThread) {
+
+        flushImmediate();
+        m_isDeferralEnabled = false;
+        m_haveRecordedDrawCommands = false;
+        if (prepareForImmediateDraw()) {
+            //Fall out of || canvas
+            m_playbackInRenderThread = false;
+        }
+        m_isDeferralEnabled = true;
+        return;
+    }
+}
+
 void Canvas2DLayerBridge::disableDeferral()
 {
+    if (m_playbackInRenderThread)
+        disableParallelCanvas();
     // Disabling deferral is permanent: once triggered by disableDeferral()
     // we stay in immediate mode indefinitely. This is a performance heuristic
     // that significantly helps a number of use cases. The rationale is that if
@@ -180,12 +222,20 @@ void Canvas2DLayerBridge::setImageBuffer(ImageBuffer* imageBuffer)
 void Canvas2DLayerBridge::beginDestruction()
 {
     ASSERT(!m_destructionInProgress);
+    if (m_playbackInRenderThread)
+        m_asyncPlayback->waitForPlaybackTaskComplete();
+    TemporaryChange<bool> change(m_ignoreImmediateDrawNotification, true);
     setRateLimitingEnabled(false);
     m_recorder.clear();
     m_imageBuffer = nullptr;
     m_destructionInProgress = true;
     setIsHidden(true);
     GraphicsLayer::unregisterContentsLayer(m_layer->layer());
+    if (m_playbackInRenderThread) {
+        m_asyncPlayback->threadSafeDestroy();
+        m_playbackInRenderThread = false;
+        m_asyncPlayback = 0;
+    }
     m_surface.clear();
     m_layer->clearTexture();
     // Orphaning the layer is required to trigger the recration of a new layer
@@ -252,6 +302,14 @@ void Canvas2DLayerBridge::setRateLimitingEnabled(bool enabled)
     }
 }
 
+bool Canvas2DLayerBridge::prepareForImmediateDraw()
+{
+    TRACE_EVENT0("cc", "Canvas2DLayerBridge::prepareForImmediateDraw");
+    if (m_asyncPlayback && !m_ignoreImmediateDrawNotification)
+        return m_asyncPlayback->prepareForImmediateDraw();
+    return false;
+}
+
 void Canvas2DLayerBridge::flushRecordingOnly()
 {
     ASSERT(!m_destructionInProgress);
@@ -265,12 +323,37 @@ void Canvas2DLayerBridge::flushRecordingOnly()
     }
 }
 
+void Canvas2DLayerBridge::flushImmediate() {
+    TRACE_EVENT0("cc", "Canvas2DLayerBridge::flushImmediate");
+    if (m_haveRecordedDrawCommands && m_playbackInRenderThread) {
+        TRACE_EVENT0("cc", "Canvas2DLayerBridge::flush");
+        m_picture = adoptRef(m_recorder->endRecording());
+
+        m_asyncPlayback->schedulePlayback();
+        if (m_isDeferralEnabled)
+            startRecording();
+        m_haveRecordedDrawCommands = false;
+        m_asyncPlayback->waitForPlaybackTaskComplete();
+    }
+}
+
 void Canvas2DLayerBridge::flush()
 {
+    TRACE_EVENT0("cc", "Canvas2DLayerBridge::flush");
     if (!m_surface)
         return;
-    flushRecordingOnly();
-    m_surface->getCanvas()->flush();
+    if (m_haveRecordedDrawCommands && m_playbackInRenderThread) {
+        TRACE_EVENT0("cc", "Canvas2DLayerBridge::flush");
+        m_picture = adoptRef(m_recorder->endRecording());
+
+        m_asyncPlayback->schedulePlayback();
+        if (m_isDeferralEnabled)
+            startRecording();
+        m_haveRecordedDrawCommands = false;
+    } else if (!m_playbackInRenderThread) {
+        flushRecordingOnly();
+        m_surface->getCanvas()->flush();
+   }
 }
 
 void Canvas2DLayerBridge::flushGpu()
@@ -358,7 +441,18 @@ bool Canvas2DLayerBridge::prepareMailbox(WebExternalTextureMailbox* outMailbox, 
 
     WebGraphicsContext3D* webContext = context();
 
-    RefPtr<SkImage> image = newImageSnapshot();
+    // Release to skia textures that were previouosly released by the
+    // compositor. We do this before acquiring the next snapshot in
+    // order to cap maximum gpu memory consumption.
+    TemporaryChange<bool> change(m_ignoreImmediateDrawNotification, true);
+    SkImage* playbackSnapshot = 0;
+    if (m_playbackInRenderThread && !m_asyncPlayback->m_inImmediateFlushMode) {
+        playbackSnapshot = m_asyncPlayback->acquirePlaybackImageSnapshot();
+        // Early exit if canvas was not drawn to since last prepareMailbox
+        if (!playbackSnapshot)
+            return false;
+    }
+    RefPtr<SkImage> image = playbackSnapshot ? adoptRef(playbackSnapshot) : newImageSnapshot();
 
     // Early exit if canvas was not drawn to since last prepareMailbox
     GLenum filter = m_filterQuality == kNone_SkFilterQuality ? GL_NEAREST : GL_LINEAR;
@@ -389,7 +483,10 @@ bool Canvas2DLayerBridge::prepareMailbox(WebExternalTextureMailbox* outMailbox, 
     // Because of texture sharing with the compositor, we must invalidate
     // the state cached in skia so that the deferred copy on write
     // in SkSurface_Gpu does not make any false assumptions.
-    mailboxInfo.m_image->getTexture()->textureParamsModified();
+    if (!playbackSnapshot)
+        mailboxInfo.m_image->getTexture()->textureParamsModified();
+    else
+        mailboxInfo.m_releaseInPlaybackThread = true;
 
     webContext->bindTexture(GL_TEXTURE_2D, mailboxInfo.m_image->getTexture()->getTextureHandle());
     webContext->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
@@ -421,7 +518,9 @@ bool Canvas2DLayerBridge::prepareMailbox(WebExternalTextureMailbox* outMailbox, 
     webContext->bindTexture(GL_TEXTURE_2D, 0);
     // Because we are changing the texture binding without going through skia,
     // we must dirty the context.
-    grContext->resetContext(kTextureBinding_GrGLBackendState);
+    if (!playbackSnapshot) {
+        grContext->resetContext(kTextureBinding_GrGLBackendState);
+    }
 
     *outMailbox = mailboxInfo.m_mailbox;
     return true;
@@ -440,6 +539,11 @@ void Canvas2DLayerBridge::mailboxReleased(const WebExternalTextureMailbox& mailb
     while (true) {
         --releasedMailboxInfo;
         if (nameEquals(releasedMailboxInfo->m_mailbox, mailbox)) {
+            if (m_asyncPlayback && releasedMailboxInfo->m_releaseInPlaybackThread) {
+                m_asyncPlayback->releasePlaybackImageSnapshot(mailbox.syncPoint, releasedMailboxInfo->m_image.release());
+                releasedMailboxInfo->m_mailbox.syncPoint = 0;
+                releasedMailboxInfo->m_releaseInPlaybackThread = false;
+            }
             break;
         }
         if (releasedMailboxInfo == firstMailbox) {
@@ -491,12 +595,14 @@ WebLayer* Canvas2DLayerBridge::layer() const
 
 void Canvas2DLayerBridge::didDraw()
 {
+    TRACE_EVENT0("cc", "Canvas2DLayerBridge::didDraw");
     if (m_isDeferralEnabled)
         m_haveRecordedDrawCommands = true;
 }
 
 void Canvas2DLayerBridge::finalizeFrame(const FloatRect &dirtyRect)
 {
+    TRACE_EVENT0("cc", "Canvas2DLayerBridge::finalizeFrame");
     ASSERT(!m_destructionInProgress);
     m_layer->layer()->invalidateRect(enclosingIntRect(dirtyRect));
     m_framesPending++;
@@ -505,7 +611,7 @@ void Canvas2DLayerBridge::finalizeFrame(const FloatRect &dirtyRect)
         // non-discardable multi-frame backlog of draw commands.
         setRateLimitingEnabled(true);
     }
-    if (m_rateLimitingEnabled) {
+    if (m_rateLimitingEnabled || m_playbackInRenderThread) {
         flush();
     }
 }
@@ -514,7 +620,8 @@ PassRefPtr<SkImage> Canvas2DLayerBridge::newImageSnapshot()
 {
     if (!checkSurfaceValid())
         return nullptr;
-    flush();
+    if (!m_playbackInRenderThread)
+        flush();
     // A readback operation may alter the texture parameters, which may affect
     // the compositor's behavior. Therefore, we must trigger copy-on-write
     // even though we are not technically writing to the texture, only to its
@@ -532,6 +639,7 @@ Canvas2DLayerBridge::MailboxInfo::MailboxInfo(const MailboxInfo& other) {
     memcpy(&m_mailbox, &other.m_mailbox, sizeof(m_mailbox));
     m_image = other.m_image;
     m_parentLayerBridge = other.m_parentLayerBridge;
+    m_releaseInPlaybackThread = other.m_releaseInPlaybackThread;
 }
 
 } // namespace blink

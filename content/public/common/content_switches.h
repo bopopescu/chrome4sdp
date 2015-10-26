@@ -31,6 +31,7 @@ CONTENT_EXPORT extern const char kDisable3DAPIs[];
 CONTENT_EXPORT extern const char kDisableBlinkFeatures[];
 CONTENT_EXPORT extern const char kDisableAccelerated2dCanvas[];
 CONTENT_EXPORT extern const char kDisableAcceleratedJpegDecoding[];
+CONTENT_EXPORT extern const char kDisableParallelCanvasMode[];
 CONTENT_EXPORT extern const char kDisableAcceleratedMjpegDecode[];
 CONTENT_EXPORT extern const char kDisableWebRefiner[];
 CONTENT_EXPORT extern const char kDisableAcceleratedVideoDecode[];

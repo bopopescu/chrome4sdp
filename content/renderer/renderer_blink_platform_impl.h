@@ -107,6 +107,7 @@ class CONTENT_EXPORT RendererBlinkPlatformImpl : public BlinkPlatformImpl {
       const blink::WebString& origin_identifier);
   virtual blink::WebFileSystem* fileSystem();
   virtual bool canAccelerate2dCanvas();
+  virtual bool isThreadedCanvasRenderingEnabled();
   virtual bool isThreadedCompositingEnabled();
   virtual bool isThreadedAnimationEnabled();
   virtual double audioHardwareSampleRate();
@@ -145,6 +146,8 @@ class CONTENT_EXPORT RendererBlinkPlatformImpl : public BlinkPlatformImpl {
       blink::WebGLInfo* gl_info);
   virtual blink::WebGraphicsContext3DProvider*
       createSharedOffscreenGraphicsContext3DProvider();
+  virtual blink::WebGraphicsContext3DProvider*
+      createCanvasOffscreenGraphicsContext3DProvider();
   virtual blink::WebCompositorSupport* compositorSupport();
   virtual blink::WebString convertIDNToUnicode(
       const blink::WebString& host, const blink::WebString& languages);

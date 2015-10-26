@@ -64,6 +64,9 @@ const char kDisable3DAPIs[]                 = "disable-3d-apis";
 // Disable gpu-accelerated 2d canvas.
 const char kDisableAccelerated2dCanvas[]    = "disable-accelerated-2d-canvas";
 
+// Disable threaded canvas rendering.
+const char kDisableParallelCanvasMode[]     = "disable-parallel-canvas-mode";
+
 // Disable hardware acceleration of mjpeg decode for captured frame, where
 // available.
 const char kDisableAcceleratedMjpegDecode[] =

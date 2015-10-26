@@ -119,6 +119,12 @@ void RecordingImageBufferSurface::disableDeferral()
         fallBackToRasterCanvas();
 }
 
+void RecordingImageBufferSurface::disableParallelCanvas()
+{
+    if (!m_fallbackSurface)
+        fallBackToRasterCanvas();
+}
+
 PassRefPtr<SkPicture> RecordingImageBufferSurface::getPicture()
 {
     if (m_fallbackSurface)

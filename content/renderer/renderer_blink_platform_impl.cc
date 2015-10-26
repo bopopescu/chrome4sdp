@@ -647,6 +647,10 @@ bool RendererBlinkPlatformImpl::canAccelerate2dCanvas() {
   return host->gpu_info().SupportsAccelerated2dCanvas();
 }
 
+bool RendererBlinkPlatformImpl::isThreadedCanvasRenderingEnabled() {
+  return !base::CommandLine::ForCurrentProcess()->HasSwitch(switches::kDisableParallelCanvasMode);
+}
+
 bool RendererBlinkPlatformImpl::isThreadedCompositingEnabled() {
   RenderThreadImpl* thread = RenderThreadImpl::current();
   // thread can be NULL in tests.
@@ -1023,6 +1027,17 @@ RendererBlinkPlatformImpl::createSharedOffscreenGraphicsContext3DProvider() {
   scoped_refptr<cc_blink::ContextProviderWebContext> provider =
       RenderThreadImpl::current()->SharedMainThreadContextProvider();
   if (!provider.get())
+    return NULL;
+  return new WebGraphicsContext3DProviderImpl(provider);
+}
+
+//------------------------------------------------------------------------------
+
+blink::WebGraphicsContext3DProvider* RendererBlinkPlatformImpl::
+           createCanvasOffscreenGraphicsContext3DProvider() {
+  scoped_refptr<cc_blink::ContextProviderWebContext> provider =
+      RenderThreadImpl::current()->OffscreenCanvasContextProvider();
+  if (!provider)
     return NULL;
   return new WebGraphicsContext3DProviderImpl(provider);
 }

@@ -334,6 +334,8 @@ class CONTENT_EXPORT RenderThreadImpl
   scoped_refptr<media::GpuVideoAcceleratorFactories> GetGpuFactories();
 
   scoped_refptr<cc_blink::ContextProviderWebContext>
+  OffscreenCanvasContextProvider();
+  scoped_refptr<cc_blink::ContextProviderWebContext>
   SharedMainThreadContextProvider();
 
   // AudioRendererMixerManager instance which manages renderer side mixer
@@ -590,6 +592,9 @@ class CONTENT_EXPORT RenderThreadImpl
 
   scoped_refptr<cc_blink::ContextProviderWebContext>
       shared_main_thread_contexts_;
+
+  scoped_refptr<cc_blink::ContextProviderWebContext>
+      offscreen_canvas_contexts_;
 
   base::ObserverList<RenderProcessObserver> observers_;
 

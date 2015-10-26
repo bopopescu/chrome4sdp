@@ -23,4 +23,8 @@ GrContext* WebGraphicsContext3DProviderImpl::grContext() {
   return provider_->GrContext();
 }
 
+bool WebGraphicsContext3DProviderImpl::bindToCurrentThread() {
+  return provider_->BindToCurrentThread();
+}
+
 }  // namespace content

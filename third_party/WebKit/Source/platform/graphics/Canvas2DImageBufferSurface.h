@@ -59,6 +59,7 @@ public:
     void willOverwriteCanvas() override { m_layerBridge->willOverwriteCanvas(); }
     SkCanvas* canvas() override { return m_layerBridge->canvas(); }
     void disableDeferral() override { m_layerBridge->disableDeferral(); }
+    void disableParallelCanvas() override { m_layerBridge->disableParallelCanvas(); }
     bool isValid() const override { return m_layerBridge && m_layerBridge->checkSurfaceValid(); }
     bool restore() override { return m_layerBridge->restoreSurface(); }
     WebLayer* layer() const override { return m_layerBridge->layer(); }

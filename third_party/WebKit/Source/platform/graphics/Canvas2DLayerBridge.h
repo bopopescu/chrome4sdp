@@ -44,6 +44,7 @@ class SkPictureRecorder;
 namespace blink {
 
 class Canvas2DLayerBridgeTest;
+class AsyncCanvasPlayback;
 class ImageBuffer;
 class WebGraphicsContext3D;
 class WebGraphicsContext3DProvider;
@@ -65,7 +66,9 @@ public:
     void willOverwriteAllPixels();
     void willOverwriteCanvas();
     SkCanvas* canvas();
+    RefPtr<SkPicture> recording();
     void disableDeferral();
+    void disableParallelCanvas();
     bool checkSurfaceValid();
     bool restoreSurface();
     WebLayer* layer() const;
@@ -75,6 +78,8 @@ public:
     void setImageBuffer(ImageBuffer*);
     void didDraw();
     bool writePixels(const SkImageInfo&, const void* pixels, size_t rowBytes, int x, int y);
+    void flushImmediate();
+    bool prepareForImmediateDraw();
     void flush();
     void flushGpu();
 
@@ -95,6 +100,7 @@ private:
 
     OwnPtr<SkPictureRecorder> m_recorder;
     RefPtr<SkSurface> m_surface;
+    RefPtr<SkPicture> m_picture;
     int m_initialSurfaceSaveCount;
     OwnPtr<WebExternalTextureLayer> m_layer;
     OwnPtr<WebGraphicsContext3DProvider> m_contextProvider;
@@ -116,9 +122,10 @@ private:
         WebExternalTextureMailbox m_mailbox;
         RefPtr<SkImage> m_image;
         RefPtr<Canvas2DLayerBridge> m_parentLayerBridge;
+        bool m_releaseInPlaybackThread;
 
         MailboxInfo(const MailboxInfo&);
-        MailboxInfo() {}
+        MailboxInfo() { m_releaseInPlaybackThread = false; }
     };
 
     uint32_t m_lastImageId;
@@ -133,6 +140,10 @@ private:
     GLenum m_lastFilter;
     OpacityMode m_opacityMode;
     IntSize m_size;
+    bool m_playbackInRenderThread;
+    AsyncCanvasPlayback* m_asyncPlayback;
+    bool m_ignoreImmediateDrawNotification;
+    friend class AsyncCanvasPlayback;
 };
 
 } // namespace blink

@@ -1147,6 +1147,21 @@ LONG_STRING_CONST(
         "accelerated_2d_canvas",
         "gpu_rasterization"
       ]
+    },
+    {
+      "id": 107,
+      "description": "Parallel Canvas is not supported except on some high-tier Adreno GPUs",
+      "os": {
+        "type": "android"
+      },
+      "exceptions": [
+        {
+          "gl_renderer": ".*Adreno.*((225)|(310)|(320)|(330)|(420)|(430)|(510)|(530)).*"
+        }
+      ],
+      "features": [
+        "parallel_canvas"
+      ]
     }
   ]
 }
