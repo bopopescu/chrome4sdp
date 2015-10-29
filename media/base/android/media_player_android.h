@@ -53,6 +53,10 @@ class MEDIA_EXPORT MediaPlayerAndroid {
   // Pause the media.
   virtual void Pause(bool is_media_related_action) = 0;
 
+  // Pause and resume decoding of video portion of media.
+  virtual void PauseVideo() {};
+  virtual void ResumeVideo() {};
+
   // Seek to a particular position, based on renderer signaling actual seek
   // with MediaPlayerHostMsg_Seek. If eventual success, OnSeekComplete() will be
   // called.

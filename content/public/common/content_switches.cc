@@ -282,6 +282,9 @@ const char kDisableThreadedScrolling[]      = "disable-threaded-scrolling";
 // Disable V8 idle tasks.
 const char kDisableV8IdleTasks[]            = "disable-v8-idle-tasks";
 
+// Disables pausing of video decoding when the webpage is in background
+const char kDisableVideoPausing[]           = "disable-video-pausing";
+
 // Don't enforce the same-origin policy. (Used by people testing their sites.)
 const char kDisableWebSecurity[]            = "disable-web-security";
 
@@ -492,6 +495,9 @@ const char kEnableTracingOutput[]           = "enable-tracing-output";
 // Enable screen capturing support for MediaStream API.
 const char kEnableUserMediaScreenCapturing[] =
     "enable-usermedia-screen-capturing";
+
+// Enables allow pausing of video decoding when the webpage is in background
+const char kEnableVideoPausing[]            = "enable-video-pausing";
 
 // Enables the use of the @viewport CSS rule, which allows
 // pages to control aspects of their own layout. This also turns on touch-screen

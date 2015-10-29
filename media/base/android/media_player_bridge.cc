@@ -119,6 +119,9 @@ void MediaPlayerBridge::SetVideoSurface(gfx::ScopedJavaSurface surface) {
   CHECK(env);
   Java_MediaPlayerBridge_setSurface(
       env, j_media_player_bridge_.obj(), surface.j_surface().obj());
+  if (!surface.IsEmpty()) {
+    surface_ = surface.Pass();
+  }
 }
 
 void MediaPlayerBridge::Prepare() {
@@ -291,6 +294,19 @@ void MediaPlayerBridge::Pause(bool is_media_related_action) {
     else
       pending_play_ = false;
   }
+}
+
+void MediaPlayerBridge::PauseVideo() {
+  if (j_media_player_bridge_.is_null())
+    return;
+  SetVideoSurface(gfx::ScopedJavaSurface());
+}
+
+void MediaPlayerBridge::ResumeVideo() {
+  if (j_media_player_bridge_.is_null())
+    return;
+
+  SetVideoSurface(surface_.Pass());
 }
 
 bool MediaPlayerBridge::IsPlaying() {

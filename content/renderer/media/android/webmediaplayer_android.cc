@@ -1118,6 +1118,14 @@ void WebMediaPlayerAndroid::Pause(bool is_media_related_action) {
   UpdatePlayingState(false);
 }
 
+void WebMediaPlayerAndroid::PauseVideo() {
+  player_manager_->PauseVideo(player_id_);
+}
+
+void WebMediaPlayerAndroid::ResumeVideo() {
+  player_manager_->ResumeVideo(player_id_);
+}
+
 void WebMediaPlayerAndroid::DrawRemotePlaybackText(
     const std::string& remote_playback_message) {
   DCHECK(main_thread_checker_.CalledOnValidThread());

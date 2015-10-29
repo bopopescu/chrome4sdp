@@ -88,6 +88,12 @@ bool MediaWebContentsObserver::OnMediaPlayerMessageReceived(
     IPC_MESSAGE_FORWARD(MediaPlayerHostMsg_Pause,
                         GetMediaPlayerManager(render_frame_host),
                         BrowserMediaPlayerManager::OnPause)
+    IPC_MESSAGE_FORWARD(MediaPlayerHostMsg_PauseVideo,
+                        GetMediaPlayerManager(render_frame_host),
+                        BrowserMediaPlayerManager::OnPauseVideo)
+    IPC_MESSAGE_FORWARD(MediaPlayerHostMsg_ResumeVideo,
+                        GetMediaPlayerManager(render_frame_host),
+                        BrowserMediaPlayerManager::OnResumeVideo)
     IPC_MESSAGE_FORWARD(MediaPlayerHostMsg_SetVolume,
                         GetMediaPlayerManager(render_frame_host),
                         BrowserMediaPlayerManager::OnSetVolume)

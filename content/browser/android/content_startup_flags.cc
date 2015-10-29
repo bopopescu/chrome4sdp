@@ -106,6 +106,11 @@ void SetContentCommandLineFlags(bool single_process,
   // Disable anti-aliasing for canvas
   parsed_command_line->AppendSwitch(switches::kDisable2dCanvasAntialiasing);
 
+  // Enable video pausing when media content is not visible by default
+  if (!parsed_command_line->HasSwitch(switches::kDisableVideoPausing)) {
+    parsed_command_line->AppendSwitch(switches::kEnableVideoPausing);
+  }
+
   cc::LayerSettings layer_settings;
   if (parsed_command_line->HasSwitch(
           switches::kEnableAndroidCompositorAnimationTimelines))

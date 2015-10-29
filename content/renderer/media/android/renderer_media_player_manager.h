@@ -39,6 +39,7 @@ class RendererMediaPlayerManager : public RenderFrameObserver {
   // RenderFrameObserver overrides.
   bool OnMessageReceived(const IPC::Message& msg) override;
   void WasHidden() override;
+  void WasShown() override;
 
   // Initializes a MediaPlayerAndroid object in browser process.
   void Initialize(MediaPlayerHostMsg_Initialize_Type type,
@@ -58,6 +59,12 @@ class RendererMediaPlayerManager : public RenderFrameObserver {
   // Otherwise it should be false if Pause is being called due to other reasons
   // (cleanup, freeing resources, etc.)
   void Pause(int player_id, bool is_media_related_action);
+
+  // Pause video decode only
+  void PauseVideo(int player_id);
+
+  // Resume video decode
+  void ResumeVideo(int player_id);
 
   // Performs seek on the player.
   void Seek(int player_id, const base::TimeDelta& time);
@@ -107,6 +114,7 @@ class RendererMediaPlayerManager : public RenderFrameObserver {
 #endif  // defined(VIDEO_HOLE)
 
   bool ShouldAllowBackgroundAudio();
+  bool ShouldAllowVideoPausing();
 
   // Registers and unregisters a WebMediaPlayerAndroid object.
   int RegisterMediaPlayer(WebMediaPlayerAndroid* player);
@@ -160,6 +168,7 @@ class RendererMediaPlayerManager : public RenderFrameObserver {
   std::map<int, WebMediaPlayerAndroid*> media_players_;
 
   int next_media_player_id_;
+  bool enable_video_pausing_;
 
   DISALLOW_COPY_AND_ASSIGN(RendererMediaPlayerManager);
 };

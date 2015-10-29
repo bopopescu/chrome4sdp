@@ -59,6 +59,8 @@ class MEDIA_EXPORT MediaPlayerBridge : public MediaPlayerAndroid {
   void SetVideoSurface(gfx::ScopedJavaSurface surface) override;
   void Start() override;
   void Pause(bool is_media_related_action) override;
+  void PauseVideo() override;
+  void ResumeVideo() override;
   void SeekTo(base::TimeDelta timestamp) override;
   void Release() override;
   void SetVolume(double volume) override;
@@ -187,6 +189,9 @@ class MEDIA_EXPORT MediaPlayerBridge : public MediaPlayerAndroid {
 
   // NOTE: Weak pointers must be invalidated before all other member variables.
   base::WeakPtrFactory<MediaPlayerBridge> weak_factory_;
+
+  // saved surface for video
+  gfx::ScopedJavaSurface surface_;
 
   DISALLOW_COPY_AND_ASSIGN(MediaPlayerBridge);
 };

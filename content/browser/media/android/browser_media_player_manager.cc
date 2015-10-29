@@ -572,6 +572,18 @@ void BrowserMediaPlayerManager::OnPause(
     MediaSession::Get(web_contents())->RemovePlayer(this, player_id);
 }
 
+void BrowserMediaPlayerManager::OnPauseVideo(int player_id) {
+  MediaPlayerAndroid* player = GetPlayer(player_id);
+  if (player)
+    player->PauseVideo();
+}
+
+void BrowserMediaPlayerManager::OnResumeVideo(int player_id) {
+  MediaPlayerAndroid* player = GetPlayer(player_id);
+  if (player)
+    player->ResumeVideo();
+}
+
 void BrowserMediaPlayerManager::OnSetVolume(int player_id, double volume) {
   MediaPlayerAndroid* player = GetPlayer(player_id);
   if (player)

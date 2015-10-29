@@ -225,6 +225,12 @@ class WebMediaPlayerAndroid : public blink::WebMediaPlayer,
   // However, the actual GlTexture is not released to keep the video screenshot.
   virtual void ReleaseMediaResources();
 
+  // Pause video portion of media
+  void PauseVideo();
+
+  // Pause video portion of media
+  void ResumeVideo();
+
   // RenderFrameObserver implementation.
   void OnDestruct() override;
 

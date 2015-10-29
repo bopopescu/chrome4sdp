@@ -4,7 +4,9 @@
 
 #include "content/renderer/media/android/renderer_media_player_manager.h"
 
+#include "base/command_line.h"
 #include "content/common/media/media_player_messages_android.h"
+#include "content/public/common/content_switches.h"
 #include "content/public/common/renderer_preferences.h"
 #include "content/renderer/media/android/webmediaplayer_android.h"
 #include "content/renderer/media/crypto/renderer_cdm_manager.h"
@@ -17,7 +19,8 @@ namespace content {
 RendererMediaPlayerManager::RendererMediaPlayerManager(
     RenderFrame* render_frame)
     : RenderFrameObserver(render_frame),
-      next_media_player_id_(0) {
+      next_media_player_id_(0),
+      enable_video_pausing_(false) {
 }
 
 RendererMediaPlayerManager::~RendererMediaPlayerManager() {
@@ -65,6 +68,17 @@ void RendererMediaPlayerManager::WasHidden() {
   ReleaseVideoResources();
 }
 
+void RendererMediaPlayerManager::WasShown() {
+  std::map<int, WebMediaPlayerAndroid*>::iterator player_it;
+  for (player_it = media_players_.begin(); player_it != media_players_.end();
+       ++player_it) {
+    WebMediaPlayerAndroid* player = player_it->second;
+
+    if (player && player->hasVideo() && ShouldAllowVideoPausing())
+      player->ResumeVideo();
+  }
+}
+
 void RendererMediaPlayerManager::Initialize(
     MediaPlayerHostMsg_Initialize_Type type,
     int player_id,
@@ -82,6 +96,10 @@ void RendererMediaPlayerManager::Initialize(
   media_player_params.frame_url = frame_url;
   media_player_params.allow_credentials = allow_credentials;
 
+  base::CommandLine* command_line = base::CommandLine::ForCurrentProcess();
+  if (command_line->HasSwitch(switches::kEnableVideoPausing))
+    enable_video_pausing_ = true;
+
   Send(new MediaPlayerHostMsg_Initialize(routing_id(), media_player_params));
 }
 
@@ -94,6 +112,14 @@ void RendererMediaPlayerManager::Pause(
     bool is_media_related_action) {
   Send(new MediaPlayerHostMsg_Pause(
       routing_id(), player_id, is_media_related_action));
+}
+
+void RendererMediaPlayerManager::PauseVideo(int player_id) {
+  Send(new MediaPlayerHostMsg_PauseVideo(routing_id(), player_id));
+}
+
+void RendererMediaPlayerManager::ResumeVideo(int player_id) {
+  Send(new MediaPlayerHostMsg_ResumeVideo(routing_id(), player_id));
 }
 
 void RendererMediaPlayerManager::Seek(
@@ -289,8 +315,12 @@ void RendererMediaPlayerManager::ReleaseVideoResources() {
     // audio, video only or 4) ShouldAllowBackgroundAudio flag is false
     if (player &&
         (player->paused() || player->isFullscreen() ||
-        !player->hasAudio() || !ShouldAllowBackgroundAudio()))
+        !player->hasAudio() || !ShouldAllowBackgroundAudio())) {
       player->ReleaseMediaResources();
+    } else if (player && player->hasVideo() && ShouldAllowVideoPausing()) {
+      // allow playback to continue but pause video decoding
+      player->PauseVideo();
+    }
   }
 }
 
@@ -344,6 +374,7 @@ RendererMediaPlayerManager::ShouldUseVideoOverlayForEmbeddedEncryptedVideo() {
       render_frame())->render_view()->renderer_preferences();
   return prefs.use_video_overlay_for_embedded_encrypted_video;
 }
+#endif  // defined(VIDEO_HOLE)
 
 bool
 RendererMediaPlayerManager::ShouldAllowBackgroundAudio() {
@@ -351,6 +382,10 @@ RendererMediaPlayerManager::ShouldAllowBackgroundAudio() {
       render_frame())->render_view()->renderer_preferences();
   return prefs.enable_background_audio;
 }
-#endif  // defined(VIDEO_HOLE)
+
+bool
+RendererMediaPlayerManager::ShouldAllowVideoPausing() {
+  return enable_video_pausing_ && ShouldAllowBackgroundAudio();
+}
 
 }  // namespace content
