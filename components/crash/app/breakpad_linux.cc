@@ -47,6 +47,7 @@
 #include <android/log.h>
 #include <sys/stat.h>
 
+#include "components/version_info/version_info_values.h"
 #include "base/android/build_info.h"
 #include "base/android/path_utils.h"
 #include "base/debug/leak_annotations.h"
@@ -1452,6 +1453,16 @@ void HandleCrashDump(const BreakpadInfo& info) {
     GetCrashReporterClient()->GetProductNameAndVersion(&product_name, &version);
 
     writer.AddBoundary();
+#if defined(SWE_LAST_CHANGE)
+    static const char browser_build_hash[] = SWE_LAST_CHANGE;
+    writer.AddPairString("browser_build_info", browser_build_hash);
+    writer.AddBoundary();
+#endif
+#if defined(SWE_PRODUCT_VERSION)
+    static const char browser_version[] = SWE_LAST_CHANGE;
+    writer.AddPairString("browser_version", browser_version);
+    writer.AddBoundary();
+#endif
     writer.AddPairString("prod", product_name);
     writer.AddBoundary();
     writer.AddPairString("ver", version);
@@ -1701,7 +1712,8 @@ void InitCrashReporter(const std::string& process_type) {
         !parsed_command_line.HasSwitch(switches::kDisableBreakpad);
     if (!enable_breakpad) {
       enable_breakpad = parsed_command_line.HasSwitch(
-          switches::kEnableCrashReporterForTesting);
+          switches::kEnableCrashReporterForTesting) ||
+      parsed_command_line.HasSwitch(switches::kEnableCrashLog);
     }
     if (!enable_breakpad) {
       VLOG(1) << "Breakpad disabled";

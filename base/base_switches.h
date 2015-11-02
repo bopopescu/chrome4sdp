@@ -33,6 +33,7 @@ extern const char kDisableUsbKeyboardDetect[];
 
 #if defined(OS_POSIX)
 extern const char kEnableCrashReporterForTesting[];
+extern const char kEnableCrashLog[];
 #endif
 
 }  // namespace switches

@@ -77,6 +77,9 @@ const char kDisableUsbKeyboardDetect[]      = "disable-usb-keyboard-detect";
 // crash reporting is typically compiled but disabled.
 const char kEnableCrashReporterForTesting[] =
     "enable-crash-reporter-for-testing";
+
+// A flag used to force enable breakpad reporting.
+const char kEnableCrashLog[]                = "crash-log-server";
 #endif
 
 }  // namespace switches
