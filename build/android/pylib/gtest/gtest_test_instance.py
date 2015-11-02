@@ -45,6 +45,8 @@ _DEFAULT_ISOLATE_FILE_PATHS = {
     'unit_tests': 'chrome/unit_tests.isolate',
     'webkit_unit_tests':
       'third_party/WebKit/Source/web/WebKitUnitTests.isolate',
+    'content_libnetxt_unittests':
+      'third_party/libnetxt/libnetxt.isolate',
 }
 
 

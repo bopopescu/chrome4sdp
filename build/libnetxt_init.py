@@ -44,6 +44,11 @@ if (os.path.isdir(dir_path) == False):
   print "Create default gypi: " + str(dest_filename)
   with open(dest_filename, "w+") as outfile:
     outfile.write("{ 'variables': {'libnetxt_dependencies': [], 'libnetxt_native_libs': [],},}")
+  dest_filename = os.path.join(dir_path, 'libnetxt.isolate')
+  print "Create default isolation file " + str(dest_filename)
+  with open(dest_filename, "w+") as outfile:
+    outfile.write("{}")
+
 
 else:
   print "LibNetXt location: " + str(dir_path) + " - Ok"
