@@ -178,6 +178,8 @@
 // TODO(port)
 #include "content/child/npapi/np_channel_base.h"
 #endif
+#define SUSPEND_WEBKIT_SHARED_TIMER_DURATION 9000
+#define RESUME_WEBKIT_SHARED_TIMER_DURATION 1000
 
 #if defined(ENABLE_PLUGINS)
 #include "content/renderer/npapi/plugin_channel_host.h"
@@ -568,6 +570,7 @@ void RenderThreadImpl::Init() {
   webkit_shared_timer_suspended_ = false;
   widget_count_ = 0;
   hidden_widget_count_ = 0;
+  suspend_timer_periodically_ = false;
   idle_notification_delay_in_ms_ = kInitialIdleHandlerDelayMs;
   idle_notifications_to_skip_ = 0;
   layout_test_mode_ = false;
@@ -1897,6 +1900,16 @@ bool RenderThreadImpl::RendererIsHidden() const {
 void RenderThreadImpl::WidgetCreated() {
   bool renderer_was_hidden = RendererIsHidden();
   widget_count_++;
+  //The following ensures that timer is not suspended if multiple tabs
+  //share the same process
+  if (widget_count_ > 1) {
+     bg_timer_.Stop();
+     if (suspend_timer_periodically_) {
+        renderer_scheduler_->ResumeTimerQueue();
+        suspend_timer_periodically_ = false;
+     }
+  }
+
   if (renderer_was_hidden)
     OnRendererVisible();
 }
@@ -1911,9 +1924,34 @@ void RenderThreadImpl::WidgetDestroyed() {
     OnRendererHidden();
 }
 
+void RenderThreadImpl::SuspendWebKitSharedTimer() {
+  if (widget_count_ && hidden_widget_count_ == widget_count_ && !suspend_timer_periodically_) {
+     renderer_scheduler_->SuspendTimerQueue();
+     suspend_timer_periodically_ = true;
+     bg_timer_.Start(FROM_HERE,
+               base::TimeDelta::FromMilliseconds(SUSPEND_WEBKIT_SHARED_TIMER_DURATION),
+               this, &RenderThreadImpl::ResumeWebKitSharedTimer);
+  }
+}
+
+void RenderThreadImpl::ResumeWebKitSharedTimer() {
+  if (hidden_widget_count_ == widget_count_ && suspend_timer_periodically_) {
+     renderer_scheduler_->ResumeTimerQueue();
+     suspend_timer_periodically_ = false;
+     bg_timer_.Start(FROM_HERE,
+               base::TimeDelta::FromMilliseconds(RESUME_WEBKIT_SHARED_TIMER_DURATION),
+               this, &RenderThreadImpl::SuspendWebKitSharedTimer);
+  }
+}
+
 void RenderThreadImpl::WidgetHidden() {
   DCHECK_LT(hidden_widget_count_, widget_count_);
   hidden_widget_count_++;
+  if (widget_count_ && hidden_widget_count_ == widget_count_) {
+    OnMemoryPressure(base::MemoryPressureListener::MEMORY_PRESSURE_LEVEL_CRITICAL);
+    if (!suspend_timer_periodically_)
+      SuspendWebKitSharedTimer();
+  }
   if (RendererIsHidden())
     OnRendererHidden();
 }
@@ -1921,6 +1959,12 @@ void RenderThreadImpl::WidgetHidden() {
 void RenderThreadImpl::WidgetRestored() {
   bool renderer_was_hidden = RendererIsHidden();
   DCHECK_GT(hidden_widget_count_, 0);
+  bg_timer_.Stop();
+  if (hidden_widget_count_ == widget_count_ && suspend_timer_periodically_) {
+      renderer_scheduler_->ResumeTimerQueue();
+      suspend_timer_periodically_ = false;
+  }
+
   hidden_widget_count_--;
   if (renderer_was_hidden)
     OnRendererVisible();
