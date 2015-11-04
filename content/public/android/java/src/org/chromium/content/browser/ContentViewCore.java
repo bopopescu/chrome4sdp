@@ -872,7 +872,14 @@ public class ContentViewCore implements
         mImeAdapter = createImeAdapter();
         attachImeAdapter();
 
-        int[] perfConfig = { 0x101, 0x1E01, 0x704, 0x1FFE, 0x02FE, 0x47FE };
+        int[] perfConfig;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            perfConfig = new int[]{ 0x40400000, 0x1, 0x40C00000, 0x1, 0x40800000,
+                                    0xFFF, 0x40800100, 0xFFF, 0x41800000, 0xFFF };
+        } else {
+            perfConfig = new int[]{ 0x101, 0x1E01, 0x704, 0x1FFE, 0x02FE, 0x47FE };
+        }
         mPerflockController = new PerflockController(100, perfConfig);
 
         mWebContentsObserver = new ContentViewWebContentsObserver(this);
