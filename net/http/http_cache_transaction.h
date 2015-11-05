@@ -1,4 +1,4 @@
-// Copyright (c) 2013 The Linux Foundation. All rights reserved.
+// Copyright (c) 2013, 2014 The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -32,6 +32,8 @@
 #include "net/log/net_log.h"
 #include "net/socket/connection_attempts.h"
 #include "net/websockets/websocket_handshake_stream_base.h"
+#include "net/libsta/common/interfaces/external_types.h"
+
 
 namespace net {
 
@@ -152,6 +154,8 @@ class HttpCache::Transaction : public HttpTransaction {
   void SetPriority(RequestPriority priority) override;
   void SetWebSocketHandshakeStreamCreateHelper(
       WebSocketHandshakeStreamBase::CreateHelper* create_helper) override;
+  void SetSTARequestMetaData(
+      STARequestMetaData* request_meta_data) override;
   void SetBeforeNetworkStartCallback(
       const BeforeNetworkStartCallback& callback) override;
   void SetBeforeProxyHeadersSentCallback(
@@ -491,6 +495,14 @@ class HttpCache::Transaction : public HttpTransaction {
   base::WeakPtrFactory<Transaction> weak_factory_;
 
   bool report_to_stathub_;
+
+  // The meta data object to use to create STA
+  // objects. Only relevant when establishing a STA connection.
+  // This is passed to the underlying network transaction. It is stored here in
+  // case the transaction does not exist yet.
+  // The class has no ownership on the meta_data
+  // The pointed object is owned by base::SupportsUserData.
+  net::STARequestMetaData* sta_request_meta_data_;
 
   DISALLOW_COPY_AND_ASSIGN(Transaction);
 };

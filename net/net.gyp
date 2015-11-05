@@ -112,6 +112,7 @@
         '../third_party/protobuf/protobuf.gyp:protobuf_lite',
         '../url/url.gyp:url_lib',
         'net_quic_proto',
+        'libsta/libsta_net.gyp:libsta_net',
       ],
       'sources': [
         'base/filename_util_icu.cc',
@@ -1338,6 +1339,7 @@
           'dependencies': [
             '../url/url.gyp:url_lib_use_icu_alternatives_on_android',
             '../sql/sql.gyp:sql',
+            'libsta/libsta_net.gyp:libsta_net',
           ],
           'defines': [
             'USE_ICU_ALTERNATIVES_ON_ANDROID=1',

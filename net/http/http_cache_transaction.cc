@@ -291,7 +291,8 @@ HttpCache::Transaction::Transaction(RequestPriority priority, HttpCache* cache)
       total_received_bytes_(0),
       websocket_handshake_stream_base_create_helper_(NULL),
       weak_factory_(this),
-      report_to_stathub_(false) {
+      report_to_stathub_(false),
+      sta_request_meta_data_(NULL) {
   static_assert(HttpCache::Transaction::kNumValidationHeaders ==
                     arraysize(kValidationHeaders),
                 "invalid number of validation headers");
@@ -634,6 +635,13 @@ void HttpCache::Transaction::SetWebSocketHandshakeStreamCreateHelper(
   websocket_handshake_stream_base_create_helper_ = create_helper;
   if (network_trans_)
     network_trans_->SetWebSocketHandshakeStreamCreateHelper(create_helper);
+}
+
+void HttpCache::Transaction::SetSTARequestMetaData(
+    net::STARequestMetaData* request_meta_data) {
+  sta_request_meta_data_ = request_meta_data;
+  if (network_trans_)
+    network_trans_->SetSTARequestMetaData(request_meta_data);
 }
 
 void HttpCache::Transaction::SetBeforeNetworkStartCallback(
@@ -1056,7 +1064,6 @@ int HttpCache::Transaction::DoInitEntry() {
     next_state_ = STATE_DOOM_ENTRY;
     return OK;
   }
-
   next_state_ = STATE_OPEN_ENTRY;
   return OK;
 }
@@ -1428,8 +1435,10 @@ int HttpCache::Transaction::DoSendRequest() {
 
   if (websocket_handshake_stream_base_create_helper_)
     network_trans_->SetWebSocketHandshakeStreamCreateHelper(
-        websocket_handshake_stream_base_create_helper_);
+       websocket_handshake_stream_base_create_helper_);
 
+  if (sta_request_meta_data_)
+    network_trans_->SetSTARequestMetaData(sta_request_meta_data_);
   next_state_ = STATE_SEND_REQUEST_COMPLETE;
   rv = network_trans_->Start(request_, io_callback_, net_log_);
   return rv;

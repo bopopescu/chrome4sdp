@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -67,6 +67,10 @@ namespace net {
 
 class GURL;
 
+namespace sta {
+    class ResourceRequest;
+}
+
 // ================================ net::HttpRequestHeaders  ====================================
 LIBNETXT_API_CPP_DEF_CON_0(LibNetXt, net, HttpRequestHeaders)
 LIBNETXT_API_CPP_DEF_DES(LibNetXt, net, HttpRequestHeaders)
@@ -116,6 +120,7 @@ LIBNETXT_API_DEF_2(LibNetXt, AssignHttpResponseHeaders, void, scoped_refptr<net:
 // ================================ net::HttpNetworkTransaction =================================
   LIBNETXT_API_CPP_DEF_CON_2(LibNetXt, net, HttpNetworkTransaction, net::RequestPriority, net::HttpNetworkSession* )
   LIBNETXT_API_CPP_DEF_DES(LibNetXt, net, HttpNetworkTransaction)
+  LIBNETXT_API_CPP_DEF_0(LibNetXt, net, HttpNetworkTransaction, SetUseStaPool, void)
 
   // ================================ net::LoadTimingInfo =================================
   LIBNETXT_API_CPP_DEF_CON_0(LibNetXt, net, LoadTimingInfo)
@@ -164,6 +169,9 @@ LIBNETXT_API_DEF_3(LibNetXt, ParseHostAndPort, bool, const ::GURL&, std::string 
 LIBNETXT_API_DEF_3(LibNetXt, GetRequestRange, bool,const net::HttpRequestHeaders& , int64& , int64&)
 LIBNETXT_API_DEF_2(LibNetXt, ParseRangeHeader,bool,const std::string& , std::vector<net::HttpByteRange>*)
 LIBNETXT_API_DEF_1(LibNetXt, PathExists, bool, const std::string&)
+LIBNETXT_API_DEF_2(LibNetXt, DeleteFile, bool, const std::string&, bool)
+LIBNETXT_API_DEF_2(LibNetXt, Move, bool, const std::string&, const std::string&)
+LIBNETXT_API_DEF_0(LibNetXt, GetLocalDataPath, std::string)
 LIBNETXT_API_DEF_2(LibNetXt, GetUrlOriginSpec, void, const GURL&, std::string&)
 LIBNETXT_API_DEF_1(LibNetXt, PostTask, void, const base::Closure&)
 LIBNETXT_API_DEF_1(LibNetXt, ConvertHeadersBackToHTTPResponse, std::string, const std::string&)
@@ -172,5 +180,11 @@ LIBNETXT_API_DEF_1(LibNetXt, DnsResolve, void, const char*)
 LIBNETXT_API_DEF_0(LibNetXt, GetTimeTicksNow, base::TimeTicks)
 
 LIBNETXT_API_DEF_3(LibNetXt, NetPreconnect, void, net::HttpNetworkSession*, GURL const&, int)
+
+LIBNETXT_API_DEF_2(LibNetXt, AssembleRawHeadersAndAssign, void,  std::string, sta::ResourceRequest*  )
+LIBNETXT_API_DEF_2(LibNetXt, HttpByteRangeToString ,std::string ,  int64, int64)
+LIBNETXT_API_DEF_1(LibNetXt, GetResponseHeaderLines, std::string, const net::HttpResponseHeaders&)
+
+LIBNETXT_API_DEF_2(LibNetXt, FetchResourceOnLine, void, std::string, std::string)
 
 #endif /* PLUGIN_API_H_ */

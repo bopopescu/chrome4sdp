@@ -335,7 +335,6 @@ bool TransportService::GetSocketPoolType(const TransportPoolType pool_type,
 //==============================================================================
 void TransportService::set_accelerator_prefs(const AcceleratorPreferences& prefs){
 
-    DCHECK(!set_accelerator_prefs_called_);
     set_accelerator_prefs_called_ = true;
 
     CHECK(prefs.session_prefs_.http_pipelining_enabled_ == false) << "We don't support pipelining";
@@ -351,10 +350,6 @@ void TransportService::set_accelerator_prefs(const AcceleratorPreferences& prefs
 
     // we only set preferences for the STA  pool
     DCHECK(socket_pool_type == HttpNetworkSession::NORMAL_SOCKET_STA_POOL);
-
-    // sanity check
-    DCHECK(inrange(poolPrefs.max_connections_per_origin_server_, 6, 100));
-    DCHECK(inrange(poolPrefs.max_connections_per_pool_,6,500));
 
     // set the same values to all the currently known sessions.
     prefs_ = prefs; //  store it for sessions that will be met later

@@ -81,3 +81,6 @@ LOAD_FLAG(MAYBE_USER_GESTURE, 1 << 16)
 // Indicates that the username:password portion of the URL should not
 // be honored, but that other forms of authority may be used.
 LOAD_FLAG(DO_NOT_USE_EMBEDDED_IDENTITY, 1 << 17)
+
+// If set, use STA_POOL instead of NORMAL socket pool
+LOAD_FLAG(USE_STA_POOL, 1 << 18)

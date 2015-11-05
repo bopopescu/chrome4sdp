@@ -1,3 +1,4 @@
+// Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
 // Copyright 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -47,7 +48,9 @@ enum {
   TEST_MODE_SYNC_ALL = (TEST_MODE_SYNC_NET_START | TEST_MODE_SYNC_NET_READ |
                         TEST_MODE_SYNC_CACHE_START | TEST_MODE_SYNC_CACHE_READ |
                         TEST_MODE_SYNC_CACHE_WRITE),
-  TEST_MODE_SLOW_READ = 1 << 5
+  TEST_MODE_SLOW_READ = 1 << 5,
+  TEST_MODE_DELAYED_NET_START = 1 << 6,
+  TEST_MODE_DELAYED_NET_READ = 1 << 7,
 };
 
 typedef void (*MockTransactionHandler)(const HttpRequestInfo* request,
@@ -85,6 +88,10 @@ extern const MockTransaction kRangeGET_Transaction;
 
 // returns the mock transaction for the given URL
 const MockTransaction* FindMockTransaction(const GURL& url);
+
+void MockTransactionsDataClear();
+void CallbackMockTransactions(std::vector<int> order_vector);
+
 
 // Add/Remove a mock transaction that can be accessed via FindMockTransaction.
 // There can be only one MockTransaction associated with a given URL.
@@ -160,6 +167,9 @@ class TestTransactionConsumer {
 
 class MockNetworkLayer;
 
+namespace sta {
+class MockNetworkTransaction;
+}
 // This transaction class inspects the available set of mock transactions to
 // find data for the request URL.  It supports IO operations that complete
 // synchronously or asynchronously to help exercise different code paths in the
@@ -169,6 +179,8 @@ class MockNetworkTransaction
       public base::SupportsWeakPtr<MockNetworkTransaction> {
   typedef WebSocketHandshakeStreamBase::CreateHelper CreateHelper;
 
+  friend void CallbackMockTransactions(std::vector<int> order_vector);
+  friend class sta::MockNetworkTransaction;
  public:
   MockNetworkTransaction(RequestPriority priority, MockNetworkLayer* factory);
   ~MockNetworkTransaction() override;
@@ -214,6 +226,8 @@ class MockNetworkTransaction
   void SetWebSocketHandshakeStreamCreateHelper(
       CreateHelper* create_helper) override;
 
+  void SetSTARequestMetaData(net::STARequestMetaData* request_meta_data) override;
+
   void SetBeforeNetworkStartCallback(
       const BeforeNetworkStartCallback& callback) override;
 
@@ -229,6 +243,8 @@ class MockNetworkTransaction
   }
   RequestPriority priority() const { return priority_; }
   const HttpRequestInfo* request() const { return request_; }
+
+  void SetReturnCode(int code){ return_code_ = code; }
 
  private:
   int StartInternal(const HttpRequestInfo* request,
@@ -252,9 +268,44 @@ class MockNetworkTransaction
   // be initialized.
   unsigned int socket_log_id_;
 
+  int return_code_;
+
   base::WeakPtrFactory<MockNetworkTransaction> weak_factory_;
 
 };
+
+namespace sta {
+  void AddReadMockTransaction(const MockTransaction* trans, const  unsigned int read_call_num);
+  void RemoveReadMockTransaction(const MockTransaction* trans);
+
+  class MockNetworkTransaction : public ::net::MockNetworkTransaction {
+   public:
+    MockNetworkTransaction(net::RequestPriority priority,
+                           MockNetworkLayer* factory);
+
+    const int FindReadMockTransactions(const GURL& url);
+
+    int Read(net::IOBuffer* buf, int buf_len,
+             const net::CompletionCallback& callback);
+
+    // set the mode of the Read() from now on
+    void SetAsyncRead(bool useAsyncRead);
+
+    // set the maximum number of bytes returned from Read() from now on
+    // \return previous value
+    int SetReadSize(int numBytes);
+
+    void SetBodySize(int numBytes){ num_body_bytes_ = numBytes; }
+
+    void SetUseStaPool(){}
+
+    // how many bytes can we return from a single call to Read()
+    int max_read_return_bytes_;
+    // how many bytes in the body. This value is used if >0.
+    // it is used to overide the real size of the MockTransaction.data
+    int num_body_bytes_;
+ };
+} // namespace sta
 
 class MockNetworkLayer : public HttpTransactionFactory,
                          public base::SupportsWeakPtr<MockNetworkLayer> {
@@ -267,6 +318,8 @@ class MockNetworkLayer : public HttpTransactionFactory,
   bool stop_caching_called() const { return stop_caching_called_; }
   void TransactionDoneReading();
   void TransactionStopCaching();
+
+  void SetStaTransaction();
 
   // Returns the last priority passed to CreateTransaction, or
   // DEFAULT_PRIORITY if it hasn't been called yet.
@@ -313,6 +366,7 @@ class MockNetworkLayer : public HttpTransactionFactory,
   base::Clock* clock_;
 
   base::WeakPtr<MockNetworkTransaction> last_transaction_;
+  bool use_sta_transaction_class_;
 };
 
 //-----------------------------------------------------------------------------

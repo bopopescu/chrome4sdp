@@ -1,4 +1,4 @@
-// Copyright (c) 2012, 2013 The Linux Foundation. All rights reserved.
+// Copyright (c) 2012-2015 The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -167,6 +167,7 @@ HttpNetworkTransaction::HttpNetworkTransaction(RequestPriority priority,
       total_received_bytes_(0),
       next_state_(STATE_NONE),
       establishing_tunnel_(false),
+      use_sta_pool_(false),
       websocket_handshake_stream_base_create_helper_(NULL),
       report_to_stathub_(false) {
   session->ssl_config_service()->GetSSLConfig(&server_ssl_config_);
@@ -211,6 +212,9 @@ int HttpNetworkTransaction::Start(const HttpRequestInfo* request_info,
                                   const BoundNetLog& net_log) {
   net_log_ = net_log;
   request_ = request_info;
+
+  if (use_sta_pool_)
+    const_cast<HttpRequestInfo*>(request_)->load_flags |= LOAD_USE_STA_POOL;
 
   StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_CH_TRANS_NET, SH_ACTION_WILL_START, 0);
   if (NULL!=cmd) {
@@ -515,6 +519,9 @@ void HttpNetworkTransaction::SetPriority(RequestPriority priority) {
 void HttpNetworkTransaction::SetWebSocketHandshakeStreamCreateHelper(
     WebSocketHandshakeStreamBase::CreateHelper* create_helper) {
   websocket_handshake_stream_base_create_helper_ = create_helper;
+}
+
+void HttpNetworkTransaction::SetSTARequestMetaData(STARequestMetaData* request_meta_data) {
 }
 
 void HttpNetworkTransaction::SetBeforeNetworkStartCallback(
@@ -1710,6 +1717,11 @@ GURL HttpNetworkTransaction::AuthURL(HttpAuth::Target target) const {
 bool HttpNetworkTransaction::ForWebSocketHandshake() const {
   return websocket_handshake_stream_base_create_helper_ &&
          request_->url.SchemeIsWSOrWSS();
+}
+
+void HttpNetworkTransaction::SetUseStaPool() {
+  DCHECK(request_ == NULL) << "This call has to be done before calling Start()";
+  use_sta_pool_ = true;
 }
 
 #define STATE_CASE(s) \

@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2014 The Linux Foundation. All rights reserved.
+// Copyright (c) 2012-2015 The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -73,8 +73,10 @@ class ClientSocketPoolManagerImpl : public base::NonThreadSafe,
   void CloseIdleSockets() override;
 
   TransportClientSocketPool* GetTransportSocketPool() override;
+  TransportClientSocketPool* GetTransportSocketStaPool() override;
 
   SSLClientSocketPool* GetSSLSocketPool() override;
+  SSLClientSocketPool* GetSSLSocketStaPool() override;
 
   SOCKSClientSocketPool* GetSocketPoolForSOCKSProxy(
       const HostPortPair& socks_proxy) override;
@@ -117,7 +119,13 @@ class ClientSocketPoolManagerImpl : public base::NonThreadSafe,
   // Note: this ordering is important.
 
   scoped_ptr<TransportClientSocketPool> transport_socket_pool_;
+
+  scoped_ptr<TransportClientSocketPool> transport_socket_sta_pool_;
+
   scoped_ptr<SSLClientSocketPool> ssl_socket_pool_;
+
+  scoped_ptr<SSLClientSocketPool> ssl_socket_sta_pool_;
+
   TransportSocketPoolMap transport_socket_pools_for_socks_proxies_;
   SOCKSSocketPoolMap socks_socket_pools_;
   TransportSocketPoolMap transport_socket_pools_for_http_proxies_;

@@ -35,6 +35,11 @@
 #include <set>
 #include <stdio.h>
 
+#if defined(OS_ANDROID)
+#include "base/android/path_utils.h"
+#include "base/android/jni_android.h"
+#endif
+
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
 #include "base/logging.h"
@@ -60,6 +65,10 @@
 #include "url/gurl.h"
 
 #include "net/libnetxt/plugin_api.h"
+
+#include "net/base/dependant_iobuffer.h"
+#include "net/libsta/common/interfaces/interface_types.h"
+#include "net/libsta/common/utils/utils.h"
 
 // ================================ net::HttpRequestHeaders  ====================================
 LIBNETXT_API_CPP_FORWARDER_CON_0(LibNetXt, net, HttpRequestHeaders)
@@ -105,6 +114,7 @@ LIBNETXT_API_CPP_FORWARDER_0(LibNetXt, net, HttpByteRange, IsSuffixByteRange, bo
 // ================================ net::HttpNetworkTransaction =================================
 LIBNETXT_API_CPP_FORWARDER_CON_2(LibNetXt, net, HttpNetworkTransaction, net::RequestPriority, net::HttpNetworkSession* )
 LIBNETXT_API_CPP_FORWARDER_DES(LibNetXt, net, HttpNetworkTransaction)
+LIBNETXT_API_CPP_FORWARDER_0(LibNetXt, net, HttpNetworkTransaction, SetUseStaPool, void)
 
 // ================================ net::LoadTimingInfo =================================
 LIBNETXT_API_CPP_FORWARDER_CON_0(LibNetXt, net, LoadTimingInfo)
@@ -125,6 +135,9 @@ LIBNETXT_API_CPP_FORWARDER_0(LibNetXt, net, HostPortPair, ToString, std::string)
 
 // ================================ base::IOBufferWithSize ====================================
 LIBNETXT_API_CPP_FORWARDER_CON_1(LibNetXt,net, IOBufferWithSize , int)
+
+// ================================ base::DependantIOBufferWithSize ====================================
+LIBNETXT_API_CPP_FORWARDER_CON_0(LibNetXt,net, DependantIOBufferWithSize)
 
 // ================================ base::SystemMemoryInfoKB ====================================
 LIBNETXT_API_CPP_FORWARDER_CON_0(LibNetXt, base, SystemMemoryInfoKB)
@@ -266,6 +279,52 @@ base::TimeTicks LIBNETXT_API(GetTimeTicksNow)(){
     return base::TimeTicks::Now();
 }
 
+bool LIBNETXT_API(DeleteFile)(const std::string& p, bool recursive){
+    base::FilePath path(p);
+    base::ThreadRestrictions::ScopedAllowIO allowIO; // see important comment in thread_restrictions.h
+    return base::DeleteFile(path, recursive);
+}
+
+bool LIBNETXT_API(Move)(const std::string& from_path, const std::string& to_path){
+    base::FilePath from(from_path), to(to_path);
+    base::ThreadRestrictions::ScopedAllowIO allowIO; // see important comment in thread_restrictions.h
+    return base::Move(from, to);
+}
+
+std::string LIBNETXT_API(GetLocalDataPath)() {
+#if defined(OS_ANDROID)
+    base::FilePath dataPath;
+    base::android::GetDataDirectory(&dataPath);
+    return dataPath.MaybeAsASCII();
+#else
+    return "";
+#endif
+}
+
+void LIBNETXT_API(FetchResourceOnLine)(std::string url, std::string module) {
+#if defined(OS_ANDROID)
+    JNIEnv* env = base::android::AttachCurrentThreadWithName("main");
+    if(!env) {
+        LIBNETXT_LOGD("ResourceFetcher - Resource fetching was cancelled");
+        return;
+    }
+    base::subtle::AtomicWord atomic_class_id = 0;
+    jclass wrapperClass = reinterpret_cast<jclass>(base::android::LazyGetClass(env,"org/codeaurora/net/LibnetxtFetcherWrapper", &atomic_class_id));
+    if(wrapperClass == NULL) {
+        LIBNETXT_LOGD("ResourceFetcher - Resource fetching was cancelled");
+        return;
+    }
+    jmethodID mid = base::android::MethodID::Get<base::android::MethodID::TYPE_STATIC>(env,wrapperClass,"fetch","(Ljava/lang/String;Ljava/lang/String;)V");
+    if(mid == NULL) {
+        LIBNETXT_LOGD("ResourceFetcher - Resource fetching was cancelled");
+        return;
+    }
+    jstring urlJString = env->NewStringUTF(url.c_str());
+    jstring moduleJString = env->NewStringUTF(module.c_str());
+    env->CallStaticVoidMethod(wrapperClass,mid,urlJString,moduleJString);
+#endif
+}
+
 void  LIBNETXT_API(GetUrlOriginSpec)(const GURL& url, std::string& str){
     str = url.GetOrigin().spec();
 }
@@ -291,6 +350,20 @@ std::string LibNetXtConvertHeadersBackToHTTPResponse(const std::string& a){
     return net::HttpUtil::ConvertHeadersBackToHTTPResponse(a);
 }
 
+//STA
 void LIBNETXT_API(NetPreconnect)(net::HttpNetworkSession* session, GURL const& url, int numOfConnections) {
     net::Preconnect::DoPreconnect(session, url, numOfConnections);
+}
+
+void LIBNETXT_API(AssembleRawHeadersAndAssign)(std::string s, sta::ResourceRequest* req){
+    std::string raw_hdrs = net::HttpUtil::AssembleRawHeaders(s.c_str(), s.size());
+    req->rsp_info_->headers = new net::HttpResponseHeaders(raw_hdrs );
+}
+
+std::string LIBNETXT_API(HttpByteRangeToString)(int64 a , int64 b){
+    return sta::HttpByteRangeToString(a,b);
+}
+
+std::string LIBNETXT_API(GetResponseHeaderLines)(const net::HttpResponseHeaders& headers){
+    return sta::GetResponseHeaderLines(headers);
 }

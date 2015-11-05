@@ -131,10 +131,12 @@ class NET_EXPORT HttpNetworkSession
     QuicTagVector quic_connection_options;
     ProxyDelegate* proxy_delegate;
     bool enable_tcp_fin;
+    mutable bool is_cloned; // true iff this session is cloned from another
   };
 
   enum SocketPoolType {
     NORMAL_SOCKET_POOL,
+    NORMAL_SOCKET_STA_POOL,
     WEBSOCKET_SOCKET_POOL,
     NUM_SOCKET_POOL_TYPES
   };

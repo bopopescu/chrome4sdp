@@ -1,3 +1,4 @@
+// Copyright (c) 2014, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -119,16 +120,6 @@ void CheckDoesNotHaveEmbededNulls(const std::string& str) {
 
 const char HttpResponseHeaders::kContentRange[] = "Content-Range";
 
-struct HttpResponseHeaders::ParsedHeader {
-  // A header "continuation" contains only a subsequent value for the
-  // preceding header.  (Header values are comma separated.)
-  bool is_continuation() const { return name_begin == name_end; }
-
-  std::string::const_iterator name_begin;
-  std::string::const_iterator name_end;
-  std::string::const_iterator value_begin;
-  std::string::const_iterator value_end;
-};
 
 //-----------------------------------------------------------------------------
 

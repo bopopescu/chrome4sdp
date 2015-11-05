@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -39,6 +39,8 @@
 #include "net/stat_hub/stat_hub_net_plugin_ptr.h"
 #include "net/socket/tcp_fin_aggregation_plugin_ptr.h"
 #include "net/http/http_getzip_plugin_ptr.h"
+#include "net/base/dependant_iobuffer.h"
+#include "net/libsta/sta_libnetxt_plugin_api_ptr.h"
 
 #define LIBNETXT_API_VERSION_MAJOR 4
 #define LIBNETXT_API_VERSION_MINOR 0
@@ -55,7 +57,8 @@
 
 class LibnetxtPluginApi : public StatHubLibnetxtPluginApi,
                           public GetZipLibnetxtPluginApi,
-                          public TcpFinAggLibnetxtPluginApi  {
+                          public TcpFinAggLibnetxtPluginApi,
+                          public Sta_plugin_API {
 public:
     LibnetxtPluginApi();
     ~LibnetxtPluginApi();
@@ -129,6 +132,9 @@ static LibnetxtPluginApi* GetInstance();
     // ================================ base::IOBufferWithSize ====================================
     LIBNETXT_API_CPP_PTR_DEF_CON_1(LibNetXt,net, IOBufferWithSize , int)
 
+    // ================================ base::DependantIOBufferWithSize ====================================
+    LIBNETXT_API_CPP_PTR_DEF_CON_0(LibNetXt,net, DependantIOBufferWithSize)
+
     // ================================ base::SystemMemoryInfoKB ====================================
     LIBNETXT_API_CPP_PTR_DEF_CON_0(LibNetXt, base, SystemMemoryInfoKB)
     LIBNETXT_API_CPP_PTR_DEF_DES(LibNetXt, base, SystemMemoryInfoKB)
@@ -174,11 +180,31 @@ static LibnetxtPluginApi* GetInstance();
     LIBNETXT_API_PTR_DEF_3(LibNetXt, GetRequestRange, bool,const net::HttpRequestHeaders& , int64& , int64& )
     LIBNETXT_API_PTR_DEF_2(LibNetXt, ParseRangeHeader,bool,const std::string& , std::vector<net::HttpByteRange>*)
     LIBNETXT_API_PTR_DEF_1(LibNetXt, PathExists, bool, const std::string&)
+    LIBNETXT_API_PTR_DEF_2(LibNetXt, DeleteFile, bool, const std::string&, bool)
+    LIBNETXT_API_PTR_DEF_2(LibNetXt, Move, bool, const std::string&, const std::string&)
     LIBNETXT_API_PTR_DEF_2(LibNetXt, GetUrlOriginSpec, void, const GURL&, std::string&)
     LIBNETXT_API_PTR_DEF_2(LibNetXt, AssignHttpResponseHeaders, void, scoped_refptr<net::HttpResponseHeaders>*, const net::HttpResponseHeaders*)
     LIBNETXT_API_PTR_DEF_1(LibNetXt, PostTask, void, const base::Closure&)
     LIBNETXT_API_PTR_DEF_1(LibNetXt, ConvertHeadersBackToHTTPResponse, std::string, const std::string&)
     LIBNETXT_API_PTR_DEF_1(LibNetXt, DnsResolve, void, const char*)
+
+    // ================================ Libnetxt API version 2.1 ====================================
+
+    // ================================ net::HttpNetworkTransaction =================================
+    LIBNETXT_API_CPP_PTR_DEF_0(LibNetXt, net, HttpNetworkTransaction, SetUseStaPool, void)
+
+    // ================================ Common Interface ====================================
+    LIBNETXT_API_PTR_DEF_2(LibNetXt, AssembleRawHeadersAndAssign, void,  std::string, sta::ResourceRequest* )
+    LIBNETXT_API_PTR_DEF_2(LibNetXt, HttpByteRangeToString ,std::string , int64, int64)
+    LIBNETXT_API_PTR_DEF_1(LibNetXt, GetResponseHeaderLines, std::string, const net::HttpResponseHeaders&)
+
+    // ================================ Libnetxt API version 2.3 ====================================
+
+    LIBNETXT_API_PTR_DEF_0(LibNetXt, GetLocalDataPath, std::string)
+
+    // ================================ Libnetxt API version 2.4 ====================================
+
+    LIBNETXT_API_PTR_DEF_2(LibNetXt, FetchResourceOnLine, void, std::string, std::string)
 
     // ================================ Libnetxt API version 2.6 ====================================
 
@@ -187,6 +213,8 @@ static LibnetxtPluginApi* GetInstance();
 
     // ================================ Common Interface ====================================
     LIBNETXT_API_PTR_DEF_0(LibNetXt, GetTimeTicksNow, base::TimeTicks)
+
 };
 
+void sta_assign(scoped_refptr<net::HttpResponseHeaders>* dest , const net::HttpResponseHeaders*  src) __attribute__ ((visibility ("default"), used));
 #endif /* PLUGIN_API_PTR_H_ */

@@ -1,3 +1,4 @@
+// Copyright (c) 2015 The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -74,7 +75,7 @@ class NET_EXPORT_PRIVATE HttpStreamFactoryImpl : public HttpStreamFactory {
       WebSocketHandshakeStreamBase::CreateHelper* create_helper,
       const BoundNetLog& net_log);
 
-  AlternativeServiceVector GetAlternativeServicesFor(const GURL& original_url);
+  AlternativeServiceVector GetAlternativeServicesFor(const GURL& original_url, bool is_sta = false);
 
   // Detaches |job| from |request|.
   void OrphanJob(Job* job, const Request* request);

@@ -1,3 +1,4 @@
+// Copyright (c) 2015 The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -89,16 +90,22 @@ HttpStreamRequest* HttpStreamFactoryImpl::RequestStreamInternal(
                                  delegate,
                                  websocket_handshake_stream_create_helper,
                                  net_log);
+
   Job* job = new Job(this, session_, request_info, priority, server_ssl_config,
                      proxy_ssl_config, net_log.net_log());
   request->AttachJob(job);
 
+  bool is_sta = false;
+  std::string out;
+  is_sta = request_info.extra_headers.GetHeader("QC-STAx", &out);
+
   const AlternativeServiceVector alternative_service_vector =
-      GetAlternativeServicesFor(request_info.url);
+      GetAlternativeServicesFor(request_info.url, is_sta);
   if (!alternative_service_vector.empty()) {
     // TODO(bnc): Pass on multiple alternative services to Job.
     const AlternativeService& alternative_service =
         alternative_service_vector[0];
+
     // Never share connection with other jobs for FTP requests.
     DCHECK(!request_info.url.SchemeIs("ftp"));
 
@@ -128,8 +135,13 @@ void HttpStreamFactoryImpl::PreconnectStreams(
     const SSLConfig& proxy_ssl_config) {
   DCHECK(!for_websockets_);
   AlternativeService alternative_service;
+
+  bool is_sta = false;
+  std::string out;
+  is_sta = request_info.extra_headers.GetHeader("QC-STAx", &out);
+
   AlternativeServiceVector alternative_service_vector =
-      GetAlternativeServicesFor(request_info.url);
+      GetAlternativeServicesFor(request_info.url,is_sta);
   if (!alternative_service_vector.empty()) {
     // TODO(bnc): Pass on multiple alternative services to Job.
     alternative_service = alternative_service_vector[0];
@@ -151,7 +163,10 @@ const HostMappingRules* HttpStreamFactoryImpl::GetHostMappingRules() const {
 }
 
 AlternativeServiceVector HttpStreamFactoryImpl::GetAlternativeServicesFor(
-    const GURL& original_url) {
+    const GURL& original_url, bool is_sta) {
+  if (is_sta) {
+      return AlternativeServiceVector();
+  }
   if (original_url.SchemeIs("ftp"))
     return AlternativeServiceVector();
 

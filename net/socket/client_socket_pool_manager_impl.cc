@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2014 The Linux Foundation. All rights reserved.
+// Copyright (c) 2012-2015 The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -77,6 +77,11 @@ ClientSocketPoolManagerImpl::ClientSocketPoolManagerImpl(
                                               socket_factory_,
                                               net_log,
                                               network_session)),
+      transport_socket_sta_pool_(new TransportClientSocketPool(
+                max_sockets_per_pool(HttpNetworkSession::NORMAL_SOCKET_STA_POOL), max_sockets_per_group(HttpNetworkSession::NORMAL_SOCKET_STA_POOL),
+                host_resolver,
+                socket_factory_,
+                net_log)),
       ssl_socket_pool_(new SSLClientSocketPool(max_sockets_per_pool(pool_type),
                                                max_sockets_per_group(pool_type),
                                                cert_verifier,
@@ -87,6 +92,21 @@ ClientSocketPoolManagerImpl::ClientSocketPoolManagerImpl(
                                                ssl_session_cache_shard,
                                                socket_factory,
                                                transport_socket_pool_.get(),
+                                               NULL /* no socks proxy */,
+                                               NULL /* no http proxy */,
+                                               ssl_config_service,
+                                               net_log,
+                                               network_session)),
+      ssl_socket_sta_pool_(new SSLClientSocketPool(max_sockets_per_pool(net::HttpNetworkSession::NORMAL_SOCKET_STA_POOL),
+                                               max_sockets_per_group(net::HttpNetworkSession::NORMAL_SOCKET_STA_POOL),
+                                               cert_verifier,
+                                               channel_id_service,
+                                               transport_security_state,
+                                               cert_transparency_verifier,
+                                               cert_policy_enforcer,
+                                               ssl_session_cache_shard,
+                                               socket_factory,
+                                               transport_socket_sta_pool_.get(),
                                                NULL /* no socks proxy */,
                                                NULL /* no http proxy */,
                                                ssl_config_service,
@@ -153,7 +173,9 @@ void ClientSocketPoolManagerImpl::FlushSocketPoolsWithError(int error) {
     it->second->FlushWithError(error);
 
   ssl_socket_pool_->FlushWithError(error);
+  ssl_socket_sta_pool_->FlushWithError(error);
   transport_socket_pool_->FlushWithError(error);
+  transport_socket_sta_pool_->FlushWithError(error);
 }
 
 void ClientSocketPoolManagerImpl::CloseIdleSockets() {
@@ -202,7 +224,9 @@ void ClientSocketPoolManagerImpl::CloseIdleSockets() {
     it->second->CloseIdleSockets();
 
   ssl_socket_pool_->CloseIdleSockets();
+  ssl_socket_sta_pool_->CloseIdleSockets();
   transport_socket_pool_->CloseIdleSockets();
+  transport_socket_sta_pool_->CloseIdleSockets();
 }
 
 TransportClientSocketPool*
@@ -210,8 +234,17 @@ ClientSocketPoolManagerImpl::GetTransportSocketPool() {
   return transport_socket_pool_.get();
 }
 
+TransportClientSocketPool*
+ClientSocketPoolManagerImpl::GetTransportSocketStaPool() {
+  return transport_socket_sta_pool_.get();
+}
+
 SSLClientSocketPool* ClientSocketPoolManagerImpl::GetSSLSocketPool() {
   return ssl_socket_pool_.get();
+}
+
+SSLClientSocketPool* ClientSocketPoolManagerImpl::GetSSLSocketStaPool() {
+  return ssl_socket_sta_pool_.get();
 }
 
 SOCKSClientSocketPool* ClientSocketPoolManagerImpl::GetSocketPoolForSOCKSProxy(

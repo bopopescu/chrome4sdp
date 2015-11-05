@@ -117,7 +117,6 @@ private:
     bool GetSocketPoolType(const TransportPoolType pool_type,
                            net::HttpNetworkSession::SocketPoolType& socket_pool_type);
 
-
     // for debugging, make sure the prefs are set
     bool set_accelerator_prefs_called_;
 

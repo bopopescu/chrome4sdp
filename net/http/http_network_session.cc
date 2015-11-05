@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+// Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -30,6 +30,7 @@
 #include "net/socket/next_proto.h"
 #include "net/socket/ssl_client_socket.h"
 #include "net/spdy/spdy_session_pool.h"
+#include "net/libsta/instance_creation.h" // for OnSessionCreation
 
 namespace net {
 
@@ -118,7 +119,8 @@ HttpNetworkSession::Params::Params()
       quic_threshold_public_resets_post_handshake(0),
       quic_threshold_timeouts_streams_open(0),
       proxy_delegate(NULL),
-      enable_tcp_fin(false) {
+      enable_tcp_fin(false),
+      is_cloned(false) {
   quic_supported_versions.push_back(QUIC_VERSION_25);
 }
 
@@ -219,6 +221,7 @@ HttpNetworkSession::HttpNetworkSession(const Params& params)
 
   http_server_properties_->SetAlternativeServiceProbabilityThreshold(
       params.alternative_service_probability_threshold);
+  OnSessionCreation(params);
 }
 
 HttpNetworkSession::~HttpNetworkSession() {
@@ -239,12 +242,20 @@ void HttpNetworkSession::RemoveResponseDrainer(
 
 TransportClientSocketPool* HttpNetworkSession::GetTransportSocketPool(
     SocketPoolType pool_type) {
-  return GetSocketPoolManager(pool_type)->GetTransportSocketPool();
+  if (pool_type == NORMAL_SOCKET_STA_POOL) {
+    return GetSocketPoolManager(pool_type)->GetTransportSocketStaPool();
+  } else {
+    return GetSocketPoolManager(pool_type)->GetTransportSocketPool();
+  }
 }
 
 SSLClientSocketPool* HttpNetworkSession::GetSSLSocketPool(
     SocketPoolType pool_type) {
-  return GetSocketPoolManager(pool_type)->GetSSLSocketPool();
+    if (pool_type == NORMAL_SOCKET_STA_POOL) {
+        return GetSocketPoolManager(pool_type)->GetSSLSocketStaPool();
+    } else {
+        return GetSocketPoolManager(pool_type)->GetSSLSocketPool();
+    }
 }
 
 SOCKSClientSocketPool* HttpNetworkSession::GetSocketPoolForSOCKSProxy(
@@ -336,6 +347,7 @@ ClientSocketPoolManager* HttpNetworkSession::GetSocketPoolManager(
     SocketPoolType pool_type) {
   switch (pool_type) {
     case NORMAL_SOCKET_POOL:
+    case NORMAL_SOCKET_STA_POOL:
       return normal_socket_pool_manager_.get();
     case WEBSOCKET_SOCKET_POOL:
       return websocket_socket_pool_manager_.get();

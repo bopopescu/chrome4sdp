@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -31,6 +31,7 @@
 #include "base/logging.h"
 #include "net/libnetxt/dyn_lib_loader.h"
 #include "net/libnetxt/libnetxt_base.h"
+#include "net/stat_hub/stat_hub_cmd_api.h"
 
 namespace net {
 
@@ -39,6 +40,13 @@ void HintUpcomingUserActivity(JNIEnv* env, jclass clazz) {
   static bool initialized = false;
 
   if (!initialized) {
+    //check if the application context is ready. If not, we should return and let the client retry later
+    if ( base::android::GetApplicationContext() == NULL ) {
+      if (LIBNETXT_IS_VERBOSE) {
+        LIBNETXT_LOGD("base::android::GetApplicationContext() is NULL - skipping qmodem call");
+      }
+      return;
+    }
     initialized = true;
     void* fh = LibraryManager::GetLibraryHandle("libqmodem_plugin");
     if (fh) {
@@ -54,6 +62,21 @@ void HintUpcomingUserActivity(JNIEnv* env, jclass clazz) {
     DoPresumeUserLoadEvent();
   }
 
+}
+
+void NotifyResourceFetcherDone(JNIEnv* env, jclass clazz, jstring path, jstring module) {
+  StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_JAVA_GP_EVENT, SH_ACTION_RESOURCE_FETCH_DONE, 0);
+  if (NULL!=cmd) {
+    const char* temp;
+    temp = env->GetStringUTFChars(path,0);
+    cmd->AddParamAsString(std::string(temp).c_str());
+    env->ReleaseStringUTFChars(path,temp);
+    temp = env->GetStringUTFChars(module,0);
+    cmd->AddParamAsString(std::string(temp).c_str());
+    env->ReleaseStringUTFChars(module,temp);
+    cmd->AddParamAsBool(true);
+    STAT_HUB_API(CmdCommit)(cmd);
+  }
 }
 
 bool RegisterLibnetxtNetworkServices(JNIEnv* env) {

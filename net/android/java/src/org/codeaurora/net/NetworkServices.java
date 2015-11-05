@@ -30,15 +30,41 @@
 package org.codeaurora.net;
 
 import android.content.Context;
+import android.util.Log;
 
-import org.chromium.base.JNINamespace;
+import org.chromium.base.annotations.JNINamespace;
+import org.chromium.base.annotations.UsedByReflection;
 
 import java.util.ArrayList;
 
 @JNINamespace("net")
+@UsedByReflection("libnetxt")
 public class NetworkServices {
     private static native void nativeHintUpcomingUserActivity();
-    static public void HintUpcomingUserActivity() {
+
+    static public void hintUpcomingUserActivity() {
+        try {
         nativeHintUpcomingUserActivity();
+        } catch (UnsatisfiedLinkError e) {
+            handleHintException();
+        } catch (Exception e) {
+            handleHintException();
+        }
+    }
+    static private void handleHintException() {
+        Log.d("libnetxt","User activity hint ignored - networking is still starting");
+    }
+    private static native void nativeNotifyResourceFetcherDone(String path, String module);
+    static public void NotifyResourceFetcherDone(String path, String module) {
+       try {
+            nativeNotifyResourceFetcherDone(path, module);
+        } catch (UnsatisfiedLinkError e) {
+            HandleNotifyException();
+        } catch (Exception e) {
+            HandleNotifyException();
+        }
+    }
+    static private void HandleNotifyException() {
+        Log.d("libnetxt","ResourceFetcher - Resource Fetcher done message ignored");
     }
 }

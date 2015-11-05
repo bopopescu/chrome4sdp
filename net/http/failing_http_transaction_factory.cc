@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -58,6 +59,7 @@ class FailingHttpTransaction : public HttpTransaction {
   void SetPriority(RequestPriority priority) override;
   void SetWebSocketHandshakeStreamCreateHelper(
       WebSocketHandshakeStreamBase::CreateHelper* create_helper) override;
+  void SetSTARequestMetaData(STARequestMetaData* request_meta_data) override;
   void SetBeforeNetworkStartCallback(
       const BeforeNetworkStartCallback& callback) override;
   void SetBeforeProxyHeadersSentCallback(
@@ -154,6 +156,9 @@ void FailingHttpTransaction::SetWebSocketHandshakeStreamCreateHelper(
   NOTREACHED();
 }
 
+void FailingHttpTransaction::SetSTARequestMetaData(STARequestMetaData* request_meta_data) {
+  NOTREACHED();
+}
 void FailingHttpTransaction::SetBeforeNetworkStartCallback(
     const BeforeNetworkStartCallback& callback)  {
 }

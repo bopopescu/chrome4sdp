@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -249,6 +250,9 @@ void DevToolsNetworkTransaction::SetPriority(net::RequestPriority priority) {
 void DevToolsNetworkTransaction::SetWebSocketHandshakeStreamCreateHelper(
     net::WebSocketHandshakeStreamBase::CreateHelper* create_helper) {
   network_transaction_->SetWebSocketHandshakeStreamCreateHelper(create_helper);
+}
+void DevToolsNetworkTransaction::SetSTARequestMetaData(net::STARequestMetaData* request_meta_data) {
+  network_transaction_->SetSTARequestMetaData(request_meta_data);
 }
 
 void DevToolsNetworkTransaction::SetBeforeNetworkStartCallback(

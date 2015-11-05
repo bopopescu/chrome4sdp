@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
+* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -82,6 +82,7 @@ void InitLibnetxtPluginApi(LibnetxtPluginApi* plugin_api) {
     // ================================ net::HttpNetworkTransaction =================================
     LIBNETXT_API_CPP_PTR_IMP_CON(plugin_api,LibNetXt, net, HttpNetworkTransaction)
     LIBNETXT_API_CPP_PTR_IMP_DES(plugin_api,LibNetXt, net, HttpNetworkTransaction)
+    LIBNETXT_API_CPP_PTR_IMP(plugin_api,LibNetXt, net, HttpNetworkTransaction, SetUseStaPool)
 
     // ================================ net::LoadTimingInfo =================================
     LIBNETXT_API_CPP_PTR_IMP_CON(plugin_api,LibNetXt, net, LoadTimingInfo)
@@ -130,6 +131,9 @@ void InitLibnetxtPluginApi(LibnetxtPluginApi* plugin_api) {
     LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, GetRequestRange)
     LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, ParseRangeHeader)
     LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, PathExists)
+    LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, DeleteFile)
+    LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, Move)
+    LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, GetLocalDataPath)
     LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, GetUrlOriginSpec)
     LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, AssignHttpResponseHeaders)
     LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, PostTask)
@@ -137,11 +141,16 @@ void InitLibnetxtPluginApi(LibnetxtPluginApi* plugin_api) {
     LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, DnsResolve)
     LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, GetTimeTicksNow)
     LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, NetPreconnect)
+    LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, AssembleRawHeadersAndAssign)
+    LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, HttpByteRangeToString)
+    LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, GetResponseHeaderLines)
+    LIBNETXT_API_PTR_IMP(plugin_api, LibNetXt, FetchResourceOnLine)
 
     //Additional APIs
     InitStatHubLibnetxtPluginApi(plugin_api);
     InitTcpFinAggLibnetxtPluginApi(plugin_api);
     InitGetZipLibnetxtPluginApi(plugin_api);
+    InitStaLibnetxtPluginApi(plugin_api);
 
 }
 

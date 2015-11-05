@@ -640,4 +640,29 @@ void TransportClientSocketPool::RemoveHigherLayeredPool(
   base_.RemoveHigherLayeredPool(higher_pool);
 }
 
+void TransportClientSocketPool::SetMaxSockets(int n) {
+  base_.SetMaxSockets(n);
+}
+
+void TransportClientSocketPool::SetMaxSocketsPerGroup(int n) {
+  base_.SetMaxSocketsPerGroup(n);
+}
+
+bool TransportClientSocketPool::HasGroup(const std::string& group_name) const {
+ return base_.HasGroup(group_name);
+ }
+
+void TransportClientSocketPool::printGroups() const {
+  base_.printGroups();
+}
+void TransportClientSocketPool::set_was_changed(bool val) {
+  base_.set_was_changed(val);
+}
+bool TransportClientSocketPool::was_changed() {
+  return base_.was_changed();
+}
+void TransportClientSocketPool::get_group_map(std::vector<std::string>& group_list) {
+  base_.get_group_map(group_list);
+}
+
 }  // namespace net

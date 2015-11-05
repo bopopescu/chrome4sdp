@@ -1,3 +1,4 @@
+// Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
 // Copyright (c) 2011 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -30,7 +31,9 @@ class MockClientSocketPoolManager : public ClientSocketPoolManager {
   void FlushSocketPoolsWithError(int error) override;
   void CloseIdleSockets() override;
   TransportClientSocketPool* GetTransportSocketPool() override;
+  TransportClientSocketPool* GetTransportSocketStaPool() override;
   SSLClientSocketPool* GetSSLSocketPool() override;
+  SSLClientSocketPool* GetSSLSocketStaPool() override;
   SOCKSClientSocketPool* GetSocketPoolForSOCKSProxy(
       const HostPortPair& socks_proxy) override;
   HttpProxyClientSocketPool* GetSocketPoolForHTTPProxy(

@@ -1,3 +1,4 @@
+// Copyright (c) 2014, The Linux Foundation. All rights reserved.
 // Copyright (c) 2011 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -25,53 +26,6 @@ void AssertValidBufferSize(int size) {
 }
 
 }  // namespace
-
-IOBuffer::IOBuffer()
-    : data_(NULL) {
-}
-
-IOBuffer::IOBuffer(int buffer_size) {
-  AssertValidBufferSize(buffer_size);
-  data_ = new char[buffer_size];
-}
-
-IOBuffer::IOBuffer(size_t buffer_size) {
-  AssertValidBufferSize(buffer_size);
-  data_ = new char[buffer_size];
-}
-
-IOBuffer::IOBuffer(char* data)
-    : data_(data) {
-}
-
-IOBuffer::~IOBuffer() {
-  delete[] data_;
-  data_ = NULL;
-}
-
-IOBufferWithSize::IOBufferWithSize(int size)
-    : IOBuffer(size),
-      size_(size) {
-  AssertValidBufferSize(size);
-}
-
-IOBufferWithSize::IOBufferWithSize(size_t size) : IOBuffer(size), size_(size) {
-  // Note: Size check is done in superclass' constructor.
-}
-
-IOBufferWithSize::IOBufferWithSize(char* data, int size)
-    : IOBuffer(data),
-      size_(size) {
-  AssertValidBufferSize(size);
-}
-
-IOBufferWithSize::IOBufferWithSize(char* data, size_t size)
-    : IOBuffer(data), size_(size) {
-  AssertValidBufferSize(size);
-}
-
-IOBufferWithSize::~IOBufferWithSize() {
-}
 
 StringIOBuffer::StringIOBuffer(const std::string& s)
     : IOBuffer(static_cast<char*>(NULL)),
@@ -175,14 +129,6 @@ void PickledIOBuffer::Done() {
 }
 
 PickledIOBuffer::~PickledIOBuffer() {
-  data_ = NULL;
-}
-
-WrappedIOBuffer::WrappedIOBuffer(const char* data)
-    : IOBuffer(const_cast<char*>(data)) {
-}
-
-WrappedIOBuffer::~WrappedIOBuffer() {
   data_ = NULL;
 }
 

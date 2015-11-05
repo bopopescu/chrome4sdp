@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+* Copyright (c) 2013, 2015, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -103,6 +103,7 @@ typedef enum {
     SH_ACTION_PAGELOAD_DID_START,
     SH_ACTION_PAGELOAD_DID_FINISH,
     SH_ACTION_IS_CACHE_ENABLED,
+    SH_ACTION_RESOURCE_FETCH_DONE,
 
     SH_ACTION_LAST,
 } StatHubActionType;

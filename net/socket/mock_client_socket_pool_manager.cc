@@ -1,3 +1,4 @@
+// Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -56,8 +57,17 @@ MockClientSocketPoolManager::GetTransportSocketPool() {
   return transport_socket_pool_.get();
 }
 
+TransportClientSocketPool*
+MockClientSocketPoolManager::GetTransportSocketStaPool() {
+  return NULL;
+}
+
 SSLClientSocketPool* MockClientSocketPoolManager::GetSSLSocketPool() {
   return ssl_socket_pool_.get();
+}
+
+SSLClientSocketPool* MockClientSocketPoolManager::GetSSLSocketStaPool() {
+  return NULL;
 }
 
 SOCKSClientSocketPool* MockClientSocketPoolManager::GetSocketPoolForSOCKSProxy(

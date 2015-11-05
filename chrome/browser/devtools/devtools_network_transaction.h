@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -28,6 +29,7 @@ class IOBuffer;
 struct LoadTimingInfo;
 class UploadProgress;
 class X509Certificate;
+class STARequestMetaData;
 }  // namespace net
 
 namespace test {
@@ -101,6 +103,7 @@ class DevToolsNetworkTransaction : public net::HttpTransaction {
   void SetPriority(net::RequestPriority priority) override;
   void SetWebSocketHandshakeStreamCreateHelper(
       net::WebSocketHandshakeStreamBase::CreateHelper* create_helper) override;
+  void SetSTARequestMetaData(net::STARequestMetaData* request_meta_data) override;
   void SetBeforeNetworkStartCallback(
       const BeforeNetworkStartCallback& callback) override;
   void SetBeforeProxyHeadersSentCallback(

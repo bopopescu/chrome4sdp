@@ -897,6 +897,7 @@
       'includes': [
         '../third_party/libsweadrenoext/libsweadrenoext_vars.gypi',
         '../third_party/libnetxt/libnetxt_vars.gypi',
+        '../third_party/libsta/libsta_vars.gypi',
       ],
       'targets': [
         {
@@ -993,6 +994,7 @@
             '../ui/android/ui_android.gyp:ui_java',
             '<@(libsweadrenoext_dependencies)',
             '<@(libnetxt_dependencies)',
+            '<@(libsta_dependencies)',
           ],
           'variables': {
             'apk_name': 'ContentShell',
@@ -1004,6 +1006,7 @@
             'additional_native_libs': [
               '<@(libsweadrenoext_native_libs)',
               '<@(libnetxt_native_libs)',
+              '<@(libsta_native_libs)',
             ],
             'additional_input_paths': ['<(PRODUCT_DIR)/content_shell/assets/content_shell.pak'],
             'asset_location': '<(PRODUCT_DIR)/content_shell/assets',

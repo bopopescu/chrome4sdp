@@ -269,6 +269,14 @@ class NET_EXPORT_PRIVATE TransportClientSocketPool : public ClientSocketPool {
 
   void InitTcpFin();
 
+  void SetMaxSockets(int n);
+  void SetMaxSocketsPerGroup(int n);
+  bool HasGroup(const std::string& group_name) const;
+  void printGroups() const;
+  void set_was_changed(bool val);
+  bool was_changed();
+  void get_group_map(std::vector<std::string>& group_list);
+
   //adaptive connectivity is specific for transport socket pool
   void InitAdaptiveConnectivity();
 
