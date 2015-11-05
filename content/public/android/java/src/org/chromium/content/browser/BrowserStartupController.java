@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright 2013 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -7,6 +8,7 @@ package org.chromium.content.browser;
 import android.content.Context;
 import android.os.Handler;
 
+import org.chromium.base.CommandLine;
 import org.chromium.base.Log;
 import org.chromium.base.ResourceExtractor;
 import org.chromium.base.ThreadUtils;
@@ -21,6 +23,8 @@ import org.chromium.content.app.ContentMain;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.codeaurora.net.NetworkServices;
+import org.codeaurora.net.TcmIdleTimerMonitor;
 
 /**
  * This class controls how C++ browser main loop is started and ensures it happens only once.
@@ -37,6 +41,8 @@ import java.util.List;
  */
 @JNINamespace("content")
 public class BrowserStartupController {
+
+    private static TcmIdleTimerMonitor sTcmMonitor;
 
     /**
      * This provides the interface to the callbacks for successful or failed startup
@@ -306,6 +312,18 @@ public class BrowserStartupController {
                     DeviceUtils.addDeviceSpecificUserAgentSwitch(mContext);
 
                     ContentMain.initApplicationContext(mContext);
+                    Context appContext = mContext.getApplicationContext();
+                    boolean useTcm = false;
+                    if(CommandLine.getInstance().hasSwitch("net-tcm-on")){
+                        useTcm = CommandLine.getInstance().getSwitchValue("net-tcm-on").equals("1");
+                    }
+                    if(useTcm){
+                        Log.d("libnetxt","TCM is: ON");
+                        sTcmMonitor = new TcmIdleTimerMonitor(appContext);
+                    }
+                    else{
+                        Log.d("libnetxt","TCM is: OFF");
+                    }
                     nativeSetCommandLineFlags(
                             singleProcess, nativeIsPluginEnabled() ? getPlugins() : null);
                     mPostResourceExtractionTasksCompleted = true;

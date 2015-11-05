@@ -41,6 +41,7 @@ import java.util.ArrayList;
 @UsedByReflection("libnetxt")
 public class NetworkServices {
     private static native void nativeHintUpcomingUserActivity();
+    private static native void nativeOnCloseIdleConnections();
 
     static public void hintUpcomingUserActivity() {
         try {
@@ -66,5 +67,9 @@ public class NetworkServices {
     }
     static private void HandleNotifyException() {
         Log.d("libnetxt","ResourceFetcher - Resource Fetcher done message ignored");
+    }
+
+    static public void OnCloseIdleConnections(){
+        nativeOnCloseIdleConnections();
     }
 }

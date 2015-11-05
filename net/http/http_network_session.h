@@ -1,4 +1,4 @@
-// Copyright (c) 2014, The Linux Foundation. All rights reserved.
+// Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -213,13 +213,19 @@ class NET_EXPORT HttpNetworkSession
   // |forced_spdy_exclusions|.
   bool HasSpdyExclusion(HostPortPair host_port_pair) const;
 
+  // get the set of currently instatiated sessions.
+  // WARNING: accessing this collection from multiple thread will result in unpredictable results.
+  // The collection is updated in the network thread.
+  static std::set<HttpNetworkSession*>& getNetworkSessions();
+
+  ClientSocketPoolManager* GetSocketPoolManager(SocketPoolType pool_type);
+
  private:
   friend class base::RefCounted<HttpNetworkSession>;
   friend class HttpNetworkSessionPeer;
 
   ~HttpNetworkSession();
 
-  ClientSocketPoolManager* GetSocketPoolManager(SocketPoolType pool_type);
 
   NetLog* const net_log_;
   NetworkDelegate* const network_delegate_;
@@ -245,6 +251,10 @@ class NET_EXPORT HttpNetworkSession
   bool enabled_protocols_[NUM_VALID_ALTERNATE_PROTOCOLS];
 
   Params params_;
+
+  //maintain a collection of all session objects
+  // This can be used for getting the socket pool managers
+  static std::set<HttpNetworkSession*>* all_network_sessions_;
 };
 
 }  // namespace net

@@ -69,6 +69,8 @@ const int32 kQuicSocketReceiveBufferSize = 1024 * 1024;  // 1MB
 // received post handshake for at least 2 of 20 recent connections.
 const int32 kQuicMaxRecentDisabledReasons = 20;
 
+std::set<HttpNetworkSession*>* HttpNetworkSession::all_network_sessions_=NULL;
+
 HttpNetworkSession::Params::Params()
     : client_socket_factory(NULL),
       host_resolver(NULL),
@@ -221,13 +223,24 @@ HttpNetworkSession::HttpNetworkSession(const Params& params)
 
   http_server_properties_->SetAlternativeServiceProbabilityThreshold(
       params.alternative_service_probability_threshold);
+  getNetworkSessions().insert(this);
   OnSessionCreation(params);
 }
 
 HttpNetworkSession::~HttpNetworkSession() {
+  std::set<HttpNetworkSession*>::iterator it = getNetworkSessions().find(this);
+  getNetworkSessions().erase(it);
+
   STLDeleteElements(&response_drainers_);
   spdy_session_pool_.CloseAllSessions();
 }
+
+std::set<HttpNetworkSession*>& HttpNetworkSession:: getNetworkSessions() {
+  if (all_network_sessions_ == NULL) {
+    all_network_sessions_ = new std::set<HttpNetworkSession*>;
+  }
+  return *all_network_sessions_;
+};
 
 void HttpNetworkSession::AddResponseDrainer(HttpResponseBodyDrainer* drainer) {
   DCHECK(!ContainsKey(response_drainers_, drainer));

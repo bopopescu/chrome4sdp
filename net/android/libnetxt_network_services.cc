@@ -26,14 +26,41 @@
 * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+#include <set>
+#include "net/http/http_network_session.h"
+#include "net/socket/client_socket_pool_manager.h"
 #include "net/android/libnetxt_network_services.h"
 #include "jni/NetworkServices_jni.h"
 #include "base/logging.h"
 #include "net/libnetxt/dyn_lib_loader.h"
 #include "net/libnetxt/libnetxt_base.h"
 #include "net/stat_hub/stat_hub_cmd_api.h"
+#include "net/stat_hub/stat_hub.h"
 
-namespace net {
+namespace net{
+void DoCloseIdleConnections() {
+  // This function must be called in the IO thread
+
+  // create a COPY of the set we are given since there is no guarantie that this call is from the same thread
+  std::set<HttpNetworkSession*> sessions  =  std::set<HttpNetworkSession*>(net::HttpNetworkSession::getNetworkSessions());
+
+  std::set<HttpNetworkSession*>::const_iterator it = sessions.begin();
+  // iterate on all sessions
+  for(;it != sessions.end(); it++){
+    net::HttpNetworkSession* pSession = *it;
+    ClientSocketPoolManager* poolManager = pSession->GetSocketPoolManager(net::HttpNetworkSession::NORMAL_SOCKET_POOL);
+    if(poolManager != NULL)
+      poolManager->CloseIdleSockets();
+
+    poolManager = pSession->GetSocketPoolManager(net::HttpNetworkSession::NORMAL_SOCKET_STA_POOL);
+    if(poolManager != NULL)
+      poolManager->CloseIdleSockets();
+
+    poolManager = pSession->GetSocketPoolManager(net::HttpNetworkSession::WEBSOCKET_SOCKET_POOL);
+    if(poolManager != NULL)
+      poolManager->CloseIdleSockets();
+  } // all sessions
+}
 
 void HintUpcomingUserActivity(JNIEnv* env, jclass clazz) {
   static void (*DoPresumeUserLoadEvent)() = NULL;
@@ -79,8 +106,22 @@ void NotifyResourceFetcherDone(JNIEnv* env, jclass clazz, jstring path, jstring 
   }
 }
 
+void OnCloseIdleConnections(JNIEnv* env, jclass clazz) {
+  // post a message to the network thread event loop, to call DoCloseIdleConnections()
+  base::Closure task = base::Bind(&DoCloseIdleConnections);
+
+  // We cannot use content::BrowserThread since in some targets it causes link failure
+  base::MessageLoop* message_loop = stat_hub::StatHub::GetInstance()->GetIoMessageLoop();
+  if (message_loop) {
+    message_loop->PostTask(FROM_HERE, task);
+  } else {
+    LOG(INFO) << "OnCloseIdleConnections: message loop is null, ignoring.";
+  }
+
+}
+
 bool RegisterLibnetxtNetworkServices(JNIEnv* env) {
   return RegisterNativesImpl(env);
 }
 
-}
+} //net
