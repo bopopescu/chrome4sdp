@@ -17,7 +17,7 @@ namespace content {
 extern WebTech::PixelFormat FormatToPixelFormat(gfx::BufferFormat format);
 
 const GpuMemoryBufferFactory::Configuration kSupportedConfigurations[] = {
-  { gfx::BufferFormat::RGBA_8888, gfx::BufferUsage::PERSISTENT_MAP },
+  { gfx::BufferFormat::RGBA_8888, gfx::BufferUsage::MAP },
 };
 
 GpuMemoryBufferFactoryTextureMemory::GpuMemoryBufferFactoryTextureMemory() {

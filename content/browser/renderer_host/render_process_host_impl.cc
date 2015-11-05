@@ -1156,8 +1156,8 @@ static void AppendCompositorCommandLineFlags(base::CommandLine* command_line) {
     command_line->AppendSwitch(switches::kEnableZeroCopy);
   if (!IsOneCopyUploadEnabled())
     command_line->AppendSwitch(switches::kDisableOneCopy);
-  if (IsPersistentGpuMemoryBufferEnabled())
-    command_line->AppendSwitch(switches::kEnablePersistentGpuMemoryBuffer);
+
+  command_line->AppendSwitch(switches::kEnablePersistentGpuMemoryBuffer);
 
   if (IsForceGpuRasterizationEnabled())
     command_line->AppendSwitch(switches::kForceGpuRasterization);
