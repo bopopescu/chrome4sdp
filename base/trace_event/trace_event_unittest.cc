@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -2345,6 +2346,7 @@ class TraceEventCallbackTest : public TraceEventTestFixture {
                        const char* const arg_names[],
                        const unsigned char arg_types[],
                        const unsigned long long arg_values[],
+                       const scoped_refptr<ConvertableToTraceFormat>* convertable_values,
                        unsigned int flags) {
     s_instance->collected_events_phases_.push_back(phase);
     s_instance->collected_events_categories_.push_back(

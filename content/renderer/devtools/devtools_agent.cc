@@ -228,7 +228,7 @@ void DevToolsAgent::OnInspectElement(
 }
 
 void DevToolsAgent::AddMessageToConsole(ConsoleMessageLevel level,
-                                        const std::string& message) {
+                                          const std::string& message) {
   WebLocalFrame* web_frame = frame_->GetWebFrame();
   if (!web_frame)
     return;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+* Copyright (c) 2014, 2015, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -84,6 +84,9 @@ class NET_EXPORT AltClientSocket : public StreamSocket {
   void ClearConnectionAttempts() override;
   void AddConnectionAttempts(const ConnectionAttempts& attempts) override;
 
+  virtual void SetStatHubParentId(unsigned int stat_hub_parent_id) {
+       stat_hub_parent_id_ = stat_hub_parent_id;
+   }
  private:
   AltTransaction* alt_transction_;
 
@@ -104,6 +107,8 @@ class NET_EXPORT AltClientSocket : public StreamSocket {
 
   // Failed connection attempts made while trying to connect this socket.
   ConnectionAttempts connection_attempts_;
+
+  unsigned int stat_hub_parent_id_;
 
   DISALLOW_COPY_AND_ASSIGN(AltClientSocket);
 };

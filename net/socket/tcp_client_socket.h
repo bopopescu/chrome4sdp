@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright (c) 2011 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -54,6 +55,10 @@ class NET_EXPORT TCPClientSocket : public StreamSocket {
   bool WasNpnNegotiated() const override;
   NextProto GetNegotiatedProtocol() const override;
   bool GetSSLInfo(SSLInfo* ssl_info) override;
+
+  virtual void SetStatHubParentId(unsigned int stat_hub_parent_id) override {
+      socket_->SetStatHubParentId(stat_hub_parent_id);
+  }
 
   // Socket implementation.
   // Multiple outstanding requests are not supported.

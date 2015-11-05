@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -56,6 +57,7 @@
 #include "content/child/web_url_loader_impl.h"
 #include "content/child/web_url_request_util.h"
 #include "content/child/websocket_bridge.h"
+#include "content/child/webstathub_impl.h"
 #include "content/child/worker_task_runner.h"
 #include "content/public/common/content_client.h"
 #include "net/base/data_url.h"
@@ -462,7 +464,7 @@ void BlinkPlatformImpl::InternalInit() {
     sync_provider_.reset(new BackgroundSyncProvider(
         ChildThreadImpl::current()->service_registry()));
   }
-}
+  }
 
 void BlinkPlatformImpl::UpdateWebThreadTLS(blink::WebThread* thread) {
   DCHECK(!current_thread_slot_.Get());
@@ -992,7 +994,7 @@ const DataResource kDataResources[] = {
     {"themeWin.css", IDR_UASTYLE_THEME_WIN_CSS, ui::SCALE_FACTOR_NONE},
     {"themeWinQuirks.css",
      IDR_UASTYLE_THEME_WIN_QUIRKS_CSS,
-     ui::SCALE_FACTOR_NONE},
+    ui::SCALE_FACTOR_NONE},
     {"svg.css", IDR_UASTYLE_SVG_CSS, ui::SCALE_FACTOR_NONE},
     {"mathml.css", IDR_UASTYLE_MATHML_CSS, ui::SCALE_FACTOR_NONE},
     {"mediaControls.css",
@@ -1372,6 +1374,10 @@ WebString BlinkPlatformImpl::domCodeStringFromEnum(int dom_code) {
 int BlinkPlatformImpl::domEnumFromCodeString(const WebString& code) {
   return static_cast<int>(ui::KeycodeConverter::CodeStringToDomCode(
       code.utf8().data()));
+}
+
+blink::WebStatHub* BlinkPlatformImpl::statHub() {
+  return WebStatHubImpl::GetInstance();
 }
 
 }  // namespace content

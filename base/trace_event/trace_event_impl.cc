@@ -276,7 +276,7 @@ void TraceEvent::AppendAsJSON(
                      ","
                      "\"ph\":\"%c\",\"cat\":\"%s\",\"name\":\"%s\",\"args\":",
                 process_id, thread_id_, time_int64, phase_, category_group_name,
-                name_);
+      name_);
 
   // Output argument names and values, stop at first NULL argument name.
   bool strip_args = arg_names_[0] && !argument_filter_predicate.is_null() &&
@@ -287,20 +287,20 @@ void TraceEvent::AppendAsJSON(
   } else {
     *out += "{";
 
-    for (int i = 0; i < kTraceMaxNumArgs && arg_names_[i]; ++i) {
-      if (i > 0)
-        *out += ",";
-      *out += "\"";
-      *out += arg_names_[i];
-      *out += "\":";
+  for (int i = 0; i < kTraceMaxNumArgs && arg_names_[i]; ++i) {
+    if (i > 0)
+      *out += ",";
+    *out += "\"";
+    *out += arg_names_[i];
+    *out += "\":";
 
-      if (arg_types_[i] == TRACE_VALUE_TYPE_CONVERTABLE)
-        convertable_values_[i]->AppendAsTraceFormat(out);
-      else
-        AppendValueAsJSON(arg_types_[i], arg_values_[i], out);
-    }
+    if (arg_types_[i] == TRACE_VALUE_TYPE_CONVERTABLE)
+      convertable_values_[i]->AppendAsTraceFormat(out);
+    else
+      AppendValueAsJSON(arg_types_[i], arg_values_[i], out);
+  }
 
-    *out += "}";
+  *out += "}";
   }
 
   if (phase_ == TRACE_EVENT_PHASE_COMPLETE) {

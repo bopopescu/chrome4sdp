@@ -94,6 +94,10 @@ class SSLClientSocketOpenSSL : public SSLClientSocket {
   int SetReceiveBufferSize(int32 size) override;
   int SetSendBufferSize(int32 size) override;
 
+  virtual void SetStatHubParentId(unsigned int stat_hub_parent_id) override {
+      transport_->socket()->SetStatHubParentId(stat_hub_parent_id);
+    }
+
  private:
   class PeerCertificateChain;
   class SSLContext;

@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -105,6 +106,8 @@ class NET_EXPORT_PRIVATE StreamSocket : public Socket {
 
   // Adds |attempts| to the socket's list of connection attempts.
   virtual void AddConnectionAttempts(const ConnectionAttempts& attempts) = 0;
+
+  virtual void SetStatHubParentId(unsigned int stat_hub_parent_id) {};
 
  protected:
   // The following class is only used to gather statistics about the history of

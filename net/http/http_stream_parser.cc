@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+// Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -24,6 +24,7 @@
 #include "net/socket/ssl_client_socket.h"
 #include "net/socket/alt_client_socket.h"
 #include "net/socket/alt_transaction.h"
+#include "net/stat_hub/stat_hub_api.h"
 #include "net/http/http_getzip_factory.h"
 
 namespace net {
@@ -263,6 +264,7 @@ int HttpStreamParser::SendRequest(const std::string& request_line,
     return result;
   response_->socket_address = HostPortPair::FromIPEndPoint(ip_endpoint);
 
+  connection_->socket()->SetStatHubParentId(STAT_HUB_API(Hash)(request_->url.spec().c_str()));
   //Add Alternative transport Headers
   alt_transaction_ = AltTransaction::HandleRequest(
           request_->url.spec().c_str(),

@@ -369,8 +369,8 @@ STAT_HUB_CMD_HANDLER_CONTAINER_IMPL(PageLoadProcessor, PlProc_CmdHandlerWkPageLo
                     if (frame_iter == frame_map_.end()) {
                         frame_iter = frame_map_.insert(frame_iter, std::pair<void*, FrameEntry>(page_id, FrameEntry(commit_timestamp)));
                     }
+                    frame_iter->second.bytes_received = bytes_received;
                 }
-                frame_iter->second.bytes_received = bytes_received;
                 if (STAT_HUB_API(IsVerboseEnabled)() && progress_report_enabled_ ) {
                     LIBNETXT_LOGI("PL_PROC - ProgressUpdate%s (%3d) - Id:%p, Time:%.03f sec, Received:%d",
                         is_main?" (MAIN)":"", progress_update, page_id, page_load_time, bytes_received);

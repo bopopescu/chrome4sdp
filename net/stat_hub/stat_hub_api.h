@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
+* Copyright (c) 2011-2013, 2015, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -64,6 +64,8 @@ LIBNETXT_API_DEF_0(StatHub, GetIoMessageLoop, base::MessageLoop*)
 LIBNETXT_API_DEF_0(StatHub, IsReady, bool)
 LIBNETXT_API_DEF_1(StatHub, IsProcReady, bool, const char*)
 LIBNETXT_API_DEF_0(StatHub, IsPerfEnabled, bool)
+LIBNETXT_API_DEF_0(StatHub, StartPerfTask, bool)
+LIBNETXT_API_DEF_0(StatHub, StopPerfTask, bool)
 
 // ================================ StatHub SQL Interface ====================================
 LIBNETXT_API_CPP_DEF_0(StatHub, sql, Connection, BeginTransaction, bool)

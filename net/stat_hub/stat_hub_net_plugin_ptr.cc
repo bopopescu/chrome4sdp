@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2013, The Linux Foundation. All rights reserved.
+* Copyright (c) 2013, 2015, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -44,6 +44,8 @@ void InitStatHubLibnetxtPluginApi(LibnetxtPluginApi* plugin_api) {
     LIBNETXT_API_PTR_IMP(plugin_api, StatHub, GetHttpCache)
     LIBNETXT_API_PTR_IMP(plugin_api, StatHub, GetIoMessageLoop)
     LIBNETXT_API_PTR_IMP(plugin_api, StatHub, IsPerfEnabled)
+    LIBNETXT_API_PTR_IMP(plugin_api, StatHub, StartPerfTask)
+    LIBNETXT_API_PTR_IMP(plugin_api, StatHub, StopPerfTask)
 
     // ================================ StatHub CMD Interface ====================================
     LIBNETXT_API_PTR_IMP(plugin_api, StatHub, CmdTimeStamp)

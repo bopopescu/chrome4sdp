@@ -1,4 +1,4 @@
-// Copyright (c) 2013-2014 The Linux Foundation. All rights reserved.
+// Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -986,9 +986,7 @@ void URLRequestHttpJob::OnStartCompleted(int result) {
     StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_CH_URL_REQUEST, SH_ACTION_DID_START, 0);
     if (cmd) {
         cmd->AddParamAsString(url_to_stat_hub.c_str());
-        if (response_info_ && response_info_->headers.get()) {
-            cmd->AddParamAsBuf(response_info_->headers->raw_headers().data(), response_info_->headers->raw_headers().size());
-        }
+        cmd->AddParamAsBuf(headers->raw_headers().data(), headers->raw_headers().size());
         STAT_HUB_API(CmdCommit)(cmd);
     }
     SaveCookiesAndNotifyHeadersComplete(OK);

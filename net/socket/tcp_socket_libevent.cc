@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright 2013 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -26,6 +27,8 @@
 #include "net/base/network_change_notifier.h"
 #include "net/socket/socket_libevent.h"
 #include "net/socket/socket_net_log_params.h"
+#include "net/stat_hub/stat_hub_api.h"
+#include "net/stat_hub/stat_hub_cmd_api.h"
 
 // If we don't have a definition for TCPI_OPT_SYN_DATA, create one.
 #ifndef TCPI_OPT_SYN_DATA
@@ -153,7 +156,8 @@ TCPSocketLibevent::TCPSocketLibevent(NetLog* net_log,
       tcp_fastopen_connected_(false),
       tcp_fastopen_status_(TCP_FASTOPEN_STATUS_UNKNOWN),
       logging_multiple_connect_attempts_(false),
-      net_log_(BoundNetLog::Make(net_log, NetLog::SOURCE_SOCKET)) {
+      net_log_(BoundNetLog::Make(net_log, NetLog::SOURCE_SOCKET)),
+      stat_hub_parent_id_(0) {
   net_log_.BeginEvent(NetLog::TYPE_SOCKET_ALIVE,
                       source.ToEventParametersCallback());
 }
@@ -248,8 +252,22 @@ int TCPSocketLibevent::Connect(const IPEndPoint& address,
   int rv = socket_->Connect(storage,
                             base::Bind(&TCPSocketLibevent::ConnectCompleted,
                                        base::Unretained(this), callback));
-  if (rv != ERR_IO_PENDING)
+  if (rv != ERR_IO_PENDING) {
     rv = HandleConnectCompleted(rv);
+    StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_TCPIP_SOCKET, SH_ACTION_CONNECT, socket_->socket_fd());
+    if (NULL!=cmd) {
+      STAT_HUB_API(CmdTimeStamp)(cmd);
+      cmd->AddParamAsString(address.ToString().c_str());
+      STAT_HUB_API(CmdPush)(cmd);
+    }
+  }
+  else {
+      StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_TCPIP_SOCKET, SH_ACTION_CONNECT, socket_->socket_fd());
+      if (NULL!=cmd) {
+        cmd->AddParamAsString(address.ToString().c_str());
+        STAT_HUB_API(CmdCommit)(cmd);
+      }
+  }
   return rv;
 }
 
@@ -286,6 +304,13 @@ int TCPSocketLibevent::Read(IOBuffer* buf,
                  // use it when Read() completes, as otherwise, this transfers
                  // ownership of buf to socket.
                  base::Unretained(this), make_scoped_refptr(buf), callback));
+
+  StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_TCPIP_SOCKET, SH_ACTION_DID_FINISH_READ, socket_->socket_fd());
+  if (NULL!=cmd) {
+      STAT_HUB_API(CmdTimeStamp)(cmd);
+      STAT_HUB_API(CmdPush)(cmd);
+  }
+
   if (rv != ERR_IO_PENDING)
     rv = HandleReadCompleted(buf, rv);
   return rv;
@@ -309,6 +334,12 @@ int TCPSocketLibevent::Write(IOBuffer* buf,
     rv = TcpFastOpenWrite(buf, buf_len, write_callback);
   } else {
     rv = socket_->Write(buf, buf_len, write_callback);
+  }
+
+  StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_TCPIP_SOCKET, SH_ACTION_WRITE, socket_->socket_fd());
+  if (NULL!=cmd) {
+    STAT_HUB_API(CmdTimeStamp)(cmd);
+    STAT_HUB_API(CmdPush)(cmd);
   }
 
   if (rv != ERR_IO_PENDING)
@@ -544,6 +575,11 @@ int TCPSocketLibevent::HandleConnectCompleted(int rv) const {
     net_log_.EndEvent(NetLog::TYPE_TCP_CONNECT_ATTEMPT);
   }
 
+  StatHubCmd* cmd = STAT_HUB_API(CmdPop)(socket_->socket_fd(), SH_CMD_TCPIP_SOCKET, SH_ACTION_CONNECT);
+  if (NULL!=cmd) {
+       STAT_HUB_API(CmdCommit)(cmd);
+  }
+
   // Give a more specific error when the user is offline.
   if (rv == ERR_ADDRESS_UNREACHABLE && NetworkChangeNotifier::IsOffline())
     rv = ERR_INTERNET_DISCONNECTED;
@@ -611,6 +647,14 @@ int TCPSocketLibevent::HandleReadCompleted(IOBuffer* buf, int rv) {
                       CreateNetLogSocketErrorCallback(rv, errno));
     return rv;
   }
+
+  StatHubCmd* cmd = STAT_HUB_API(CmdPop)(socket_->socket_fd(), SH_CMD_TCPIP_SOCKET, SH_ACTION_DID_FINISH_READ);
+  if (NULL!=cmd) {
+    cmd->AddParamAsUint32(stat_hub_parent_id_);
+    cmd->AddParamAsUint32(rv);
+    STAT_HUB_API(CmdCommit)(cmd);
+  }
+
   net_log_.AddByteTransferEvent(NetLog::TYPE_SOCKET_BYTES_RECEIVED, rv,
                                 buf->data());
   NetworkActivityMonitor::GetInstance()->IncrementBytesReceived(rv);
@@ -642,6 +686,14 @@ int TCPSocketLibevent::HandleWriteCompleted(IOBuffer* buf, int rv) {
                       CreateNetLogSocketErrorCallback(rv, errno));
     return rv;
   }
+
+  StatHubCmd* cmd = STAT_HUB_API(CmdPop)(socket_->socket_fd(), SH_CMD_TCPIP_SOCKET, SH_ACTION_WRITE);
+  if (NULL!=cmd) {
+    cmd->AddParamAsUint32(stat_hub_parent_id_);
+    cmd->AddParamAsUint32(rv);
+    STAT_HUB_API(CmdCommit)(cmd);
+  }
+
   net_log_.AddByteTransferEvent(NetLog::TYPE_SOCKET_BYTES_SENT, rv,
                                 buf->data());
   NetworkActivityMonitor::GetInstance()->IncrementBytesSent(rv);

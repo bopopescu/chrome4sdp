@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+* Copyright (c) 2014, 2015, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -39,6 +39,7 @@
 #include "net/libnetxt/plugin_api.h"
 #include "net/socket/alt_client_socket.h"
 #include "net/socket/alt_transport_def.h"
+#include "net/stat_hub/stat_hub_api.h"
 
 namespace net {
 
@@ -182,6 +183,7 @@ StreamSocket* AltTransaction::HandleResponse(
     if (ready_ && DoHandleResponse && transaction && original_socket) {
         if (DoHandleResponse(transaction->GetId(), transaction->GetUrl().c_str(), headers, &TransportEventCb)) {
             socket = new AltClientSocket(transaction, original_socket);
+            socket->SetStatHubParentId(STAT_HUB_API(Hash)(transaction->GetUrl().c_str()));
             transaction->SetSocket(socket);
             //Start "first data" guard timer
             transaction->delayed_ = true;

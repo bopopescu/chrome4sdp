@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright 2013 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -91,6 +92,10 @@ class NET_EXPORT TCPSocketLibevent {
   void EndLoggingMultipleConnectAttempts(int net_error);
 
   const BoundNetLog& net_log() const { return net_log_; }
+
+  virtual void SetStatHubParentId(unsigned int stat_hub_parent_id) {
+    stat_hub_parent_id_ = stat_hub_parent_id;
+  }
 
  private:
   // States that using a socket with TCP FastOpen can lead to.
@@ -211,6 +216,8 @@ class NET_EXPORT TCPSocketLibevent {
   bool logging_multiple_connect_attempts_;
 
   BoundNetLog net_log_;
+
+  unsigned int stat_hub_parent_id_;
 
   DISALLOW_COPY_AND_ASSIGN(TCPSocketLibevent);
 };

@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright 2014 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -42,6 +43,7 @@ class ThreadSafeSender;
 class WebCryptoImpl;
 class WebGeofencingProviderImpl;
 class WebMemoryDumpProviderAdapter;
+class WebStatHub;
 
 class CONTENT_EXPORT BlinkPlatformImpl
     : NON_EXPORTED_BASE(public blink::Platform) {
@@ -176,6 +178,8 @@ class CONTENT_EXPORT BlinkPlatformImpl
 
   virtual blink::WebString domCodeStringFromEnum(int dom_code);
   virtual int domEnumFromCodeString(const blink::WebString& codeString);
+
+  virtual blink::WebStatHub* statHub();
 
  private:
   void InternalInit();

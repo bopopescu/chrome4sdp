@@ -55,6 +55,7 @@
 #include "stat_hub.h"
 #include "stat_hub_api.h"
 #include "stat_hub_cmd.h"
+#include "stat_hub_cmd_api.h"
 #include "net/libnetxt/plugin_api.h"
 
 #include "pageload_proc.h"
@@ -158,7 +159,8 @@ StatHub::StatHub() :
     verbose_level_(STAT_HUB_VERBOSE_LEVEL_DISABLED),
     clear_enabled_(true),
     under_construction_(0),
-    performance_enabled_(false)
+    performance_enabled_(0),
+    perf_task_started_(0)
 {
     cmd_mask_ = (1<<SH_CMD_WK_MEMORY_CACHE);
     cmd_mask_ |= (1<<SH_CMD_WK_MAIN_URL);
@@ -394,10 +396,9 @@ bool StatHub::Init() {
     }
 
     LIBNETXT_PROPERTY_GET(kPropNamePerfEnabled, value, "0");
-    if (atoi(value)) {
-        performance_enabled_ = true;
-        SetPerfTimeStamp(LIBNETXT_API(GetSystemTime)());
-        LIBNETXT_LOGI("STAT_HUB - Performance Piggyback Enabled");
+    performance_enabled_ = atoi(value);
+    if (IsVerboseEnabled() || performance_enabled_) {
+        LIBNETXT_LOGI("STAT_HUB - Performance Task %s (%d)", performance_enabled_?"Enabled":"Disabled", performance_enabled_);
     }
 
     //Application
@@ -487,6 +488,7 @@ void StatHub::InitDBOnce(StatHub* stat_hub) {
 bool StatHub::InitDB() {
     char value[PROPERTY_VALUE_MAX] = {'\0'};
 
+    flush_db_required_ = true;
     //check if DB can be enabled
     LIBNETXT_PROPERTY_GET(kPropNameDbEnabled,value, SH_DB_ENABLED);
     if (value[0]!='1') {
@@ -566,7 +568,6 @@ bool StatHub::InitDB() {
         ReleaseDB();
         return false;
     }
-    flush_db_required_ = true;
     if(IsVerboseEnabled()) {
         LIBNETXT_LOGI("STAT_HUB - Init DB Time: %d" ,LIBNETXT_API(GetTimeDeltaInMs)(start, LIBNETXT_API(GetSystemTime)()));
     }
@@ -694,35 +695,62 @@ void StatHub::MainUrlLoaded(const char* url) {
 }
 
 //=========================================================================
+static void DoPerfTask(StatHub* stat_hub) {
+    stat_hub->PerfTask();
+}
+
+//=========================================================================
+bool StatHub::PerfTask() {
+    if(thread_ && perf_task_started_) {
+        if (STAT_HUB_IS_VERBOSE_LEVEL_DEBUG && STAT_HUB_DEV_LOG_ENABLED) {
+            LIBNETXT_LOGI("STAT_HUB - Perf Task");
+        }
+        SetPerfTimeStamp(LIBNETXT_API(GetSystemTime)());
+        StatHubCmd* new_cmd = STAT_HUB_API(CmdCreate)(SH_CMD_SELF, SH_ACTION_PERFORMENCE_TICK, 0);
+        if (NULL!=new_cmd) {
+            STAT_HUB_API(CmdCommit(new_cmd));
+        }
+        thread_->message_loop()->PostDelayedTask(FROM_HERE,base::Bind(&DoPerfTask, this),
+            base::TimeDelta::FromMilliseconds(performance_enabled_));
+        return true;;
+    }
+    return false;
+}
+
+//=========================================================================
+bool StatHub::StartPerfTask() {
+    if(!perf_task_started_) {
+        if (IsVerboseEnabled()) {
+            LIBNETXT_LOGI("STAT_HUB - Start Perf Task");
+        }
+        perf_task_started_++;
+        return PerfTask();
+    }
+    perf_task_started_++;
+    return true;
+}
+
+//=========================================================================
+bool StatHub::StopPerfTask() {
+    if(perf_task_started_) {
+        perf_task_started_--;
+        if (!perf_task_started_ && IsVerboseEnabled()) {
+            LIBNETXT_LOGI("STAT_HUB - Stop Perf Task");
+        }
+    }
+    return true;
+}
+
+//=========================================================================
 bool StatHub::Cmd(StatHubCmd* cmd, bool sync) {
     if(NULL!=cmd) {
-        if (IsPerfEnabled()) {
-            StatHubTimeStamp time_stamp = LIBNETXT_API(GetSystemTime)();
-            if (LIBNETXT_API(GetTimeDeltaInMs)(GetPerfTimeStamp(), time_stamp)>=50)
-            {
-                SetPerfTimeStamp(time_stamp);
-                //pID
-                char path[512] = {'\0'};
-                pid_t pid = getpid();
-                //stat
-                snprintf(path, sizeof(path), "/proc/%d/stat", pid);
-                int fd = open(path, O_RDONLY);
-                if (-1!=fd) {
-                    int rd_len = read(fd, path , sizeof(path)-1);
-                    if (0 > rd_len) {
-                        rd_len = 0;
-                    }
-                    path[rd_len] = 0;
-                    cmd->SetStat(path);
-                    close(fd);
-                }
-            }
-        }
-        StatHubCmdType cmd_id = cmd->GetCmd();
-        StatHubActionType action_id = cmd->GetAction();
         if (STAT_HUB_IS_VERBOSE_LEVEL_DEBUG && STAT_HUB_DEV_LOG_ENABLED) {
             LIBNETXT_LOGD("STAT_HUB - StatHub::Cmd CMD:%d Action:%d", cmd->GetCmd(), cmd->GetAction());
         }
+
+        StatHubCmdType cmd_id = cmd->GetCmd();
+        StatHubActionType action_id = cmd->GetAction();
+
         if (dos_prevention_on_) {
             pl_processor_->OnCmd(cmd);
         }

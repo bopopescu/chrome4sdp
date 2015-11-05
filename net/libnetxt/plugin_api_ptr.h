@@ -214,6 +214,8 @@ static LibnetxtPluginApi* GetInstance();
     // ================================ Common Interface ====================================
     LIBNETXT_API_PTR_DEF_0(LibNetXt, GetTimeTicksNow, base::TimeTicks)
 
+
+    //StatHub API updated: added StartPerfTask and StopPerfTask
 };
 
 void sta_assign(scoped_refptr<net::HttpResponseHeaders>* dest , const net::HttpResponseHeaders*  src) __attribute__ ((visibility ("default"), used));

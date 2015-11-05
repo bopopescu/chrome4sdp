@@ -1,3 +1,4 @@
+// Copyright (c) 2015, The Linux Foundation. All rights reserved.
 // Copyright 2015 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -151,6 +152,7 @@ class BASE_EXPORT TraceLog : public MemoryDumpProvider {
                                 const char* const arg_names[],
                                 const unsigned char arg_types[],
                                 const unsigned long long arg_values[],
+                                const scoped_refptr<ConvertableToTraceFormat>* convertable_values,
                                 unsigned int flags);
 
   // Enable tracing for EventCallback.

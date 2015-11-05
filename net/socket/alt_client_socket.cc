@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014, The Linux Foundation. All rights reserved.
+* Copyright (c) 2014, 2015, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -42,6 +42,8 @@
 #include "net/base/net_util.h"
 #include "net/socket/alt_transport_def.h"
 #include "net/socket/alt_transaction.h"
+#include "net/stat_hub/stat_hub_api.h"
+#include "net/stat_hub/stat_hub_cmd_api.h"
 
 namespace net {
 
@@ -141,8 +143,21 @@ int AltClientSocket::Read(IOBuffer* buf,
   base::AutoLock l(lock_);
 
   read_callback_ = callback;
+  StatHubCmd* cmd = STAT_HUB_API(CmdCreate)(SH_CMD_TCPIP_SOCKET, SH_ACTION_DID_FINISH_READ, alt_transction_->GetId());
+
   if (alt_transction_->Read(buf->data(), buf_len)) {
+      if (NULL!=cmd) {
+          STAT_HUB_API(CmdTimeStamp)(cmd);
+          STAT_HUB_API(CmdPush)(cmd);
+      }
       result = ERR_IO_PENDING;
+  }
+  else {
+      if (NULL!=cmd) {
+          cmd->AddParamAsUint32(stat_hub_parent_id_);
+          cmd->AddParamAsUint32(result);
+          STAT_HUB_API(CmdCommit)(cmd);
+      }
   }
   return result;
 }
@@ -188,6 +203,12 @@ scoped_ptr<StreamSocket> AltClientSocket::PassOriginalSocket() {
 //=========================================================================
 void AltClientSocket::DidCompleteRead(int result) {
     if (!read_callback_.is_null()) {
+        StatHubCmd* cmd = STAT_HUB_API(CmdPop)(alt_transction_->GetId(), SH_CMD_TCPIP_SOCKET, SH_ACTION_DID_FINISH_READ);
+        if (NULL!=cmd) {
+          cmd->AddParamAsUint32(stat_hub_parent_id_);
+          cmd->AddParamAsUint32(result);
+          STAT_HUB_API(CmdCommit)(cmd);
+        }
         read_callback_.Run(result);
     }
 }

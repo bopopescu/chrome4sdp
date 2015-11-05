@@ -394,6 +394,14 @@ bool StatHubIsPerfEnabled() {
     return stat_hub::StatHub::GetInstance()->IsPerfEnabled();
 }
 
+bool StatHubStartPerfTask() {
+    return stat_hub::StatHub::GetInstance()->StartPerfTask();
+}
+
+bool StatHubStopPerfTask() {
+    return stat_hub::StatHub::GetInstance()->StopPerfTask();
+}
+
 StatHubVerboseLevel StatHubGetVerboseLevel() {
     return stat_hub::StatHub::GetInstance()->GetVerboseLevel();
 }

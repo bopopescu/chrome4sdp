@@ -1374,7 +1374,7 @@ TraceEventHandle TraceLog::AddTraceEventWithThreadIdAndTimestamp(
           offset_event_timestamp,
           phase == TRACE_EVENT_PHASE_COMPLETE ? TRACE_EVENT_PHASE_BEGIN : phase,
           category_group_enabled, name, id, num_args, arg_names, arg_types,
-          arg_values, flags);
+          arg_values, convertable_values, flags);
     }
   }
 
@@ -1497,7 +1497,7 @@ void TraceLog::UpdateTraceEventDuration(
     if (event_callback) {
       event_callback(now, TRACE_EVENT_PHASE_END, category_group_enabled, name,
                      trace_event_internal::kNoId, 0,
-                     nullptr, nullptr, nullptr, TRACE_EVENT_FLAG_NONE);
+                     nullptr, nullptr, nullptr, nullptr, TRACE_EVENT_FLAG_NONE);
     }
   }
 }

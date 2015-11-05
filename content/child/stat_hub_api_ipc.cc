@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
+* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
 * modification, are permitted provided that the following conditions are
@@ -199,7 +199,7 @@ StatHubCmd* IpcStatHubCmdCreate(StatHubCmdType cmd_id, StatHubActionType action,
 
 // ========================================================================
 bool IpcStatHubCmdCommitInternal(StatHubCmd* cmd, unsigned int delay_ms) {
-    if (!IpcStatHubIsReady() || !cmd) {
+    if (!IpcStatHubIsReady() || !cmd || !RenderThread::Get()) {
         return false;
     }
     //in case we need - start the client IPC thread (done once)

@@ -223,6 +223,15 @@ static StatHub* GetInstance();
     bool IsProcReady(const char *name);
     bool IsProcRegistered(const char* name);
 
+    bool PerfTask();
+    bool StartPerfTask();
+    bool StopPerfTask();
+
+inline bool IsPerfTaskStarted() {
+        return perf_task_started_?true:false;
+    }
+
+
 inline void SetIoMessageLoop(base::MessageLoop* message_loop) {
         message_loop_ = message_loop;
     }
@@ -260,7 +269,7 @@ inline unsigned int GetCmdMask() {
     }
 
 inline bool IsPerfEnabled() {
-        return performance_enabled_;
+        return performance_enabled_?true:false;
     }
 
 inline void SetPerfTimeStamp(StatHubTimeStamp time_stamp) {
@@ -323,8 +332,9 @@ static void InitDBOnce(StatHub* stat_hub);
     unsigned int dos_prevention_cmd_mask_;
     bool clear_enabled_;
     unsigned int under_construction_;
-    bool performance_enabled_;
+    unsigned int  performance_enabled_;
     StatHubTimeStamp perf_time_stamp_;
+    unsigned int perf_task_started_;
 
     DISALLOW_COPY_AND_ASSIGN(StatHub);
 };

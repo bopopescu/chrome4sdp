@@ -275,6 +275,8 @@
       'child/websocket_bridge.h',
       'child/websocket_dispatcher.cc',
       'child/websocket_dispatcher.h',
+      'child/webstathub_impl.cc',
+      'child/webstathub_impl.h',
       'child/webthemeengine_impl_android.cc',
       'child/webthemeengine_impl_android.h',
       'child/webthemeengine_impl_default.cc',
