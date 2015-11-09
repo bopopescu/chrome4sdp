@@ -76,6 +76,10 @@ class CC_EXPORT PictureLayerImpl
   bool RasterSourceUsesLCDText() const;
   WhichTree GetTree() const;
 
+#ifndef NO_REDUCE_UGLY_TILES
+  bool NeedsLowResTile(Tile* low_res_tile);
+#endif // NO_REDUCE_UGLY_TILES
+
   // Mask-related functions.
   void GetContentsResourceId(ResourceId* resource_id,
                              gfx::Size* resource_size) const override;
@@ -172,6 +176,11 @@ class CC_EXPORT PictureLayerImpl
   // of comparing pointers, since objects pointed to are not guaranteed to
   // exist.
   std::vector<PictureLayerTiling*> last_append_quads_tilings_;
+
+#ifndef NO_REDUCE_UGLY_TILES
+  // Set to keep track of low res tiles whose rect has been analyzed.
+  std::set<Tile*> low_res_tile_to_skip_;
+#endif // NO_REDUCE_UGLY_TILES
 
   DISALLOW_COPY_AND_ASSIGN(PictureLayerImpl);
 };

@@ -644,6 +644,14 @@ void TileManager::ScheduleTasks(
   for (auto& prioritized_tile : tiles_that_need_to_be_rasterized) {
     Tile* tile = prioritized_tile.tile();
 
+#ifndef NO_REDUCE_UGLY_TILES
+    if (prioritized_tile.priority().resolution == LOW_RESOLUTION) {
+      if (!client_->IsLowResolutionTileNeeded(tile)) {
+        continue;
+      }
+    }
+#endif // NO_REDUCE_UGLY_TILES
+
     DCHECK(tile->draw_info().requires_resource());
     DCHECK(!tile->draw_info().resource_);
 

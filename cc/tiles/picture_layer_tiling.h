@@ -249,6 +249,9 @@ class CC_EXPORT PictureLayerTiling {
   void AsValueInto(base::trace_event::TracedValue* array) const;
   size_t GPUMemoryUsageInBytes() const;
 
+  const gfx::Rect& current_eventually_rect() const {
+    return current_eventually_rect_;
+  }
  protected:
   friend class CoverageIterator;
   friend class PrioritizedTile;
@@ -359,9 +362,6 @@ class CC_EXPORT PictureLayerTiling {
   }
   const gfx::Rect& current_soon_border_rect() const {
     return current_soon_border_rect_;
-  }
-  const gfx::Rect& current_eventually_rect() const {
-    return current_eventually_rect_;
   }
   bool has_ever_been_updated() const {
     return visible_rect_history_[0].frame_time_in_seconds != 0.0;

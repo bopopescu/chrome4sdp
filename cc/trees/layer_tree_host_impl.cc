@@ -1285,6 +1285,21 @@ void LayerTreeHostImpl::SetIsLikelyToRequireADraw(
   is_likely_to_require_a_draw_ = is_likely_to_require_a_draw;
 }
 
+#ifndef NO_REDUCE_UGLY_TILES
+bool LayerTreeHostImpl::IsLowResolutionTileNeeded(Tile* tile) {
+  bool needs_low_res = true;
+  auto picture_layers = active_tree_->picture_layers();
+  auto layer_iter  = std::find_if(picture_layers.begin(), picture_layers.end(), [&tile] (PictureLayerImpl* p) {
+      return p->id() == tile->layer_id();
+  });
+
+  if (layer_iter != picture_layers.end()) {
+    needs_low_res = (*layer_iter)->NeedsLowResTile(tile);
+  }
+  return needs_low_res;
+}
+#endif // NO_REDUCE_UGLY_TILES
+
 void LayerTreeHostImpl::NotifyReadyToActivate() {
   client_->NotifyReadyToActivate();
 }

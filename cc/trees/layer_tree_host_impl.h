@@ -321,6 +321,9 @@ class CC_EXPORT LayerTreeHostImpl
   scoped_ptr<EvictionTilePriorityQueue> BuildEvictionQueue(
       TreePriority tree_priority) override;
   void SetIsLikelyToRequireADraw(bool is_likely_to_require_a_draw) override;
+#ifndef NO_REDUCE_UGLY_TILES
+  bool IsLowResolutionTileNeeded(Tile* tile) override;
+#endif // NO_REDUCE_UGLY_TILES
 
   // ScrollbarAnimationControllerClient implementation.
   void StartAnimatingScrollbarAnimationController(

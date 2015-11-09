@@ -49,6 +49,11 @@ const int kMinHeightForGpuRasteredTile = 256;
 // of using the same tile size.
 const int kTileRoundUp = 64;
 
+#ifndef NO_REDUCE_UGLY_TILES
+// Limit the number of low tiles allowed in the set
+const int kLowResTileMaxSetSize = 5;
+#endif // NO_REDUCE_UGLY_TILES
+
 }  // namespace
 
 namespace cc {
@@ -1246,5 +1251,54 @@ bool PictureLayerImpl::IsOnActiveOrPendingTree() const {
 bool PictureLayerImpl::HasValidTilePriorities() const {
   return IsOnActiveOrPendingTree() && IsDrawnRenderSurfaceLayerListMember();
 }
+
+#ifndef NO_REDUCE_UGLY_TILES
+bool PictureLayerImpl::NeedsLowResTile(Tile* low_res_tile) {
+  PictureLayerTiling* tiling = tilings_->FindTilingWithResolution(HIGH_RESOLUTION);
+  const gfx::Rect& content_rect = low_res_tile->content_rect();
+  float scale = low_res_tile->contents_scale();
+  auto tile_iter = low_res_tile_to_skip_.find(low_res_tile);
+
+  if (low_res_tile->draw_info().IsReadyToDraw()) {
+    return false;
+  }
+
+  if (!tiling) {
+    return true;
+  }
+
+  // Check if tile is already set. If it is, then check to see if it intersects
+  // the eventually rect. If it does, this means its probably safe to skip
+  // rasterization since previously was not needed. If not then remove from set
+  // and reanalyze
+  if( (tile_iter != low_res_tile_to_skip_.end()) ) {
+    if (content_rect.Intersects(tiling->current_eventually_rect())) {
+      return false;
+    }
+    low_res_tile_to_skip_.erase(tile_iter);
+  }
+
+  // Look at the high res tile in the low res tile rect, and see if they are
+  // ready to draw and if they are then skip.
+  for (PictureLayerTiling::CoverageIterator it(tiling, scale, content_rect); it; ++it) {
+    Tile* tile = (*it);
+    if (!tile)
+      continue;
+    if (!tile->draw_info().IsReadyToDraw()) {
+      return true;
+    }
+  }
+
+  // Low_res_tile can be skipped since its rect contains high res content. Also
+  // check size of the low res tile set, and remove  first element if it goes
+  // over limit.
+  if (low_res_tile_to_skip_.size() > kLowResTileMaxSetSize) {
+    low_res_tile_to_skip_.erase(low_res_tile_to_skip_.begin());
+  }
+  low_res_tile_to_skip_.insert(low_res_tile);
+
+  return false;
+}
+#endif // NO_REDUCE_UGLY_TILES
 
 }  // namespace cc

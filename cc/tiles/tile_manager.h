@@ -73,6 +73,12 @@ class CC_EXPORT TileManagerClient {
   // draw. This can be used to preemptively start a frame.
   virtual void SetIsLikelyToRequireADraw(bool is_likely_to_require_a_draw) = 0;
 
+#ifndef NO_REDUCE_UGLY_TILES
+  // Request the client to check if enough high res content is available to
+  // skip the low res
+  virtual bool IsLowResolutionTileNeeded(Tile*) { return true; }
+#endif // NO_REDUCE_UGLY_TILES
+
  protected:
   virtual ~TileManagerClient() {}
 };
