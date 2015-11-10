@@ -147,6 +147,6 @@ class SweChromeBackendSettings(WebviewBackendSettings):
 
   def __init__(self, package):
     super(SweChromeBackendSettings, self).__init__(
-        activity='com.google.android.apps.chrome.Main',
-        cmdline_file='/data/local/chrome-command-line',
+        activity='.Main',
+        cmdline_file='/data/local/tmp/swe-command-line',
         package=package)
