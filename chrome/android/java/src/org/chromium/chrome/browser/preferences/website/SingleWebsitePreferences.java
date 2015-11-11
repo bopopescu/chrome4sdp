@@ -537,7 +537,7 @@ public class SingleWebsitePreferences extends BrowserPreferenceFragment
     /**
      * Returns the icon for permissions that have been disabled by Chrome.
      */
-    private Drawable getDisabledInChromeIcon(int contentType) {
+    protected Drawable getDisabledInChromeIcon(int contentType) {
         Drawable icon = ApiCompatibilityUtils.getDrawable(getResources(),
                 ContentSettingsResources.getIcon(contentType));
         icon.mutate();

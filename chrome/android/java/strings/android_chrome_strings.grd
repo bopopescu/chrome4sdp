@@ -1346,6 +1346,12 @@ You are signing in with a managed account and giving its administrator control o
       <message name="IDS_OMNIBOX_GEOLOCATION_DISCLOSURE" desc="Text shown when a user focuses the Chrome omnibox to inform them that their location will be shared with the search provider to get better local search results.">
         <ph name="SEARCH_ENGINE_URL">%1$s<ex>www.google.com</ex></ph> uses your location to show local search results
       </message>
+      <message name="IDS_INFOBAR_PERMISSION_ALLOW_24HRS" desc="A button in infobar for allowing geolocation access for only 24 hours.">
+        Allow for 24 hours
+      </message>
+      <message name="IDS_INFOBAR_PERMISSION_REMEMBER" desc="A checkbox in geolocation infobar to decide whether geolocation setting should persist or not.">
+        Remember preference
+      </message>
 
       <!-- ContextMenu -->
       <message name="IDS_CONTEXTMENU_OPEN_IN_NEW_TAB" desc="Context sensitive menu item to open the selected link in a new tab. [CHAR-LIMIT=30]">

@@ -47,13 +47,13 @@ ProtectedMediaIdentifierInfoBarDelegate::
 }
 
 bool ProtectedMediaIdentifierInfoBarDelegate::Accept() {
-  SetPermission(true, true);
+  SetPermission(true, CONTENT_SETTING_ALLOW);
   return true;
 }
 
 void ProtectedMediaIdentifierInfoBarDelegate::SetPermission(
     bool update_content_setting,
-    bool allowed) {
+    ContentSetting allowed) {
   content::WebContents* web_contents =
       InfoBarService::WebContentsFromInfoBar(infobar());
   controller_->OnPermissionSet(id_, requesting_frame_,
@@ -71,7 +71,7 @@ int ProtectedMediaIdentifierInfoBarDelegate::GetIconID() const {
 }
 
 void ProtectedMediaIdentifierInfoBarDelegate::InfoBarDismissed() {
-  SetPermission(false, false);
+  SetPermission(false, CONTENT_SETTING_BLOCK);
 }
 
 base::string16 ProtectedMediaIdentifierInfoBarDelegate::GetMessageText() const {
@@ -89,7 +89,7 @@ base::string16 ProtectedMediaIdentifierInfoBarDelegate::GetButtonLabel(
 }
 
 bool ProtectedMediaIdentifierInfoBarDelegate::Cancel() {
-  SetPermission(true, false);
+  SetPermission(true, CONTENT_SETTING_BLOCK);
   return true;
 }
 

@@ -37,6 +37,10 @@ bool ConfirmInfoBarDelegate::Accept() {
   return true;
 }
 
+bool ConfirmInfoBarDelegate::Accept(ContentSetting action, const std::string& action_value) {
+  return true;
+}
+
 bool ConfirmInfoBarDelegate::Cancel() {
   return true;
 }

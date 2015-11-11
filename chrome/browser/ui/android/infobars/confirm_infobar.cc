@@ -18,6 +18,7 @@
 #include "components/infobars/core/confirm_infobar_delegate.h"
 #include "content/public/browser/android/content_view_core.h"
 #include "content/public/browser/web_contents.h"
+#include "content/public/common/origin_util.h"
 #include "jni/ConfirmInfoBarDelegate_jni.h"
 #include "ui/android/window_android.h"
 #include "ui/gfx/android/java_bitmap.h"
@@ -81,6 +82,7 @@ base::android::ScopedJavaLocalRef<jobject> ConfirmInfoBar::CreateRenderInfoBar(
 
   content::WebContents* web_contents =
       InfoBarService::WebContentsFromInfoBar(this);
+
   DCHECK(web_contents);
   content::ContentViewCore* cvc =
       content::ContentViewCore::FromWebContents(web_contents);
@@ -93,7 +95,8 @@ base::android::ScopedJavaLocalRef<jobject> ConfirmInfoBar::CreateRenderInfoBar(
       jwindow_android.obj(), GetEnumeratedIconId(), java_bitmap.obj(),
       message_text.obj(), link_text.obj(), ok_button_text.obj(),
       cancel_button_text.obj(),
-      base::android::ToJavaIntArray(env, content_settings).obj());
+      base::android::ToJavaIntArray(env, content_settings).obj(),
+      content::IsOriginSecure(web_contents->GetLastCommittedURL()));
 }
 
 void ConfirmInfoBar::OnLinkClicked(JNIEnv* env, jobject obj) {
@@ -106,15 +109,38 @@ void ConfirmInfoBar::OnLinkClicked(JNIEnv* env, jobject obj) {
 
 void ConfirmInfoBar::ProcessButton(int action,
                                    const std::string& action_value) {
+
   if (!owner())
     return; // We're closing; don't call anything, it might access the owner.
 
-  DCHECK((action == InfoBarAndroid::ACTION_OK) ||
-      (action == InfoBarAndroid::ACTION_CANCEL));
+  DCHECK((action == CONTENT_SETTING_ALLOW)
+        || (action == CONTENT_SETTING_BLOCK)
+        || (action == CONTENT_SETTING_ALLOW_24H)
+        || (action == CONTENT_SETTING_SESSION_ONLY));
+
   ConfirmInfoBarDelegate* delegate = GetDelegate();
-  if ((action == InfoBarAndroid::ACTION_OK) ?
-      delegate->Accept() : delegate->Cancel())
+  bool remove_self = false;
+  switch(action) {
+    case CONTENT_SETTING_ALLOW:
+      remove_self = delegate->Accept();
+      break;
+    case CONTENT_SETTING_BLOCK:
+      remove_self = delegate->Cancel();
+      break;
+    case CONTENT_SETTING_ALLOW_24H:
+      remove_self = delegate->Accept(CONTENT_SETTING_ALLOW_24H, action_value);
+      break;
+    case CONTENT_SETTING_SESSION_ONLY:
+      remove_self = delegate->Accept(CONTENT_SETTING_SESSION_ONLY, action_value);
+      break;
+    default:
+      NOTREACHED();
+      break;
+  }
+  if(remove_self) {
     RemoveSelf();
+  }
+
 }
 
 ConfirmInfoBarDelegate* ConfirmInfoBar::GetDelegate() {

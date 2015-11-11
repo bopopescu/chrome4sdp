@@ -17,6 +17,7 @@
 GeolocationPermissionContext::GeolocationPermissionContext(
     Profile* profile)
     : PermissionContextBase(profile, CONTENT_SETTINGS_TYPE_GEOLOCATION),
+      profile_(profile),
       extensions_context_(profile) {
 }
 
@@ -30,9 +31,11 @@ void GeolocationPermissionContext::RequestPermission(
     bool user_gesture,
     const BrowserPermissionCallback& callback) {
   DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
-
+  const GURL& primary_url = requesting_frame_origin.GetOrigin();
+  const GURL& secondary_url =  web_contents->GetLastCommittedURL().GetOrigin();
   bool permission_set;
   bool new_permission;
+  base::TimeDelta expire;
   if (extensions_context_.RequestPermission(
       web_contents, id, id.request_id(), requesting_frame_origin, user_gesture,
       callback, &permission_set, &new_permission)) {
@@ -49,6 +52,37 @@ void GeolocationPermissionContext::RequestPermission(
     return;
   }
 
+  ContentSetting content_setting =
+      profile_->GetHostContentSettingsMap()->GetContentSetting(
+              primary_url,
+              secondary_url,
+              CONTENT_SETTINGS_TYPE_GEOLOCATION,
+              std::string());
+  switch (content_setting) {
+    case CONTENT_SETTING_ALLOW_24H:
+      expire =  base::Time::Now() - profile_->GetHostContentSettingsMap()->GetExpiry(
+          requesting_frame_origin.GetOrigin(),
+          secondary_url,
+          CONTENT_SETTINGS_TYPE_GEOLOCATION);
+
+      if(expire.InSecondsF() > 0) {
+        profile_->GetHostContentSettingsMap()->SetContentSetting(
+            ContentSettingsPattern::FromURLNoWildcard(primary_url),
+            ContentSettingsPattern::FromURLNoWildcard(secondary_url),
+            CONTENT_SETTINGS_TYPE_GEOLOCATION, std::string(), CONTENT_SETTING_ASK);
+        break;
+      } else {
+        NotifyPermissionSet(id,
+                            requesting_frame_origin,
+                            web_contents->GetLastCommittedURL().GetOrigin(),
+                            callback,
+                            false /* persist */,
+                            CONTENT_SETTING_ALLOW);
+        return;
+      }
+    default:
+      break;
+  }
   PermissionContextBase::RequestPermission(web_contents, id,
                                            requesting_frame_origin,
                                            user_gesture,

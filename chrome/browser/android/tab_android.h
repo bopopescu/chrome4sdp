@@ -203,6 +203,8 @@ class TabAndroid : public CoreTabHelperDelegate,
 
   jboolean IsOfflinePage(JNIEnv* env, jobject obj);
 
+  jboolean IsOriginSecure(JNIEnv* env, jobject obj);
+
   void SetInterceptNavigationDelegate(JNIEnv* env,
                                       jobject obj,
                                       jobject delegate);

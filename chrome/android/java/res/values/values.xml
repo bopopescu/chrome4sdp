@@ -10,6 +10,7 @@
     <item type="id" name="button_primary" />
     <item type="id" name="button_secondary" />
     <item type="id" name="button_tertiary" />
+    <item type="id" name="button_24hour" />
     <item type="id" name="infobar_extra_check" />
 
     <!-- Menu Animation Constants -->

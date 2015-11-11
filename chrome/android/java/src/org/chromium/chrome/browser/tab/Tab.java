@@ -2740,6 +2740,9 @@ public class Tab implements ViewGroup.OnHierarchyChangeListener,
         return isFrozen() ? false : nativeIsOfflinePage(mNativeTabAndroid);
     }
 
+    public boolean isOriginSecure() {
+        return mNativeTabAndroid != 0 ? nativeIsOriginSecure(mNativeTabAndroid) : false;
+    }
     /**
      * Request that this tab receive focus. Currently, this function requests focus for the main
      * View (usually a ContentView).
@@ -2939,6 +2942,7 @@ public class Tab implements ViewGroup.OnHierarchyChangeListener,
     private native void nativeSearchByImageInNewTabAsync(long nativeTabAndroid);
     private native long nativeGetBookmarkId(long nativeTabAndroid, boolean onlyEditable);
     private native boolean nativeIsOfflinePage(long nativeTabAndroid);
+    private native boolean nativeIsOriginSecure(long nativeTabAndroid);
     private native void nativeSetInterceptNavigationDelegate(long nativeTabAndroid,
             InterceptNavigationDelegate delegate);
     private native void nativeAttachToTabContentManager(long nativeTabAndroid,

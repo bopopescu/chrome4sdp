@@ -171,6 +171,7 @@ static void SetSettingForOrigin(JNIEnv* env,
     case 0: setting = CONTENT_SETTING_DEFAULT; break;
     case 1: setting = CONTENT_SETTING_ALLOW; break;
     case 2: setting = CONTENT_SETTING_BLOCK; break;
+    case 6: setting = CONTENT_SETTING_ALLOW_24H; break;
     default:
       // Note: CONTENT_SETTINGS_ASK is not and should not be supported.
       NOTREACHED();

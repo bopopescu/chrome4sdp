@@ -285,6 +285,13 @@ void HostContentSettingsMap::SetContentSetting(
     ContentSetting setting) {
   DCHECK(!ContentTypeHasCompoundValue(content_type));
 
+  if (setting == CONTENT_SETTING_ALLOW_24H &&
+      ((content_type == CONTENT_SETTINGS_TYPE_GEOLOCATION) ||
+       (content_type == CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA) ||
+       (content_type == CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC))) {
+    UpdateExpiryByPattern(primary_pattern, secondary_pattern, content_type);
+  }
+
   if (setting == CONTENT_SETTING_ALLOW &&
       (content_type == CONTENT_SETTINGS_TYPE_GEOLOCATION ||
        content_type == CONTENT_SETTINGS_TYPE_NOTIFICATIONS)) {
@@ -360,6 +367,50 @@ base::Time HostContentSettingsMap::GetLastUsageByPattern(
   UsedContentSettingsProviders();
 
   return GetPrefProvider()->GetLastUsage(
+      primary_pattern, secondary_pattern, content_type);
+}
+
+void HostContentSettingsMap::UpdateExpiry(const GURL& primary_url,
+                                             const GURL& secondary_url,
+                                             ContentSettingsType content_type) {
+  UpdateExpiryByPattern(
+      ContentSettingsPattern::FromURLNoWildcard(primary_url),
+      ContentSettingsPattern::FromURLNoWildcard(secondary_url),
+      content_type);
+}
+
+void HostContentSettingsMap::UpdateExpiryByPattern(
+    const ContentSettingsPattern& primary_pattern,
+    const ContentSettingsPattern& secondary_pattern,
+    ContentSettingsType content_type) {
+  UsedContentSettingsProviders();
+
+  GetPrefProvider()->UpdateExpiry(
+      primary_pattern, secondary_pattern, content_type);
+
+  FOR_EACH_OBSERVER(
+      content_settings::Observer,
+      observers_,
+      OnContentSettingUsed(primary_pattern, secondary_pattern, content_type));
+}
+
+base::Time HostContentSettingsMap::GetExpiry(
+    const GURL& primary_url,
+    const GURL& secondary_url,
+    ContentSettingsType content_type) {
+  return GetExpiryByPattern(
+      ContentSettingsPattern::FromURLNoWildcard(primary_url),
+      ContentSettingsPattern::FromURLNoWildcard(secondary_url),
+      content_type);
+}
+
+base::Time HostContentSettingsMap::GetExpiryByPattern(
+    const ContentSettingsPattern& primary_pattern,
+    const ContentSettingsPattern& secondary_pattern,
+    ContentSettingsType content_type) {
+  UsedContentSettingsProviders();
+
+  return GetPrefProvider()->GetExpiry(
       primary_pattern, secondary_pattern, content_type);
 }
 

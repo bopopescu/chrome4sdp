@@ -24,6 +24,7 @@ const int kPermissionButtonTextIDPolicyManaged[] = {
     IDS_WEBSITE_SETTINGS_BUTTON_TEXT_BLOCKED_BY_POLICY,
     IDS_WEBSITE_SETTINGS_BUTTON_TEXT_ASK_BY_POLICY,
     kInvalidResourceID,
+    kInvalidResourceID,
     kInvalidResourceID};
 static_assert(arraysize(kPermissionButtonTextIDPolicyManaged) ==
               CONTENT_SETTING_NUM_SETTINGS,
@@ -35,6 +36,7 @@ const int kPermissionButtonTextIDExtensionManaged[] = {
     kInvalidResourceID,
     IDS_WEBSITE_SETTINGS_BUTTON_TEXT_ALLOWED_BY_EXTENSION,
     IDS_WEBSITE_SETTINGS_BUTTON_TEXT_BLOCKED_BY_EXTENSION,
+    kInvalidResourceID,
     kInvalidResourceID,
     kInvalidResourceID,
     kInvalidResourceID};
@@ -51,6 +53,7 @@ const int kPermissionButtonTextIDUserManaged[] = {
     IDS_WEBSITE_SETTINGS_BUTTON_TEXT_BLOCKED_BY_USER,
     IDS_WEBSITE_SETTINGS_BUTTON_TEXT_ASK_BY_USER,
     kInvalidResourceID,
+    kInvalidResourceID,
     IDS_WEBSITE_SETTINGS_BUTTON_TEXT_DETECT_IMPORTANT_CONTENT_BY_USER};
 static_assert(arraysize(kPermissionButtonTextIDUserManaged) ==
               CONTENT_SETTING_NUM_SETTINGS,
@@ -63,6 +66,7 @@ const int kPermissionButtonTextIDDefaultSetting[] = {
     IDS_WEBSITE_SETTINGS_BUTTON_TEXT_ALLOWED_BY_DEFAULT,
     IDS_WEBSITE_SETTINGS_BUTTON_TEXT_BLOCKED_BY_DEFAULT,
     IDS_WEBSITE_SETTINGS_BUTTON_TEXT_ASK_BY_DEFAULT,
+    kInvalidResourceID,
     kInvalidResourceID,
     IDS_WEBSITE_SETTINGS_BUTTON_TEXT_DETECT_IMPORTANT_CONTENT_BY_DEFAULT};
 static_assert(arraysize(kPermissionButtonTextIDDefaultSetting) ==

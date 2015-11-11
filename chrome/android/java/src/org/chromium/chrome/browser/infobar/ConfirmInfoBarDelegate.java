@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import org.chromium.base.annotations.CalledByNative;
 import org.chromium.chrome.browser.ResourceId;
 import org.chromium.ui.base.WindowAndroid;
+import org.chromium.chrome.browser.ContentSettingsType;
 
 /**
  * Provides JNI methods for ConfirmInfoBars
@@ -21,6 +22,20 @@ public class ConfirmInfoBarDelegate {
     @CalledByNative
     public static ConfirmInfoBarDelegate create() {
         return new ConfirmInfoBarDelegate();
+    }
+
+    private boolean enable24HourButton(int[] contentSettings, boolean isSecure) {
+        for (int contentSetting: contentSettings) {
+            if(isSecure &&
+               (contentSetting == ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA
+                || contentSetting == ContentSettingsType.CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC)) {
+                return true;
+            }
+            if(contentSetting == ContentSettingsType.CONTENT_SETTINGS_TYPE_GEOLOCATION) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -40,13 +55,18 @@ public class ConfirmInfoBarDelegate {
     @CalledByNative
     InfoBar showConfirmInfoBar(WindowAndroid windowAndroid, int enumeratedIconId,
             Bitmap iconBitmap, String message, String linkText, String buttonOk,
-            String buttonCancel, int[] contentSettings) {
+            String buttonCancel, int[] contentSettings, boolean isSecure) {
         int drawableId = ResourceId.mapToDrawableId(enumeratedIconId);
 
-        ConfirmInfoBar infoBar = new ConfirmInfoBar(
-                null, drawableId, iconBitmap, message, linkText, buttonOk, buttonCancel);
+        ConfirmInfoBar infoBar;
+        if(enable24HourButton(contentSettings, isSecure)) {
+            infoBar = new BrowserConfirmInfoBar(
+                    null, drawableId, iconBitmap, message, linkText, buttonOk, buttonCancel);
+        } else {
+            infoBar = new ConfirmInfoBar(
+                    null, drawableId, iconBitmap, message, linkText, buttonOk, buttonCancel);
+        }
         infoBar.setContentSettings(windowAndroid, contentSettings);
-
         return infoBar;
     }
 }

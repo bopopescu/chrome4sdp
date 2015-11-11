@@ -43,6 +43,8 @@ std::string ContentSettingToString(ContentSetting setting) {
       return "detect";
     case CONTENT_SETTING_DEFAULT:
       return "default";
+    case CONTENT_SETTING_ALLOW_24H:
+      return "allow24h";
     case CONTENT_SETTING_NUM_SETTINGS:
       NOTREACHED();
   }

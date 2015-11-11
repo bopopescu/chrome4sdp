@@ -31,7 +31,7 @@ PermissionInfobarDelegate::GetInfoBarType() const {
 }
 
 void PermissionInfobarDelegate::InfoBarDismissed() {
-  SetPermission(false, false);
+  SetPermission(false, CONTENT_SETTING_BLOCK);
 }
 
 PermissionInfobarDelegate*
@@ -46,21 +46,40 @@ base::string16 PermissionInfobarDelegate::GetButtonLabel(
 }
 
 bool PermissionInfobarDelegate::Accept() {
-  SetPermission(true, true);
+  SetPermission(true, CONTENT_SETTING_ALLOW);
   return true;
 }
 
+bool PermissionInfobarDelegate::Accept(ContentSetting action, const std::string& action_value) {
+  switch(action) {
+    case CONTENT_SETTING_BLOCK:
+      SetPermission(true, action);
+      return true;
+    case CONTENT_SETTING_ALLOW:
+      SetPermission(true, action);
+      return true;
+    case CONTENT_SETTING_ALLOW_24H:
+      SetPermission(true, action);
+      return true;
+    case CONTENT_SETTING_SESSION_ONLY:
+      SetPermission(false, action);
+      return true;
+    default:
+      return false;
+  }
+}
+
 bool PermissionInfobarDelegate::Cancel() {
-  SetPermission(true, false);
+  SetPermission(true, CONTENT_SETTING_BLOCK);
   return true;
 }
 
 void PermissionInfobarDelegate::SetPermission(bool update_content_setting,
-                                              bool allowed) {
+                                              ContentSetting content_setting) {
   action_taken_ = true;
   controller_->OnPermissionSet(
       id_, requesting_origin_,
       InfoBarService::WebContentsFromInfoBar(
           infobar())->GetLastCommittedURL().GetOrigin(),
-      update_content_setting, allowed);
+      update_content_setting, content_setting);
 }

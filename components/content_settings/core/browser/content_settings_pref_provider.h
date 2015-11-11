@@ -63,6 +63,14 @@ class PrefProvider : public ObservableProvider {
                           const ContentSettingsPattern& secondary_pattern,
                           ContentSettingsType content_type);
 
+  void UpdateExpiry(const ContentSettingsPattern& primary_pattern,
+                    const ContentSettingsPattern& secondary_pattern,
+                    ContentSettingsType content_type);
+
+  base::Time GetExpiry(const ContentSettingsPattern& primary_pattern,
+                       const ContentSettingsPattern& secondary_pattern,
+                       ContentSettingsType content_type);
+
   void Notify(const ContentSettingsPattern& primary_pattern,
               const ContentSettingsPattern& secondary_pattern,
               ContentSettingsType content_type,

@@ -89,11 +89,13 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
     public static final String EXTRA_INCOGNITO = "website_incognito";
     public static final String WEBDEFENDER_SETTING = "WebDefender_setting";
     public static final String WEBREFINER_SETTING = "WebRefiner_setting";
+    public static final String EXTRA_SECURE_ORIGIN = "website_secure_origin";
 
     private int mSecurityLevel = -1;
     private int mSiteColor = -1;
     private String mWebRefinerMessages;
     private boolean mIsIncognito;
+    private boolean mIsSecureOrigin;
 
     private SiteSecurityViewFactory mSecurityViews;
     private Preference mSecurityInfoPrefs;
@@ -115,6 +117,7 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
             setupWebRefinerInformation(arguments);
             mSecurityLevel = arguments.getInt(EXTRA_SECURITY_CERT_LEVEL);
             mIsIncognito = arguments.getBoolean(EXTRA_INCOGNITO);
+            mIsSecureOrigin = arguments.getBoolean(EXTRA_SECURE_ORIGIN);
             updateSecurityInfo();
             WebDefenderPreferenceHandler.StatusParcel parcel = arguments.getParcelable(
                     WebDefenderDetailsPreferences.EXTRA_WEBDEFENDER_PARCEL);
@@ -160,12 +163,99 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
         return icon;
     }
 
+    private int getIndex(ContentSetting value) {
+        int returnValue;
+        switch(value) {
+            case ALLOW:
+            case ASK:
+                returnValue = 0;
+                break;
+            case BLOCK:
+                returnValue = 1;
+                break;
+            case ALLOW_24H:
+                returnValue = 2;
+                break;
+            default:
+                returnValue = -1;
+                break;
+        }
+        return returnValue;
+    }
+
+    private boolean add24HourItem(Preference preference) {
+        switch(preference.getKey()) {
+            case PREF_LOCATION_ACCESS:
+                return true;
+            case PREF_CAMERA_CAPTURE_PERMISSION:
+            case PREF_MIC_CAPTURE_PERMISSION:
+                if(mIsSecureOrigin)
+                    return true;
+                else
+                    return false;
+            default:
+                return false;
+        }
+    }
+
     @Override
     protected void setUpListPreference(Preference preference, ContentSetting value) {
         if (mIsIncognito) {
             getPreferenceScreen().removePreference(preference);
         } else {
-            super.setUpListPreference(preference, value);
+            if(add24HourItem(preference)) {
+                if (value == null) {
+                    value = getGlobalDefaultPermission(preference);
+                    if (value == null) {
+                        getPreferenceScreen().removePreference(preference);
+                        return;
+                    }
+                }
+
+                ListPreference listPreference = (ListPreference) preference;
+                int contentType = getContentSettingsTypeFromPreferenceKey(preference.getKey());
+
+                int listNum = 3;
+                CharSequence[] keys = new String[listNum];
+                CharSequence[] descriptions = new String[listNum];
+                keys[0] = ContentSetting.ALLOW.toString();
+                keys[1] = ContentSetting.BLOCK.toString();
+                keys[2] = ContentSetting.ALLOW_24H.toString();
+
+                descriptions[0] = getResources().getString(
+                        ContentSettingsResources.getSiteSummary(ContentSetting.ALLOW));
+                descriptions[1] = getResources().getString(
+                        ContentSettingsResources.getSiteSummary(ContentSetting.BLOCK));
+                descriptions[2] = getResources().getString(
+                        ContentSettingsResources.getSiteSummary(ContentSetting.ALLOW_24H));
+
+                listPreference.setEntryValues(keys);
+                listPreference.setEntries(descriptions);
+                int index = getIndex(value);
+                listPreference.setValueIndex(index);
+                int explanationResourceId = ContentSettingsResources.getExplanation(contentType);
+                if (explanationResourceId != 0) {
+                    listPreference.setTitle(explanationResourceId);
+                }
+
+                if (listPreference.isEnabled()) {
+                    SiteSettingsCategory category =
+                            SiteSettingsCategory.fromContentSettingsType(contentType);
+                    if (category != null && !category.enabledInAndroid(getActivity())) {
+                        listPreference.setIcon(category.getDisabledInAndroidIcon(getActivity()));
+                        listPreference.setEnabled(false);
+                    } else {
+                        listPreference.setIcon(getEnabledIcon(contentType));
+                    }
+                } else {
+                    listPreference.setIcon(getDisabledInChromeIcon(contentType));
+                }
+                preference.setSummary("%s");
+                updateSummary(preference, contentType, value);
+                listPreference.setOnPreferenceChangeListener(this);
+            } else {
+                super.setUpListPreference(preference, value);
+            }
         }
     }
 
@@ -975,6 +1065,7 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
         String origin = UrlUtilities.getOriginForDisplay(Uri.parse(url), true /*  showScheme */);
         fragmentArgs.putString(SingleWebsitePreferences.EXTRA_ORIGIN, origin);
         fragmentArgs.putBoolean(EXTRA_INCOGNITO, tab.isIncognito());
+        fragmentArgs.putBoolean(EXTRA_SECURE_ORIGIN, tab.isOriginSecure());
 
         if (icon != null) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -170,6 +170,43 @@ void MediaStreamDevicesController::PermissionGranted() {
               content::MEDIA_DEVICE_PERMISSION_DENIED);
 }
 
+void MediaStreamDevicesController::PermissionGranted(ContentSetting content_setting) {
+  GURL origin(GetSecurityOriginSpec());
+  if (content::IsOriginSecure(origin)) {
+    UMA_HISTOGRAM_ENUMERATION("Media.DevicePermissionActions",
+                              kAllowHttps, kPermissionActionsMax);
+  } else {
+    UMA_HISTOGRAM_ENUMERATION("Media.DevicePermissionActions",
+                              kAllowHttp, kPermissionActionsMax);
+  }
+
+  switch (content_setting) {
+    case CONTENT_SETTING_ALLOW:
+      RunCallback(GetNewSetting(CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC,
+                                old_audio_setting_, CONTENT_SETTING_ALLOW),
+                  GetNewSetting(CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA,
+                                old_video_setting_, CONTENT_SETTING_ALLOW),
+                  content::MEDIA_DEVICE_PERMISSION_DENIED);
+      break;
+    case CONTENT_SETTING_ALLOW_24H:
+      RunCallback(GetNewSetting(CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC,
+                                old_audio_setting_, CONTENT_SETTING_ALLOW_24H),
+                  GetNewSetting(CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA,
+                                old_video_setting_, CONTENT_SETTING_ALLOW_24H),
+                  content::MEDIA_DEVICE_PERMISSION_DENIED);
+      break;
+    case CONTENT_SETTING_SESSION_ONLY:
+      RunCallback(GetNewSetting(CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC,
+                                old_audio_setting_, CONTENT_SETTING_SESSION_ONLY),
+                  GetNewSetting(CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA,
+                                old_video_setting_, CONTENT_SETTING_SESSION_ONLY),
+                  content::MEDIA_DEVICE_PERMISSION_DENIED);
+      break;
+    default:
+      break;
+  }
+}
+
 void MediaStreamDevicesController::PermissionDenied() {
   UMA_HISTOGRAM_ENUMERATION("Media.DevicePermissionActions",
                             kDeny, kPermissionActionsMax);
@@ -194,8 +231,8 @@ void MediaStreamDevicesController::RequestFinished() {
 content::MediaStreamDevices MediaStreamDevicesController::GetDevices(
     ContentSetting audio_setting,
     ContentSetting video_setting) {
-  bool audio_allowed = audio_setting == CONTENT_SETTING_ALLOW;
-  bool video_allowed = video_setting == CONTENT_SETTING_ALLOW;
+  bool audio_allowed = IsPermissionAllowed(audio_setting);
+  bool video_allowed = IsPermissionAllowed(video_setting);
 
   if (!audio_allowed && !video_allowed)
     return content::MediaStreamDevices();
@@ -311,8 +348,9 @@ void MediaStreamDevicesController::RunCallback(
   // If either audio or video are allowed then the callback should report
   // success, otherwise we report |denial_reason|.
   content::MediaStreamRequestResult request_result = content::MEDIA_DEVICE_OK;
-  if (audio_setting != CONTENT_SETTING_ALLOW &&
-      video_setting != CONTENT_SETTING_ALLOW) {
+
+  if (audio_setting == CONTENT_SETTING_BLOCK &&
+      video_setting == CONTENT_SETTING_BLOCK) {
     DCHECK_NE(content::MEDIA_DEVICE_OK, denial_reason);
     request_result = denial_reason;
   } else if (devices.empty()) {
@@ -343,7 +381,7 @@ void MediaStreamDevicesController::StorePermission(
     if (ShouldPersistContentSetting(new_audio_setting, request_.security_origin,
                                     request_.request_type)) {
       profile_->GetHostContentSettingsMap()->SetContentSetting(
-          primary_pattern, ContentSettingsPattern::Wildcard(),
+          primary_pattern, primary_pattern,
           CONTENT_SETTINGS_TYPE_MEDIASTREAM_MIC, std::string(),
           new_audio_setting);
     }
@@ -352,7 +390,7 @@ void MediaStreamDevicesController::StorePermission(
     if (ShouldPersistContentSetting(new_video_setting, request_.security_origin,
                                     request_.request_type)) {
       profile_->GetHostContentSettingsMap()->SetContentSetting(
-          primary_pattern, ContentSettingsPattern::Wildcard(),
+          primary_pattern, primary_pattern,
           CONTENT_SETTINGS_TYPE_MEDIASTREAM_CAMERA, std::string(),
           new_video_setting);
     }
@@ -438,12 +476,20 @@ ContentSetting MediaStreamDevicesController::GetNewSetting(
     ContentSetting old_setting,
     ContentSetting user_decision) const {
   DCHECK(user_decision == CONTENT_SETTING_ALLOW ||
-         user_decision == CONTENT_SETTING_BLOCK);
+         user_decision == CONTENT_SETTING_BLOCK ||
+         user_decision == CONTENT_SETTING_ALLOW_24H ||
+         user_decision == CONTENT_SETTING_SESSION_ONLY);
   ContentSetting result = old_setting;
   if (old_setting == CONTENT_SETTING_ASK) {
     if (user_decision == CONTENT_SETTING_ALLOW &&
         IsUserAcceptAllowed(content_type)) {
       result = CONTENT_SETTING_ALLOW;
+    } else if (user_decision == CONTENT_SETTING_ALLOW_24H &&
+               IsUserAcceptAllowed(content_type)) {
+      result = CONTENT_SETTING_ALLOW_24H;
+    } else if (user_decision == CONTENT_SETTING_SESSION_ONLY &&
+               IsUserAcceptAllowed(content_type)) {
+      result = CONTENT_SETTING_SESSION_ONLY;
     } else if (user_decision == CONTENT_SETTING_BLOCK) {
       result = CONTENT_SETTING_BLOCK;
     }
@@ -480,4 +526,15 @@ bool MediaStreamDevicesController::IsUserAcceptAllowed(
   return web_contents_->GetRenderWidgetHostView()->IsShowing();
 #endif
   return true;
+}
+
+bool MediaStreamDevicesController::IsPermissionAllowed(
+    ContentSetting content_setting) {
+  if (content_setting == CONTENT_SETTING_ALLOW ||
+      content_setting == CONTENT_SETTING_ALLOW_24H ||
+      content_setting == CONTENT_SETTING_SESSION_ONLY) {
+    return true;
+  } else {
+    return false;
+  }
 }

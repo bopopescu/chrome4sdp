@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.ContentSetting;
 import org.chromium.chrome.browser.ContentSettingsType;
 import org.chromium.chrome.browser.preferences.PrefServiceBridge;
 import org.chromium.ui.base.WindowAndroid;
@@ -46,7 +47,7 @@ public class ConfirmInfoBar extends InfoBar {
      * runtime permissions.  Only {@link ContentSettingsType}s that are associated with runtime
      * permissions will be included in this list while all others will be excluded.
      */
-    private SparseArray<String> mContentSettingsToPermissionsMap;
+    protected SparseArray<String> mContentSettingsToPermissionsMap;
 
     public ConfirmInfoBar(InfoBarListeners.Confirm confirmListener, int iconDrawableId,
             Bitmap iconBitmap, String message, String linkText, String primaryButtonText,
@@ -131,11 +132,10 @@ public class ConfirmInfoBar extends InfoBar {
             onButtonClickedInternal(isPrimaryButton);
             return;
         }
-
         requestAndroidPermissions();
     }
 
-    private void requestAndroidPermissions() {
+    protected void requestAndroidPermissions() {
         PermissionCallback callback = new PermissionCallback() {
             @Override
             public void onRequestPermissionsResult(
@@ -197,12 +197,12 @@ public class ConfirmInfoBar extends InfoBar {
         mWindowAndroid.requestPermissions(permissionsToRequest, callback);
     }
 
-    private void onButtonClickedInternal(boolean isPrimaryButton) {
+    protected void onButtonClickedInternal(boolean isPrimaryButton) {
         if (mConfirmListener != null) {
             mConfirmListener.onConfirmInfoBarButtonClicked(this, isPrimaryButton);
         }
 
-        int action = isPrimaryButton ? InfoBar.ACTION_TYPE_OK : InfoBar.ACTION_TYPE_CANCEL;
+        int action = isPrimaryButton ? ContentSetting.ALLOW : ContentSetting.BLOCK;
         onButtonClicked(action, "");
     }
 }

@@ -30,6 +30,8 @@ class PermissionInfobarDelegate : public ConfirmInfoBarDelegate {
                             ContentSettingsType type);
   ~PermissionInfobarDelegate() override;
 
+  void SetPermission(bool update_content_setting, ContentSetting allowed);
+
  private:
   // ConfirmInfoBarDelegate:
   Type GetInfoBarType() const override;
@@ -38,8 +40,9 @@ class PermissionInfobarDelegate : public ConfirmInfoBarDelegate {
   base::string16 GetButtonLabel(InfoBarButton button) const override;
   bool Accept() override;
   bool Cancel() override;
+  bool Accept(ContentSetting action, const std::string& action_value) override;
 
-  void SetPermission(bool update_content_setting, bool allowed);
+
 
   PermissionQueueController* controller_; // not owned by us
   const PermissionRequestID id_;

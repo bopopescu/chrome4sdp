@@ -89,6 +89,8 @@ std::string GetStringForContentSettingsType(
       return "detect";
     case CONTENT_SETTING_NUM_SETTINGS:
       return "num_settings";
+    case CONTENT_SETTING_ALLOW_24H:
+      return "allow24h";
     case CONTENT_SETTING_DEFAULT:
     default:
       return "default";

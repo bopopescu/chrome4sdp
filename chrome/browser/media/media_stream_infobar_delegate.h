@@ -47,6 +47,7 @@ class MediaStreamInfoBarDelegate : public ConfirmInfoBarDelegate {
   base::string16 GetMessageText() const override;
   base::string16 GetButtonLabel(InfoBarButton button) const override;
   bool Accept() override;
+  bool Accept(ContentSetting action, const std::string& action_value) override;
   bool Cancel() override;
   base::string16 GetLinkText() const override;
   bool LinkClicked(WindowOpenDisposition disposition) override;

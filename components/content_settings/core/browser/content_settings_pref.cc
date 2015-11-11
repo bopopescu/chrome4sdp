@@ -24,6 +24,7 @@ namespace {
 const char kSettingPath[] = "setting";
 const char kPerResourceIdentifierPrefName[] = "per_resource";
 const char kLastUsed[] = "last_used";
+const char kExpireIn[] = "expire_in";
 
 ContentSetting FixObsoleteCookiePromptMode(ContentSettingsType content_type,
                                            ContentSetting setting) {
@@ -190,7 +191,6 @@ void ContentSettingsPref::UpdateLastUsage(
       pattern_pairs_settings->SetWithoutPathExpansion(pattern_str,
                                                       settings_dictionary);
     }
-
     settings_dictionary->SetWithoutPathExpansion(
         kLastUsed, new base::FundamentalValue(clock->Now().ToDoubleT()));
   }
@@ -219,6 +219,62 @@ base::Time ContentSettingsPref::GetLastUsage(
     return base::Time();
 
   return base::Time::FromDoubleT(last_used_time);
+}
+
+void ContentSettingsPref::UpdateExpiry(
+    const ContentSettingsPattern& primary_pattern,
+    const ContentSettingsPattern& secondary_pattern,
+    base::Clock* clock) {
+  if (is_incognito_) {
+    return;
+  }
+  AssertLockNotHeld();
+
+  base::AutoReset<bool> auto_reset(&updating_preferences_, true);
+  {
+    DictionaryPrefUpdate update(prefs_, pref_name_);
+    base::DictionaryValue* pattern_pairs_settings = update.Get();
+
+    std::string pattern_str(
+        CreatePatternString(primary_pattern, secondary_pattern));
+    base::DictionaryValue* settings_dictionary = NULL;
+    bool found = pattern_pairs_settings->GetDictionaryWithoutPathExpansion(
+        pattern_str, &settings_dictionary);
+
+    if (!found) {
+      settings_dictionary = new base::DictionaryValue;
+      pattern_pairs_settings->SetWithoutPathExpansion(pattern_str,
+                                                      settings_dictionary);
+    }
+    base::Time one_day_from_now = clock->Now() + base::TimeDelta::FromDays(1);
+    settings_dictionary->SetWithoutPathExpansion(
+        kExpireIn, new base::FundamentalValue(one_day_from_now.ToDoubleT()));
+  }
+}
+
+base::Time ContentSettingsPref::GetExpiry(
+    const ContentSettingsPattern& primary_pattern,
+    const ContentSettingsPattern& secondary_pattern) {
+  const base::DictionaryValue* pattern_pairs_settings =
+      prefs_->GetDictionary(pref_name_);
+  std::string pattern_str(
+      CreatePatternString(primary_pattern, secondary_pattern));
+
+  const base::DictionaryValue* settings_dictionary = NULL;
+  bool found = pattern_pairs_settings->GetDictionaryWithoutPathExpansion(
+      pattern_str, &settings_dictionary);
+
+  if (!found)
+    return base::Time();
+
+  double expiry;
+  found = settings_dictionary->GetDoubleWithoutPathExpansion(
+      kExpireIn, &expiry);
+
+  if (!found)
+    return base::Time();
+
+  return base::Time::FromDoubleT(expiry);
 }
 
 size_t ContentSettingsPref::GetNumExceptions() {

@@ -75,14 +75,17 @@ class PermissionContextBaseTests : public ChromeRenderViewHostTestHarness {
  protected:
   PermissionContextBaseTests() {}
 
+
   // Accept or dismiss the permission bubble or infobar.
   void RespondToPermission(TestPermissionContext* context,
                            const PermissionRequestID& id,
                            const GURL& url,
                            bool accept) {
+    ContentSetting content_setting = accept == true ? CONTENT_SETTING_ALLOW :
+        CONTENT_SETTING_BLOCK;
     if (!PermissionBubbleManager::Enabled()) {
       context->GetInfoBarController()->OnPermissionSet(
-          id, url, url, accept, accept);
+          id, url, url, accept, content_setting);
       return;
     }
 

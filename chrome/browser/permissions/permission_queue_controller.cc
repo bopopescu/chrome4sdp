@@ -204,13 +204,16 @@ void PermissionQueueController::OnPermissionSet(
     const GURL& requesting_frame,
     const GURL& embedder,
     bool update_content_setting,
-    bool allowed) {
+    ContentSetting content_setting) {
   DCHECK(content::BrowserThread::CurrentlyOn(content::BrowserThread::UI));
+  bool allowed = (content_setting == CONTENT_SETTING_ALLOW ||
+                  content_setting == CONTENT_SETTING_SESSION_ONLY ||
+                  content_setting == CONTENT_SETTING_ALLOW_24H) ? true : false;
 
   // TODO(miguelg): move the permission persistence to
   // PermissionContextBase once all the types are moved there.
   if (update_content_setting) {
-    UpdateContentSetting(requesting_frame, embedder, allowed);
+    UpdateContentSetting(requesting_frame, embedder, content_setting);
     if (allowed)
       PermissionContextUmaUtil::PermissionGranted(type_, requesting_frame);
     else
@@ -258,15 +261,16 @@ void PermissionQueueController::OnPermissionSet(
   // of ::OnPermissionSet passes { true, true } for allow, { true, false } for
   // block and { false, * } for dismissed. The tuple being
   // { update_content_setting, allowed }.
-  ContentSetting content_setting = CONTENT_SETTING_DEFAULT;
-  if (update_content_setting) {
-    content_setting = allowed ? CONTENT_SETTING_ALLOW : CONTENT_SETTING_BLOCK;
+  ContentSetting content_setting_local = CONTENT_SETTING_DEFAULT;
+  if (update_content_setting
+      || content_setting == CONTENT_SETTING_SESSION_ONLY) {
+    content_setting_local = allowed ? CONTENT_SETTING_ALLOW : CONTENT_SETTING_BLOCK;
   }
 
   // Send out the permission notifications.
   for (PendingInfobarRequests::iterator i = requests_to_notify.begin();
        i != requests_to_notify.end(); ++i)
-    i->RunCallback(content_setting);
+    i->RunCallback(content_setting_local);
 
   // Remove the pending requests in reverse order.
   for (int i = pending_requests_to_remove.size() - 1; i >= 0; --i)
@@ -381,16 +385,13 @@ void PermissionQueueController::UnregisterForInfoBarNotifications(
 void PermissionQueueController::UpdateContentSetting(
     const GURL& requesting_frame,
     const GURL& embedder,
-    bool allowed) {
+    ContentSetting content_setting) {
   if (requesting_frame.GetOrigin().SchemeIsFile()) {
     // Chrome can be launched with --disable-web-security which allows
     // geolocation requests from file:// URLs. We don't want to store these
     // in the host content settings map.
     return;
   }
-
-  ContentSetting content_setting =
-      allowed ? CONTENT_SETTING_ALLOW : CONTENT_SETTING_BLOCK;
 
   ContentSettingsPattern embedder_pattern =
       (type_ == CONTENT_SETTINGS_TYPE_NOTIFICATIONS) ?

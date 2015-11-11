@@ -183,6 +183,23 @@ base::Time PrefProvider::GetLastUsage(
                                                              secondary_pattern);
 }
 
+
+void PrefProvider::UpdateExpiry(
+    const ContentSettingsPattern& primary_pattern,
+    const ContentSettingsPattern& secondary_pattern,
+    ContentSettingsType content_type) {
+  content_settings_prefs_[content_type]->UpdateExpiry(primary_pattern,
+                                                      secondary_pattern,
+                                                      clock_.get());
+}
+
+base::Time PrefProvider::GetExpiry(
+    const ContentSettingsPattern& primary_pattern,
+    const ContentSettingsPattern& secondary_pattern,
+    ContentSettingsType content_type) {
+  return content_settings_prefs_[content_type]->GetExpiry(primary_pattern,
+                                                          secondary_pattern);
+}
 // ////////////////////////////////////////////////////////////////////////////
 // Private
 

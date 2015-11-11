@@ -9,6 +9,7 @@
 #include "base/strings/string16.h"
 #include "components/infobars/core/infobar_delegate.h"
 #include "components/infobars/core/infobar_manager.h"
+#include "components/content_settings/core/common/content_settings.h"
 
 namespace infobars {
 class InfoBar;
@@ -64,6 +65,9 @@ class ConfirmInfoBarDelegate : public infobars::InfoBarDelegate {
   // then immediately closed. Subclasses MUST NOT return true if in handling
   // this call something triggers the infobar to begin closing.
   virtual bool LinkClicked(WindowOpenDisposition disposition);
+
+  virtual bool Accept(ContentSetting action, const std::string& action_value);
+
 
  protected:
   ConfirmInfoBarDelegate();

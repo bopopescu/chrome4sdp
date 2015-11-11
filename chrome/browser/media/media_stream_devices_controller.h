@@ -46,6 +46,7 @@ class MediaStreamDevicesController : public PermissionBubbleRequest {
   bool HasUserGesture() const override;
   GURL GetRequestingHostname() const override;
   void PermissionGranted() override;
+  void PermissionGranted(ContentSetting content_setting);
   void PermissionDenied() override;
   void Cancelled() override;
   void RequestFinished() override;
@@ -90,6 +91,8 @@ class MediaStreamDevicesController : public PermissionBubbleRequest {
   // Returns true if clicking allow on the dialog should give access to the
   // requested devices.
   bool IsUserAcceptAllowed(ContentSettingsType content_type) const;
+
+  bool IsPermissionAllowed(ContentSetting content_setting);
 
   // The audio/video content settings BEFORE the user clicks accept/deny.
   ContentSetting old_audio_setting_;

@@ -124,6 +124,7 @@ base::string16 MediaStreamInfoBarDelegate::GetButtonLabel(
 
 bool MediaStreamInfoBarDelegate::Accept() {
   GURL origin(controller_->GetSecurityOriginSpec());
+
   if (content::IsOriginSecure(origin)) {
     UMA_HISTOGRAM_ENUMERATION("Media.DevicePermissionActions",
                               kAllowHttps, kPermissionActionsMax);
@@ -132,6 +133,23 @@ bool MediaStreamInfoBarDelegate::Accept() {
                               kAllowHttp, kPermissionActionsMax);
   }
   controller_->PermissionGranted();
+  return true;
+}
+
+bool MediaStreamInfoBarDelegate::Accept(ContentSetting action, const std::string& action_value) {
+
+  switch(action) {
+    case CONTENT_SETTING_BLOCK:
+      Cancel();
+      break;
+    case CONTENT_SETTING_ALLOW:
+    case CONTENT_SETTING_ALLOW_24H:
+    case CONTENT_SETTING_SESSION_ONLY:
+      controller_->PermissionGranted(action);
+      break;
+    default:
+      break;
+  }
   return true;
 }
 

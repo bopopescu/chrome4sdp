@@ -25,6 +25,9 @@ bool ShouldPersistContentSetting(ContentSetting setting,
   if (setting == CONTENT_SETTING_BLOCK)
     return true;
 
+  if (setting == CONTENT_SETTING_SESSION_ONLY)
+    return false;
+
   // Pepper requests should always be persisted to prevent annoying users of
   // plugins.
   if (type == content::MEDIA_OPEN_DEVICE)

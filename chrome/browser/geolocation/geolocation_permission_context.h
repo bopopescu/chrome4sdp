@@ -8,6 +8,7 @@
 #include "base/callback.h"
 #include "chrome/browser/geolocation/geolocation_permission_context_extensions.h"
 #include "chrome/browser/permissions/permission_context_base.h"
+#include "components/content_settings/core/browser/host_content_settings_map.h"
 
 namespace content {
 class WebContents;
@@ -38,6 +39,7 @@ class GeolocationPermissionContext  : public PermissionContextBase {
   void UpdateTabContext(const PermissionRequestID& id,
                         const GURL& requesting_frame,
                         bool allowed) override;
+  Profile* profile_;
   bool IsRestrictedToSecureOrigins() const override;
 
   // This must only be accessed from the UI thread.

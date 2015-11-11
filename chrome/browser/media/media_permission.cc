@@ -99,6 +99,17 @@ ContentSetting MediaPermission::GetStoredContentSetting() const {
     return CONTENT_SETTING_ASK;
   }
 
+  if (setting == CONTENT_SETTING_ALLOW_24H) {
+    base::TimeDelta expire =
+      base::Time::Now() - profile_->GetHostContentSettingsMap()->GetExpiry(
+          origin_, origin_, content_type_);
+    if(expire.InSecondsF() > 0) {
+      return CONTENT_SETTING_ASK;
+    } else {
+      return CONTENT_SETTING_ALLOW;
+    }
+  }
+
   return setting;
 }
 

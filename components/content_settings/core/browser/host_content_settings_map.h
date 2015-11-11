@@ -254,6 +254,24 @@ class HostContentSettingsMap
       const ContentSettingsPattern& secondary_pattern,
       ContentSettingsType content_type);
 
+
+  void UpdateExpiry(const GURL& primary_url,
+                       const GURL& secondary_url,
+                       ContentSettingsType content_type);
+
+  void UpdateExpiryByPattern(const ContentSettingsPattern& primary_pattern,
+                                const ContentSettingsPattern& secondary_pattern,
+                                ContentSettingsType content_type);
+
+  base::Time GetExpiry(const GURL& primary_url,
+                          const GURL& secondary_url,
+                          ContentSettingsType content_type);
+
+  base::Time GetExpiryByPattern(
+      const ContentSettingsPattern& primary_pattern,
+      const ContentSettingsPattern& secondary_pattern,
+      ContentSettingsType content_type);
+
   // Adds/removes an observer for content settings changes.
   void AddObserver(content_settings::Observer* observer);
   void RemoveObserver(content_settings::Observer* observer);

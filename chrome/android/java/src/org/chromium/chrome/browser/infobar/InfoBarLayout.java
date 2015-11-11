@@ -117,7 +117,8 @@ public class InfoBarLayout extends ViewGroup implements View.OnClickListener {
     private static final int ROW_MAIN = 1;
     private static final int ROW_OTHER = 2;
 
-    private final int mMargin;
+    private int mMargin;
+    private boolean mIsMarginUpdated;
     private final int mIconSize;
     private final int mMinWidth;
     private final int mAccentColor;
@@ -171,6 +172,7 @@ public class InfoBarLayout extends ViewGroup implements View.OnClickListener {
         // Grab the dimensions.
         Resources res = getResources();
         mMargin = res.getDimensionPixelOffset(R.dimen.infobar_margin);
+        mIsMarginUpdated = false;
         mIconSize = res.getDimensionPixelSize(R.dimen.infobar_icon_size);
         mMinWidth = res.getDimensionPixelSize(R.dimen.infobar_min_width);
         mAccentColor = res.getColor(R.color.infobar_accent_blue);
@@ -410,6 +412,10 @@ public class InfoBarLayout extends ViewGroup implements View.OnClickListener {
      * if they fit. Otherwise, they go on their own rows.
      */
     private void placeGroups() {
+        if(mCustomButton != null && mCustomGroup!= null && !mIsMarginUpdated) {
+            mMargin = mMargin/4;
+            mIsMarginUpdated = true;
+        }
         startRow();
         placeChild(mCloseButton, Gravity.END);
         placeGroup(mMainGroup);

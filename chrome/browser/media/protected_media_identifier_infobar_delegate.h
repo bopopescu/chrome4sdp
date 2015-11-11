@@ -36,7 +36,7 @@ class ProtectedMediaIdentifierInfoBarDelegate : public ConfirmInfoBarDelegate {
   ~ProtectedMediaIdentifierInfoBarDelegate() override;
 
   // Calls back to the controller to inform it of the user's decision.
-  void SetPermission(bool update_content_setting, bool allowed);
+  void SetPermission(bool update_content_setting, ContentSetting allowed);
 
  private:
   // ConfirmInfoBarDelegate:

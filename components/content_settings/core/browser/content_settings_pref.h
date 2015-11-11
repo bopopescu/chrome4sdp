@@ -65,6 +65,13 @@ class ContentSettingsPref {
   base::Time GetLastUsage(const ContentSettingsPattern& primary_pattern,
                           const ContentSettingsPattern& secondary_pattern);
 
+  void UpdateExpiry(const ContentSettingsPattern& primary_pattern,
+                       const ContentSettingsPattern& secondary_pattern,
+                       base::Clock* clock);
+
+  base::Time GetExpiry(const ContentSettingsPattern& primary_pattern,
+                          const ContentSettingsPattern& secondary_pattern);
+
   size_t GetNumExceptions();
 
   // Tries to lock |lock_|. If successful, returns true and releases the lock.

@@ -14,7 +14,9 @@ public enum ContentSetting {
     DEFAULT(0),
     ALLOW(1),
     BLOCK(2),
-    ASK(3);  // Only used for default values.
+    ASK(3),  // Only used for default values.
+    ALLOW_24H(6);
+
 
     private int mValue;
 

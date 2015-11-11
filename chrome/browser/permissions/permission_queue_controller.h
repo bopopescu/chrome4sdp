@@ -48,12 +48,12 @@ class PermissionQueueController : public content::NotificationObserver {
                        const GURL& requesting_frame,
                        const GURL& embedder,
                        bool update_content_setting,
-                       bool allowed);
+                       ContentSetting allowed);
 
   // Performs the update to content settings for a particular request frame
   // context.
   void UpdateContentSetting(
-      const GURL& requesting_frame, const GURL& embedder, bool allowed);
+      const GURL& requesting_frame, const GURL& embedder, ContentSetting allowed);
 
  protected:
   // content::NotificationObserver:

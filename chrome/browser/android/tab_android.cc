@@ -75,6 +75,7 @@
 #include "content/public/browser/user_metrics.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/common/top_controls_state.h"
+#include "content/public/common/origin_util.h"
 #include "jni/Tab_jni.h"
 #include "net/base/escape.h"
 #include "net/stat_hub/stat_hub_cmd_api.h"
@@ -821,6 +822,10 @@ jboolean TabAndroid::IsOfflinePage(JNIEnv* env, jobject obj) {
   GURL url = dom_distiller::url_utils::GetOriginalUrlFromDistillerUrl(
       web_contents()->GetURL());
   return GetOfflinePage(url) != nullptr;
+}
+
+jboolean TabAndroid::IsOriginSecure(JNIEnv* env, jobject obj) {
+  return content::IsOriginSecure(web_contents()->GetLastCommittedURL());
 }
 
 const offline_pages::OfflinePageItem* TabAndroid::GetOfflinePage(

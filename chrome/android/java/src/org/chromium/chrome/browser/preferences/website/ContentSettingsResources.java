@@ -222,6 +222,8 @@ public class ContentSettingsResources {
                 return R.string.website_settings_permissions_allow;
             case BLOCK:
                 return R.string.website_settings_permissions_block;
+            case ALLOW_24H:
+                return R.string.infobar_permission_allow_24hrs;
             default:
                 return 0; // We never show Ask as an option on individual permissions.
         }
