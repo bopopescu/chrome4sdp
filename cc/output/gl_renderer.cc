@@ -438,11 +438,21 @@ void GLRenderer::PrepareSurfaceForPass(
       return;
     case SURFACE_INITIALIZATION_MODE_FULL_SURFACE_CLEAR:
       EnsureScissorTestDisabled();
+#ifdef DO_TILED_RENDERING
+if (!capabilities_.use_tiled_rendering) {
+#endif
       DiscardPixels();
+#ifdef DO_TILED_RENDERING
+}
+#endif
       ClearFramebuffer(frame);
       break;
     case SURFACE_INITIALIZATION_MODE_SCISSORED_CLEAR:
+#if !defined(DO_TILED_RENDERING) && !defined(DO_PARTIAL_SWAP)
       SetScissorTestRect(render_pass_scissor);
+#else
+      EnsureScissorTestDisabled();
+#endif
       ClearFramebuffer(frame);
       break;
   }

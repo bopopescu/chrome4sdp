@@ -1099,9 +1099,6 @@ void RenderWidgetHostViewAndroid::SwapDelegatedFrame(
     layer_->SetIsDrawable(true);
     layer_->SetContentsOpaque(true);
     layer_->SetBounds(content_size_in_layer_);
-#ifndef DO_PARTIAL_COMPOSITION
-    layer_->SetNeedsDisplay();
-#endif
   }
 
   if (host_->is_hidden())

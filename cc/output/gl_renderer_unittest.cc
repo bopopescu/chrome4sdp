@@ -37,6 +37,7 @@
 #include "third_party/skia/include/effects/SkColorFilterImageFilter.h"
 #include "third_party/skia/include/effects/SkColorMatrixFilter.h"
 #include "ui/gfx/transform.h"
+#include "ui/gfx/sweadreno_texture_memory.h"
 
 using testing::_;
 using testing::AnyNumber;
@@ -1369,8 +1370,13 @@ TEST_F(GLRendererTest, ScissorAndViewportWithinNonreshapableSurface) {
   // We expect exactly one call to viewport on this context and exactly two
   // to scissor (one to scissor the clear, one to scissor the quad draw).
   EXPECT_CALL(*context_owned, viewport(10, 390, 100, 100));
+#ifndef DO_TILED_RENDERING
+  // Below test will fail as the renderer will not set scissor with using
+  // partial composition. Scissor is not needed since pixel outside the tiling
+  // rect will not be modified by drawing commands.
   EXPECT_CALL(*context_owned, scissor(10, 390, 100, 100));
   EXPECT_CALL(*context_owned, scissor(30, 450, 20, 20));
+#endif
 
   FakeOutputSurfaceClient output_surface_client;
   scoped_ptr<OutputSurface> output_surface(
