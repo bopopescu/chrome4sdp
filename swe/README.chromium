@@ -1,0 +1,8 @@
+Name: Chromium Browser for Snapdragon
+URL: https://www.codeaurora.org/xwiki/bin/Chromium+for+Snapdragon/
+Version: 1.0.0
+License: BSD
+License File: LICENSE
+
+Description:
+The objective of this version of the Chromium based browser is to provide an optimized environment for web developers and embedders targeting Qualcomm's Snapdragon processors.

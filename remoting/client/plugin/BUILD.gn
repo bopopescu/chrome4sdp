@@ -1,0 +1,29 @@
+# Copyright 2014 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//remoting/remoting_srcs.gni")
+
+# TODO(sergeyu): Port this target to NaCl.
+source_set("plugin") {
+  sources =
+      rebase_path(remoting_srcs_gypi_values.remoting_client_plugin_sources,
+                  ".",
+                  "//remoting")
+
+  configs += [ "//build/config/compiler:wexit_time_destructors" ]
+
+  defines = [ "HAVE_STDINT_H" ]  # Required by on2_integer.h.
+
+  deps = [
+    "//net",
+    "//ppapi/cpp:objects",
+    "//ppapi/cpp/private:internal_module",
+    "//remoting/base",
+    "//remoting/client",
+    "//remoting/codec",
+    "//remoting/protocol",
+    "//third_party/webrtc/modules/desktop_capture",
+    "//ui/events:dom_keycode_converter",
+  ]
+}

@@ -1,0 +1,38 @@
+/* Copyright 2015 The Chromium Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file. */
+
+#blocking-issue {
+  overflow: hidden;
+  padding-bottom: 15px;
+  padding-top: 15px;
+  position: relative;
+  text-align: center;
+}
+
+#blocking-issue-icon {
+  height: 75px;
+  padding: 15px;
+  width: 75px;
+}
+
+#blocking-issue-message {
+  color: rgb(150, 150, 150);
+  line-height: 1.125em;
+  padding: 10px;
+  vertical-align: middle;
+}
+
+.issue-action {
+  color: black;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+#non-blocking-issue {
+  -webkit-padding-start: 12px;
+  background-color: rgb(249, 236, 191);
+  line-height: 1.25em;
+  padding-bottom: 6px;
+  padding-top: 6px;
+}

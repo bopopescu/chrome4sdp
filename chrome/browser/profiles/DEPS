@@ -1,0 +1,4 @@
+include_rules = [
+  "+components/about_handler",
+  "+components/user_manager",
+]
