@@ -139,3 +139,8 @@
 -keep class android.support.customtabs.ICustomTabsCallback** {
   *;
 }
+
+-keep class org.apache.http.** { *; }
+-dontwarn org.apache.http.**
+-dontwarn android.net.**
+

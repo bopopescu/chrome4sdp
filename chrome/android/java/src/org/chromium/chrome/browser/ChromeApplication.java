@@ -501,6 +501,8 @@ public class ChromeApplication extends ContentApplication {
     public void initCommandLine() {
         // TODO(newt): delete this when deleting ChromeShell.
         ChromeCommandLineInitUtil.initChromeCommandLine(this);
+	CommandLine.getInstance().
+		appendSwitchWithValue(ChromeSwitches.ENABLE_SUPPRESSED_CHROMIUM_FEATURES, "1");
         if (CommandLine.getInstance().hasSwitch(ChromeSwitches.ENABLE_DEBUG_MODE)) {
             Logger.enableVerboseLogging();
         }
