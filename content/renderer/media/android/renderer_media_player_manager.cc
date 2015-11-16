@@ -267,8 +267,11 @@ void RendererMediaPlayerManager::ReleaseVideoResources() {
        ++player_it) {
     WebMediaPlayerAndroid* player = player_it->second;
 
-    // Do not release if an audio track is still playing
-    if (player && (player->paused() || player->hasVideo()))
+    // Release video if 1) content is pause, 2) video is fullscreen 3) no
+    // audio, video only or 4) ShouldAllowBackgroundAudio flag is false
+    if (player &&
+        (player->paused() || player->isFullscreen() ||
+        !player->hasAudio() || !ShouldAllowBackgroundAudio()))
       player->ReleaseMediaResources();
   }
 }
@@ -322,6 +325,13 @@ RendererMediaPlayerManager::ShouldUseVideoOverlayForEmbeddedEncryptedVideo() {
   const RendererPreferences& prefs = static_cast<RenderFrameImpl*>(
       render_frame())->render_view()->renderer_preferences();
   return prefs.use_video_overlay_for_embedded_encrypted_video;
+}
+
+bool
+RendererMediaPlayerManager::ShouldAllowBackgroundAudio() {
+  const RendererPreferences& prefs = static_cast<RenderFrameImpl*>(
+      render_frame())->render_view()->renderer_preferences();
+  return prefs.enable_background_audio;
 }
 #endif  // defined(VIDEO_HOLE)
 

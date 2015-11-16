@@ -171,6 +171,9 @@ struct CONTENT_EXPORT RendererPreferences {
 
   // The default font size used for rendering on Linux.
   int default_font_size;
+
+  // Set to true to allow audio playback to continue for all media content
+  bool enable_background_audio;
 };
 
 }  // namespace content

@@ -355,6 +355,7 @@ extern const char kEnableDeprecatedWebPlatformFeatures[];
 extern const char kEnableHyperlinkAuditing[];
 extern const char kEnableReferrers[];
 extern const char kEnableDoNotTrack[];
+extern const char kEnableBackgroundAudio[];
 
 extern const char kImportAutofillFormData[];
 extern const char kImportBookmarks[];

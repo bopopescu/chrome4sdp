@@ -882,6 +882,16 @@ static jboolean GetPowersaveModeEnabled(JNIEnv* env, jobject obj) {
   return GetPrefService()->GetBoolean(prefs::kWebKitPowersaveModeEnabled);
 }
 
+static void SetBackgroundAudioEnabled(JNIEnv* env,
+                                jobject obj,
+                                jboolean enabled) {
+  GetPrefService()->SetBoolean(prefs::kEnableBackgroundAudio, enabled);
+}
+
+static jboolean GetBackgroundAudioEnabled(JNIEnv* env, jobject obj) {
+  return GetPrefService()->GetBoolean(prefs::kEnableBackgroundAudio);
+}
+
 // static
 bool PrefServiceBridge::RegisterPrefServiceBridge(JNIEnv* env) {
   return RegisterNativesImpl(env);

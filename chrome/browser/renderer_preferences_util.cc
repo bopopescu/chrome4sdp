@@ -116,6 +116,8 @@ void UpdateFromSystemSettings(content::RendererPreferences* prefs,
   prefs->plugin_fullscreen_allowed =
       pref_service->GetBoolean(prefs::kFullscreenAllowed);
 #endif
+
+  prefs->enable_background_audio = pref_service->GetBoolean(prefs::kEnableBackgroundAudio);
 }
 
 }  // namespace renderer_preferences_util

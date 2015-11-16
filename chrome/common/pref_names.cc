@@ -1025,6 +1025,9 @@ const char kEnableReferrers[] = "enable_referrers";
 // Whether to send the DNT header.
 const char kEnableDoNotTrack[] = "enable_do_not_track";
 
+// Whether to allow audio playback of video content when webpage is not in foreground
+const char kEnableBackgroundAudio[] = "enable_background_audio";
+
 // GL_VENDOR string.
 const char kGLVendorString[] = "gl_vendor_string";
 

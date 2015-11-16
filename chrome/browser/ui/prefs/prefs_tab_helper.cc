@@ -350,6 +350,7 @@ class PrefWatcher : public KeyedService {
     pref_change_registrar_.Add(prefs::kAcceptLanguages, renderer_callback);
     pref_change_registrar_.Add(prefs::kEnableDoNotTrack, renderer_callback);
     pref_change_registrar_.Add(prefs::kEnableReferrers, renderer_callback);
+    pref_change_registrar_.Add(prefs::kEnableBackgroundAudio, renderer_callback);
 
 #if defined(ENABLE_WEBRTC)
     pref_change_registrar_.Add(prefs::kWebRTCMultipleRoutesEnabled,

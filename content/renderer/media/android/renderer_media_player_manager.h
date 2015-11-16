@@ -100,6 +100,8 @@ class RendererMediaPlayerManager : public RenderFrameObserver {
   bool ShouldUseVideoOverlayForEmbeddedEncryptedVideo();
 #endif  // defined(VIDEO_HOLE)
 
+  bool ShouldAllowBackgroundAudio();
+
   // Registers and unregisters a WebMediaPlayerAndroid object.
   int RegisterMediaPlayer(WebMediaPlayerAndroid* player);
   void UnregisterMediaPlayer(int player_id);

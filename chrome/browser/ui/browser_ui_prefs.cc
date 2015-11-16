@@ -101,6 +101,10 @@ void RegisterBrowserUserPrefs(user_prefs::PrefRegistrySyncable* registry) {
       prefs::kEnableDoNotTrack,
       false,
       user_prefs::PrefRegistrySyncable::SYNCABLE_PREF);
+  registry->RegisterBooleanPref(
+      prefs::kEnableBackgroundAudio,
+      true,
+      user_prefs::PrefRegistrySyncable::SYNCABLE_PREF);
 #if defined(ENABLE_WEBRTC)
   registry->RegisterBooleanPref(prefs::kWebRTCMultipleRoutesEnabled, true);
 #endif
