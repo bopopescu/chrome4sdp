@@ -54,27 +54,33 @@ public class WebDefender {
         public final String mName;
         public final int mProtectiveAction;
         public final int mTrackingMethods;
+        public final int mUserDefinedProtectiveAction;
+        public final boolean mUsesUserDefinedProtectiveAction;
         public final boolean mPotentialTracker;
 
         /**
-         * @param name Domain name.
-         * @param action Protective action on this domain.
+         * @param name Tracker domain name.
+         * @param action Protective action identified automatically on this tracker domain.
+         * @param userDefinedAction User-defined protective action that overrides the auto-identified action.
+         * @param usesUserDefinedAction Whether the effective protective action is user-defined or auto-identified.
          * @param trackingMethods One or more tracking methods employed by this domain.
          * @param potentialTracker Whether this domain is a potential tracker.
          */
-        public TrackerDomain(String name, int action, int trackingMethods, boolean potentialTracker) {
+        public TrackerDomain(String name, int action, int userDefinedAction, boolean usesUserDefinedAction, int trackingMethods, boolean potentialTracker) {
             mName = name;
             mProtectiveAction = action;
             mTrackingMethods = trackingMethods;
+            mUserDefinedProtectiveAction = userDefinedAction;
+            mUsesUserDefinedProtectiveAction = usesUserDefinedAction;
             mPotentialTracker = potentialTracker;
         }
 
         public TrackerDomain(String name, int action) {
-            this(name, action, TRACKING_METHOD_NONE, false);
+            this(name, action, PROTECTIVE_ACTION_UNBLOCK, false, TRACKING_METHOD_NONE, false);
         }
 
         public TrackerDomain(String name) {
-            this(name, PROTECTIVE_ACTION_UNBLOCK, TRACKING_METHOD_NONE, false);
+            this(name, PROTECTIVE_ACTION_UNBLOCK);
         }
     }
 
@@ -132,7 +138,7 @@ public class WebDefender {
 
     /**
      * Enables or disables tracking protection by default on all the websites.
-     * Can be overridden by {@link #setPermissionForOrigins(String[], boolean)}.
+     * Can be overridden by {@link #setPermissionForOrigins(String[], int, boolean)}.
      * @param allow True to enable and False to disable tracking protection on all the websites.
      */
     public void setDefaultPermission(boolean allow) {}
@@ -141,30 +147,27 @@ public class WebDefender {
      * Enables or disables tracking protection for the given origins.
      * Overrides {@link #setDefaultPermission(boolean)}.
      * @param origins List of origins .
-     * @param allow True to enable and False to disable tracking protection for the given origins.
+     * @param permission one of WebRefiner.PERMISSION_USE_DEFAULT, WebRefiner.PERMISSION_ENABLE and WebRefiner.PERMISSION_DISABLE.
+     * @param incognitoOnly True to apply these permissions only on Incognito sessions
+     *                      and False to apply these permissions on all the sessions.
      */
-    public void setPermissionForOrigins(String[] origins, boolean allow) {}
+    public void setPermissionForOrigins(String[] origins, int permission, boolean incognitoOnly) {}
 
     /**
-     * Overrides the permission set by {@link #setPermissionForOrigins(String[] origins, boolean allow)}
-     * with the default permission set by {@link #setDefaultPermission(boolean)} for the given origins.
-     * @param origins List of origins .
+     * Resets all the permissions set by {@link #setPermissionForOrigins(String[], int, boolean)}
+     * when 'boolean incognitoOnly' was set to True .
      */
-    public void useDefaultPermissionForOrigins(String[] origins) {}
+    public void resetAllIncognitoPermissions() {}
 
     /**
      * Overrides WebDefenders default protective action on the given tracker domains.
-     * This override applies globally
-     * @param trackerDomains List of tracker domains with their corresponding protective actions.
+     * @param trackerDomains List of TrackerDomains with their corresponding protective actions .
      */
     public void overrideProtectiveActionsForTrackerDomains(TrackerDomain[] trackerDomains) {}
 
     /**
-     * Resets user overridden protective actions on the given tracker domains to WebDefender's
-     * default actions computed internally.
-     * This reset applies globally
-     * @param trackerDomains List of tracker domains.
+     * Resets overridden protective actions back to default on the given tracker domains.
+     * @param trackerDomains List of tracker domains to be reset.
      */
     public void resetProtectiveActionsForTrackerDomains(TrackerDomain[] trackerDomains) {}
-
 }

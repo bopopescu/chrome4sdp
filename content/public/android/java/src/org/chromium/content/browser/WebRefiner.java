@@ -47,6 +47,13 @@ public class WebRefiner {
     public static final int STATUS_LOADING     = 1;
     public static final int STATUS_FAILED      = 2;
 
+    /**
+     * WebRefiner site/origin-specific permissions.
+     */
+    public static final int PERMISSION_USE_DEFAULT      = 0;
+    public static final int PERMISSION_ENABLE           = 1;
+    public static final int PERMISSION_DISABLE          = 2;
+
     public static class RuleSet {
         /**
          * Ruleset categories.
