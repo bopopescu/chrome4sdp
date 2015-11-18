@@ -601,9 +601,12 @@ media-exit-fullscreen-button
 media-fullscreen-volume-slider
 media-fullscreen-volume-slider-thumb
 media-mute-button
+media-lock-button
 media-play-button
 media-overlay-play-button
+media-overlay-unlock-button
 media-toggle-closed-captions-button
+media-overlay-display
 media-slider
 media-sliderthumb
 media-volume-slider-container

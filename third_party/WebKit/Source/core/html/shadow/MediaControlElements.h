@@ -34,6 +34,11 @@
 
 namespace blink {
 
+enum OverlayDisplayType {
+    BRIGHTNESS_DISPLAY,
+    VOLUME_DISPLAY,
+};
+
 // ----------------------------
 
 class MediaControlPanelElement final : public MediaControlDivElement {
@@ -83,6 +88,27 @@ private:
     void* preDispatchEventHandler(Event*) override;
 };
 
+class MediaControlLockEnclosureElement final : public MediaControlDivElement {
+public:
+    static PassRefPtrWillBeRawPtr<MediaControlLockEnclosureElement> create(MediaControls&);
+
+private:
+    explicit MediaControlLockEnclosureElement(MediaControls&);
+    void defaultEventHandler(Event*) override;
+};
+
+// ----------------------------
+
+class MediaControlUnlockButtonElement final : public MediaControlInputElement {
+public:
+    static PassRefPtrWillBeRawPtr<MediaControlUnlockButtonElement> create(MediaControls&);
+
+private:
+    explicit MediaControlUnlockButtonElement(MediaControls&);
+
+    void defaultEventHandler(Event*) override;
+};
+
 // ----------------------------
 
 class MediaControlMuteButtonElement final : public MediaControlInputElement {
@@ -94,6 +120,20 @@ public:
 
 private:
     explicit MediaControlMuteButtonElement(MediaControls&);
+
+    void defaultEventHandler(Event*) override;
+};
+
+// ----------------------------
+
+class MediaControlLockButtonElement final : public MediaControlInputElement {
+public:
+    static PassRefPtrWillBeRawPtr<MediaControlLockButtonElement> create(MediaControls&);
+
+    bool willRespondToMouseClickEvents() override { return true; }
+
+private:
+    explicit MediaControlLockButtonElement(MediaControls&);
 
     void defaultEventHandler(Event*) override;
 };
@@ -125,6 +165,49 @@ private:
     explicit MediaControlOverlayPlayButtonElement(MediaControls&);
 
     void defaultEventHandler(Event*) override;
+    bool keepEventInNode(Event*) override;
+};
+
+// ----------------------------
+
+class MediaControlOverlayBrightnessSliderElement final : public MediaControlInputElement {
+public:
+    static PassRefPtrWillBeRawPtr<MediaControlOverlayBrightnessSliderElement> create(MediaControls&);
+
+private:
+    explicit MediaControlOverlayBrightnessSliderElement(MediaControls&);
+
+    void defaultEventHandler(Event*) override;
+
+    double m_touchStartPosition;
+    double m_touchPreviousPosition;
+    bool m_aboveThreshold;
+};
+
+// ----------------------------
+
+class MediaControlOverlayVolumeSliderElement final : public MediaControlInputElement {
+public:
+    static PassRefPtrWillBeRawPtr<MediaControlOverlayVolumeSliderElement> create(MediaControls&);
+
+private:
+    explicit MediaControlOverlayVolumeSliderElement(MediaControls&);
+
+    void defaultEventHandler(Event*) override;
+
+    double m_touchStartPosition;
+    double m_touchPreviousPosition;
+    bool m_aboveThreshold;
+};
+
+// ----------------------------
+
+class MediaControlOverlayDisplayElement final : public MediaControlInputElement {
+public:
+    static PassRefPtrWillBeRawPtr<MediaControlOverlayDisplayElement> create(MediaControls&);
+
+private:
+    explicit MediaControlOverlayDisplayElement(MediaControls&);
     bool keepEventInNode(Event*) override;
 };
 

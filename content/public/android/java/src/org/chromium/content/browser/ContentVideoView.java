@@ -4,10 +4,13 @@
 
 package org.chromium.content.browser;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.ActivityInfo;
 import android.graphics.Point;
+import android.os.Build;
 import android.provider.Settings;
 import android.view.Display;
 import android.view.Gravity;
@@ -64,6 +67,8 @@ public class ContentVideoView extends FrameLayout
     private static final int STATE_PAUSED             = 2;
     private static final int STATE_PLAYBACK_COMPLETED = 3;
 
+    private static final float INVALID_BRIGHTNESS = -2.f;
+
     private SurfaceHolder mSurfaceHolder;
     private int mVideoWidth;
     private int mVideoHeight;
@@ -98,6 +103,9 @@ public class ContentVideoView extends FrameLayout
     private PerflockController mPerflockController;
     private boolean mPerflockAcquired = false;
     private static int mPerflockResources[] = { 0x3DFF, 0x2704, 0x2B5F, 0x2C07, 0x2F5A };
+
+    private float mOriginalBrightness = INVALID_BRIGHTNESS;
+    private int mOriginalRequestedOrientation;
 
     private class VideoSurfaceView extends SurfaceView {
 
@@ -178,6 +186,11 @@ public class ContentVideoView extends FrameLayout
         mVideoSurfaceView = new VideoSurfaceView(context);
         showContentVideoView();
         setVisibility(View.VISIBLE);
+
+        Activity parent = ContentViewCore.activityFromContext(getContext());
+        if (parent == null)
+            return;
+        mOriginalRequestedOrientation = parent.getRequestedOrientation();
     }
 
     private ContentVideoViewClient getContentVideoViewClient() {
@@ -385,6 +398,23 @@ public class ContentVideoView extends FrameLayout
     }
 
     public void exitFullscreen(boolean relaseMediaPlayer) {
+        Activity parent = ContentViewCore.activityFromContext(getContext());
+        if (parent != null) {
+            if (mOriginalBrightness != INVALID_BRIGHTNESS) {
+                WindowManager.LayoutParams lp = parent.getWindow().getAttributes();
+
+                lp.screenBrightness = mOriginalBrightness;
+                parent.getWindow().setAttributes(lp);
+
+                if (mNativeContentVideoView != 0) {
+                    nativeOnBrightnessChanged(mNativeContentVideoView,
+                            lp.screenBrightness);
+                }
+            }
+
+            parent.setRequestedOrientation(mOriginalRequestedOrientation);
+        }
+
         destroyContentVideoView(false);
         if (mPerflockController != null && mPerflockAcquired) {
             mPerflockController.releasePerfLock();
@@ -419,6 +449,54 @@ public class ContentVideoView extends FrameLayout
     @CalledByNative
     private void onExitFullscreen() {
         exitFullscreen(false);
+    }
+
+    @CalledByNative
+    private void adjustBrightness(float delta) {
+        Activity parent = ContentViewCore.activityFromContext(getContext());
+        if (parent == null)
+            return;
+
+        WindowManager.LayoutParams lp = parent.getWindow().getAttributes();
+
+        if (mOriginalBrightness == INVALID_BRIGHTNESS)
+            mOriginalBrightness = lp.screenBrightness;
+
+        float brightness;
+        if (lp.screenBrightness == -1) {
+            try {
+                brightness = Settings.System.getInt(
+                    getContext().getContentResolver(),
+                    Settings.System.SCREEN_BRIGHTNESS) / 255.f;
+            } catch (Settings.SettingNotFoundException e) {
+                return;
+            }
+        } else {
+            brightness = lp.screenBrightness;
+        }
+        brightness += delta;
+        brightness = Math.min(1.f, Math.max(0.f, brightness));
+
+        lp.screenBrightness = brightness;
+        parent.getWindow().setAttributes(lp);
+
+        nativeOnBrightnessChanged(mNativeContentVideoView, lp.screenBrightness);
+    }
+
+    @CalledByNative
+    private void setRotateLock(boolean lock) {
+        Activity parent = ContentViewCore.activityFromContext(getContext());
+        if (parent == null)
+            return;
+
+        if (lock) {
+            if (Build.VERSION.SDK_INT >= 18) {
+                // Only support rotate lock after API level 18
+                parent.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+            }
+        } else {
+            parent.setRequestedOrientation(mOriginalRequestedOrientation);
+        }
     }
 
     /**
@@ -473,4 +551,6 @@ public class ContentVideoView extends FrameLayout
             long nativeContentVideoView, boolean isOrientationPortrait,
             long playbackDurationBeforeOrientationChange,
             long playbackDurationAfterOrientationChange);
+    private native void nativeOnBrightnessChanged(
+            long nativeContentVideoView, float brightness);
 }

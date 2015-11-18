@@ -102,6 +102,9 @@ const char kDisableDelegatedRenderer[]      = "disable-delegated-renderer";
 // Handles URL requests by NPAPI plugins through the renderer.
 const char kDisableDirectNPAPIRequests[]    = "disable-direct-npapi-requests";
 
+// Disables Enhanced Video Player
+const char kDisableEnhancedVideoPlayer[]    = "disable-enhanced-video-player";
+
 // Disable the per-domain blocking for 3D APIs after GPU reset.
 // This switch is intended only for tests.
 extern const char kDisableDomainBlockingFor3DAPIs[] =

@@ -171,6 +171,8 @@ public:
 
     BLINK_EXPORT static void enableNewMediaPlaybackUi(bool);
 
+    BLINK_EXPORT static void enableEnhancedVideoPlaybackUi(bool);
+
     BLINK_EXPORT static void enablePresentationAPI(bool);
 private:
     WebRuntimeFeatures();

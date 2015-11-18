@@ -207,6 +207,10 @@ IPC_MESSAGE_ROUTED2(MediaPlayerMsg_RemoteRouteAvailabilityChanged,
                     int /* player_id */,
                     bool /* routes_available */)
 
+IPC_MESSAGE_ROUTED2(MediaPlayerMsg_MediaBrightnessChanged,
+                    int /* player_id */,
+                    float /* brightness */)
+
 // Messages for controlling the media playback in browser process ----------
 
 // Destroy the media player object.
@@ -238,6 +242,14 @@ IPC_MESSAGE_ROUTED1(MediaPlayerHostMsg_Start, int /* player_id */)
 IPC_MESSAGE_ROUTED2(MediaPlayerHostMsg_SetVolume,
                     int /* player_id */,
                     double /* volume */)
+
+IPC_MESSAGE_ROUTED2(MediaPlayerHostMsg_AdjustBrightness,
+                    int /* player_id */,
+                    float /* delta */)
+
+IPC_MESSAGE_ROUTED2(MediaPlayerHostMsg_SetRotateLock,
+                    int /* player_id */,
+                    bool /* lock */)
 
 // Set the poster image.
 IPC_MESSAGE_ROUTED2(MediaPlayerHostMsg_SetPoster,

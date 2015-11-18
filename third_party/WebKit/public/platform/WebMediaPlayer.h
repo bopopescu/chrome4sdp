@@ -113,6 +113,9 @@ public:
     virtual void setRate(double) = 0;
     virtual void setVolume(double) = 0;
 
+    virtual void adjustBrightness(float) { }
+    virtual void setRotateLock(bool) { }
+
     virtual void requestRemotePlayback() { }
     virtual void requestRemotePlaybackControl() { }
     virtual void setPreload(Preload) { }

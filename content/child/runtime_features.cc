@@ -62,6 +62,7 @@ static void SetRuntimeFeatureDefaultsForPlatform() {
   // intended behavior for which is in flux by itself.
   WebRuntimeFeatures::enableNotificationConstructor(false);
   WebRuntimeFeatures::enableNewMediaPlaybackUi(true);
+  WebRuntimeFeatures::enableEnhancedVideoPlaybackUi(true);
 #else
   WebRuntimeFeatures::enableNavigatorContentUtils(true);
 #endif  // defined(OS_ANDROID)
@@ -229,6 +230,9 @@ void SetRuntimeFeaturesDefaultsAndUpdateFromArgs(
 
   if (command_line.HasSwitch(switches::kEnableJSTracing))
     WebRuntimeFeatures::enableJSTracing(true);
+
+  if (command_line.HasSwitch(switches::kDisableEnhancedVideoPlayer))
+    WebRuntimeFeatures::enableEnhancedVideoPlaybackUi(false);
 }
 
 }  // namespace content

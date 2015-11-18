@@ -82,6 +82,15 @@ public:
     // Notify us that our controls enclosure has changed width.
     void notifyPanelWidthChanged(const LayoutUnit& newWidth);
 
+    // Enhanced video player
+    void updateOverlayPlayButtonDisplayType();
+    void setOverlayDisplayVisible(bool, OverlayDisplayType);
+    void lockScreen(bool);
+    void setVolumeSliderActivated(bool);
+    void updateBrightness();
+    void startHideUnlockTimer();
+    void showMediaControls();
+
     DECLARE_VIRTUAL_TRACE();
 
 private:
@@ -119,6 +128,8 @@ private:
     // do fit.  This requires that m_panelWidth is current.
     void computeWhichControlsFit();
 
+    void hideUnlockTimerFired(Timer<MediaControls>*);
+
     // Node
     bool isMediaControls() const override { return true; }
     bool willRespondToMouseMoveEvents() override { return true; }
@@ -130,9 +141,13 @@ private:
     // Media control elements.
     RawPtrWillBeMember<MediaControlOverlayEnclosureElement> m_overlayEnclosure;
     RawPtrWillBeMember<MediaControlOverlayPlayButtonElement> m_overlayPlayButton;
+    RawPtrWillBeMember<MediaControlOverlayBrightnessSliderElement> m_overlayBrightnessSlider;
+    RawPtrWillBeMember<MediaControlOverlayVolumeSliderElement> m_overlayVolumeSlider;
+    RawPtrWillBeMember<MediaControlOverlayDisplayElement> m_overlayDisplay;
     RawPtrWillBeMember<MediaControlCastButtonElement> m_overlayCastButton;
     RawPtrWillBeMember<MediaControlPanelEnclosureElement> m_enclosure;
     RawPtrWillBeMember<MediaControlPanelElement> m_panel;
+    RawPtrWillBeMember<MediaControlLockButtonElement> m_lockButton;
     RawPtrWillBeMember<MediaControlPlayButtonElement> m_playButton;
     RawPtrWillBeMember<MediaControlTimelineElement> m_timeline;
     RawPtrWillBeMember<MediaControlCurrentTimeDisplayElement> m_currentTimeDisplay;
@@ -142,6 +157,8 @@ private:
     RawPtrWillBeMember<MediaControlToggleClosedCaptionsButtonElement> m_toggleClosedCaptionsButton;
     RawPtrWillBeMember<MediaControlCastButtonElement> m_castButton;
     RawPtrWillBeMember<MediaControlFullscreenButtonElement> m_fullScreenButton;
+    RawPtrWillBeMember<MediaControlLockEnclosureElement> m_lockEnclosure;
+    RawPtrWillBeMember<MediaControlUnlockButtonElement> m_unlockButton;
 
     Timer<MediaControls> m_hideMediaControlsTimer;
     unsigned m_hideTimerBehaviorFlags;
@@ -152,6 +169,10 @@ private:
     int m_panelWidth;
 
     bool m_allowHiddenVolumeControls : 1;
+
+    Timer<MediaControls> m_hideUnlockTimer;
+
+    bool m_enhancedUiEnabled : 1;
 };
 
 DEFINE_ELEMENT_TYPE_CASTS(MediaControls, isMediaControls());

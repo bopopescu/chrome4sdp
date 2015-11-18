@@ -54,6 +54,8 @@ bool RendererMediaPlayerManager::OnMessageReceived(const IPC::Message& msg) {
     IPC_MESSAGE_HANDLER(MediaPlayerMsg_DidMediaPlayerPause, OnPlayerPause)
     IPC_MESSAGE_HANDLER(MediaPlayerMsg_RemoteRouteAvailabilityChanged,
                         OnRemoteRouteAvailabilityChanged)
+    IPC_MESSAGE_HANDLER(MediaPlayerMsg_MediaBrightnessChanged,
+                        OnBrightnessChanged)
   IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP()
   return handled;
@@ -102,6 +104,14 @@ void RendererMediaPlayerManager::Seek(
 
 void RendererMediaPlayerManager::SetVolume(int player_id, double volume) {
   Send(new MediaPlayerHostMsg_SetVolume(routing_id(), player_id, volume));
+}
+
+void RendererMediaPlayerManager::AdjustBrightness(int player_id, float delta) {
+  Send(new MediaPlayerHostMsg_AdjustBrightness(routing_id(), player_id, delta));
+}
+
+void RendererMediaPlayerManager::SetRotateLock(int player_id, bool lock) {
+  Send(new MediaPlayerHostMsg_SetRotateLock(routing_id(), player_id, lock));
 }
 
 void RendererMediaPlayerManager::SetPoster(int player_id, const GURL& poster) {
@@ -237,6 +247,14 @@ void RendererMediaPlayerManager::OnRemoteRouteAvailabilityChanged(
   WebMediaPlayerAndroid* player = GetMediaPlayer(player_id);
   if (player)
     player->OnRemoteRouteAvailabilityChanged(routes_available);
+}
+
+void RendererMediaPlayerManager::OnBrightnessChanged(
+    int player_id,
+    float brightness) {
+  WebMediaPlayerAndroid* player = GetMediaPlayer(player_id);
+  if (player)
+    player->OnBrightnessChanged(brightness);
 }
 
 void RendererMediaPlayerManager::EnterFullscreen(int player_id) {

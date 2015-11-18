@@ -578,6 +578,22 @@ void BrowserMediaPlayerManager::OnSetVolume(int player_id, double volume) {
     player->SetVolume(volume);
 }
 
+void BrowserMediaPlayerManager::OnAdjustBrightness(int player_id, float delta) {
+  if (fullscreen_player_id_ == player_id && video_view_.get()) {
+    video_view_->AdjustBrightness(delta);
+  }
+}
+
+void BrowserMediaPlayerManager::OnSetRotateLock(int player_id, bool lock) {
+  if (fullscreen_player_id_ == player_id && video_view_.get()) {
+    video_view_->SetRotateLock(lock);
+  }
+}
+
+void BrowserMediaPlayerManager::OnBrightnessChanged(float brightness) {
+  Send(new MediaPlayerMsg_MediaBrightnessChanged(RoutingID(), fullscreen_player_id_, brightness));
+}
+
 void BrowserMediaPlayerManager::OnSetPoster(int player_id, const GURL& url) {
   // To be overridden by subclasses.
 }

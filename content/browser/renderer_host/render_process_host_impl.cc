@@ -1251,6 +1251,7 @@ void RenderProcessHostImpl::PropagateBrowserCommandLineToRenderer(
     switches::kDisableDisplayList2dCanvas,
     switches::kDisableDistanceFieldText,
     switches::kDisableEncryptedMedia,
+    switches::kDisableEnhancedVideoPlayer,
     switches::kDisableFileSystem,
     switches::kDisableGpuCompositing,
     switches::kDisableGpuMemoryBufferVideoFrames,

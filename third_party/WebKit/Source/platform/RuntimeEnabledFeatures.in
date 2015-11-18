@@ -62,6 +62,7 @@ DisplayList2dCanvas status=stable
 DurableStorage status=experimental
 ForceDisplayList2dCanvas
 EncryptedMedia status=stable
+EnhancedVideoPlaybackUi
 EnumerateDevices status=experimental
 ExecCommandInJavaScript status=test
 ComputedAccessibilityInfo status=experimental

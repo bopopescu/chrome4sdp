@@ -39,6 +39,7 @@ class LayoutObject;
 class MediaControlsPainter {
 public:
     static bool paintMediaMuteButton(LayoutObject*, const PaintInfo&, const IntRect&);
+    static bool paintMediaLockButton(LayoutObject*, const PaintInfo&, const IntRect&);
     static bool paintMediaPlayButton(LayoutObject*, const PaintInfo&, const IntRect&);
     static bool paintMediaToggleClosedCaptionsButton(LayoutObject*, const PaintInfo&, const IntRect&);
     static bool paintMediaSlider(LayoutObject*, const PaintInfo&, const IntRect&);
@@ -47,6 +48,8 @@ public:
     static bool paintMediaVolumeSliderThumb(LayoutObject*, const PaintInfo&, const IntRect&);
     static bool paintMediaFullscreenButton(LayoutObject*, const PaintInfo&, const IntRect&);
     static bool paintMediaOverlayPlayButton(LayoutObject*, const PaintInfo&, const IntRect&);
+    static bool paintMediaOverlayUnlockButton(LayoutObject*, const PaintInfo&, const IntRect&);
+    static bool paintMediaOverlayDisplay(LayoutObject*, const PaintInfo&, const IntRect&);
     static bool paintMediaCastButton(LayoutObject*, const PaintInfo&, const IntRect&);
     static void adjustMediaSliderThumbSize(ComputedStyle&);
 

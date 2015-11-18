@@ -117,6 +117,26 @@ void ContentVideoView::OnExitFullscreen() {
     Java_ContentVideoView_onExitFullscreen(env, content_video_view.obj());
 }
 
+void ContentVideoView::AdjustBrightness(float delta) {
+  JNIEnv* env = AttachCurrentThread();
+  ScopedJavaLocalRef<jobject> content_video_view = GetJavaObject(env);
+  if (!content_video_view.is_null()) {
+    Java_ContentVideoView_adjustBrightness(env, content_video_view.obj(), delta);
+  }
+}
+
+void ContentVideoView::SetRotateLock(bool lock) {
+  JNIEnv* env = AttachCurrentThread();
+  ScopedJavaLocalRef<jobject> content_video_view = GetJavaObject(env);
+  if (!content_video_view.is_null()) {
+    Java_ContentVideoView_setRotateLock(env, content_video_view.obj(), lock);
+  }
+}
+
+void ContentVideoView::OnBrightnessChanged(JNIEnv*, jobject, float brightness) {
+  manager_->OnBrightnessChanged(brightness);
+}
+
 void ContentVideoView::RecordFullscreenPlayback(
     JNIEnv*, jobject, bool is_portrait_video, bool is_orientation_portrait) {
   UMA_HISTOGRAM_BOOLEAN("MobileFullscreenVideo.OrientationPortrait",

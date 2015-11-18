@@ -115,10 +115,16 @@ bool ThemePainter::paint(LayoutObject* o, const PaintInfo& paintInfo, const IntR
     case MediaEnterFullscreenButtonPart:
     case MediaExitFullscreenButtonPart:
         return MediaControlsPainter::paintMediaFullscreenButton(o, paintInfo, r);
+    case MediaLockButtonPart:
+        return MediaControlsPainter::paintMediaLockButton(o, paintInfo, r);
     case MediaPlayButtonPart:
         return MediaControlsPainter::paintMediaPlayButton(o, paintInfo, r);
     case MediaOverlayPlayButtonPart:
         return MediaControlsPainter::paintMediaOverlayPlayButton(o, paintInfo, r);
+    case MediaOverlayUnlockButtonPart:
+        return MediaControlsPainter::paintMediaOverlayUnlockButton(o, paintInfo, r);
+    case MediaOverlayDisplayPart:
+        return MediaControlsPainter::paintMediaOverlayDisplay(o, paintInfo, r);
     case MediaMuteButtonPart:
         return MediaControlsPainter::paintMediaMuteButton(o, paintInfo, r);
     case MediaToggleClosedCaptionsButtonPart:

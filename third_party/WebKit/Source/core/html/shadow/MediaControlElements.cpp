@@ -53,6 +53,10 @@ using namespace HTMLNames;
 // This is the duration from mediaControls.css
 static const double fadeOutDuration = 0.3;
 
+// Consider overlay brightness/volume slider not changed when below the
+// threshold. The sliders range from 0 to 1.
+static const double touchChangeThreshold = 0.05;
+
 static bool isUserInteractionEvent(Event* event)
 {
     const AtomicString& type = event->type();
@@ -222,6 +226,54 @@ void* MediaControlOverlayEnclosureElement::preDispatchEventHandler(Event* event)
     return MediaControlDivElement::preDispatchEventHandler(event);
 }
 
+// ----------------------------
+
+MediaControlLockEnclosureElement::MediaControlLockEnclosureElement(MediaControls& mediaControls)
+    // Mapping onto same MediaControlElementType as panel element, since it has similar properties.
+    : MediaControlDivElement(mediaControls, MediaControlsPanel)
+{
+}
+
+PassRefPtrWillBeRawPtr<MediaControlLockEnclosureElement> MediaControlLockEnclosureElement::create(MediaControls& mediaControls)
+{
+    RefPtrWillBeRawPtr<MediaControlLockEnclosureElement> enclosure = adoptRefWillBeNoop(new MediaControlLockEnclosureElement(mediaControls));
+    enclosure->setShadowPseudoId(AtomicString("-webkit-media-controls-lock-enclosure", AtomicString::ConstructFromLiteral));
+    return enclosure.release();
+}
+
+void MediaControlLockEnclosureElement::defaultEventHandler(Event* event)
+{
+    if (event->type() == EventTypeNames::touchstart || event->type() == EventTypeNames::touchmove) {
+        mediaControls().startHideUnlockTimer();
+    }
+    event->setDefaultHandled();
+}
+
+// ----------------------------
+
+MediaControlUnlockButtonElement::MediaControlUnlockButtonElement(MediaControls& mediaControls)
+    : MediaControlInputElement(mediaControls, MediaUnlockButton)
+{
+}
+
+PassRefPtrWillBeRawPtr<MediaControlUnlockButtonElement> MediaControlUnlockButtonElement::create(MediaControls& mediaControls)
+{
+    RefPtrWillBeRawPtr<MediaControlUnlockButtonElement> button = adoptRefWillBeNoop(new MediaControlUnlockButtonElement(mediaControls));
+    button->ensureUserAgentShadowRoot();
+    button->setType(InputTypeNames::button);
+    button->setShadowPseudoId(AtomicString("-webkit-media-controls-unlock-button", AtomicString::ConstructFromLiteral));
+    return button.release();
+}
+
+void MediaControlUnlockButtonElement::defaultEventHandler(Event* event)
+{
+    if (event->type() == EventTypeNames::touchstart || event->type() == EventTypeNames::gesturetapdown) {
+        mediaControls().lockScreen(false);
+        event->setDefaultHandled();
+    }
+
+    HTMLInputElement::defaultEventHandler(event);
+}
 
 // ----------------------------
 
@@ -252,6 +304,31 @@ void MediaControlMuteButtonElement::defaultEventHandler(Event* event)
 void MediaControlMuteButtonElement::updateDisplayType()
 {
     setDisplayType(mediaElement().muted() ? MediaUnMuteButton : MediaMuteButton);
+}
+
+// ----------------------------
+
+MediaControlLockButtonElement::MediaControlLockButtonElement(MediaControls& mediaControls)
+    : MediaControlInputElement(mediaControls, MediaLockButton)
+{
+}
+
+PassRefPtrWillBeRawPtr<MediaControlLockButtonElement> MediaControlLockButtonElement::create(MediaControls& mediaControls)
+{
+    RefPtrWillBeRawPtr<MediaControlLockButtonElement> button = adoptRefWillBeNoop(new MediaControlLockButtonElement(mediaControls));
+    button->ensureUserAgentShadowRoot();
+    button->setType(InputTypeNames::button);
+    button->setShadowPseudoId(AtomicString("-webkit-media-controls-lock-button", AtomicString::ConstructFromLiteral));
+    return button.release();
+}
+
+void MediaControlLockButtonElement::defaultEventHandler(Event* event)
+{
+    if (event->type() == EventTypeNames::click) {
+        mediaControls().lockScreen(true);
+        event->setDefaultHandled();
+    }
+    HTMLInputElement::defaultEventHandler(event);
 }
 
 // ----------------------------
@@ -320,6 +397,146 @@ bool MediaControlOverlayPlayButtonElement::keepEventInNode(Event* event)
     return isUserInteractionEvent(event);
 }
 
+// ----------------------------
+
+MediaControlOverlayBrightnessSliderElement::MediaControlOverlayBrightnessSliderElement(MediaControls& mediaControls)
+    : MediaControlInputElement(mediaControls, MediaOverlaySlider)
+    , m_touchStartPosition(0)
+    , m_touchPreviousPosition(0)
+    , m_aboveThreshold(false)
+{
+}
+
+PassRefPtrWillBeRawPtr<MediaControlOverlayBrightnessSliderElement> MediaControlOverlayBrightnessSliderElement::create(MediaControls& mediaControls)
+{
+    RefPtrWillBeRawPtr<MediaControlOverlayBrightnessSliderElement> slider = adoptRefWillBeNoop(new MediaControlOverlayBrightnessSliderElement(mediaControls));
+    slider->ensureUserAgentShadowRoot();
+    slider->setType(InputTypeNames::range);
+    slider->setAttribute(stepAttr, "any");
+    slider->setAttribute(maxAttr, "1");
+    slider->setShadowPseudoId(AtomicString("-webkit-media-controls-overlay-brightness-slider", AtomicString::ConstructFromLiteral));
+    return slider.release();
+}
+
+void MediaControlOverlayBrightnessSliderElement::defaultEventHandler(Event* event)
+{
+    if (event->type() == EventTypeNames::touchend) {
+        if (!m_aboveThreshold) {
+            if (mediaElement().togglePlayStateWillPlay()) {
+                mediaElement().togglePlayState();
+                mediaControls().updateOverlayPlayButtonDisplayType();
+            } else {
+                mediaControls().showMediaControls();
+            }
+        } else {
+            mediaControls().setOverlayDisplayVisible(false, BRIGHTNESS_DISPLAY);
+        }
+        event->setDefaultHandled();
+        return;
+    }
+
+    MediaControlInputElement::defaultEventHandler(event);
+
+    if (event->type() == EventTypeNames::touchstart) {
+        m_touchStartPosition = value().toDouble();
+        m_touchPreviousPosition = value().toDouble();
+        m_aboveThreshold = false;
+    } else if (event->type() == EventTypeNames::touchmove) {
+        double change = value().toDouble() - m_touchStartPosition;
+
+        if (!m_aboveThreshold && std::abs(change) > touchChangeThreshold)
+            m_aboveThreshold = true;
+
+        if (m_aboveThreshold) {
+            double delta = value().toDouble() - m_touchPreviousPosition;
+            m_touchPreviousPosition = value().toDouble();
+            mediaElement().adjustBrightness(delta);
+            mediaControls().setOverlayDisplayVisible(true, BRIGHTNESS_DISPLAY);
+        }
+    }
+}
+
+// ----------------------------
+
+MediaControlOverlayVolumeSliderElement::MediaControlOverlayVolumeSliderElement(MediaControls& mediaControls)
+    : MediaControlInputElement(mediaControls, MediaOverlaySlider)
+    , m_touchStartPosition(0)
+    , m_touchPreviousPosition(0)
+    , m_aboveThreshold(false)
+{
+}
+
+PassRefPtrWillBeRawPtr<MediaControlOverlayVolumeSliderElement> MediaControlOverlayVolumeSliderElement::create(MediaControls& mediaControls)
+{
+    RefPtrWillBeRawPtr<MediaControlOverlayVolumeSliderElement> slider = adoptRefWillBeNoop(new MediaControlOverlayVolumeSliderElement(mediaControls));
+    slider->ensureUserAgentShadowRoot();
+    slider->setType(InputTypeNames::range);
+    slider->setAttribute(stepAttr, "any");
+    slider->setAttribute(maxAttr, "1");
+    slider->setShadowPseudoId(AtomicString("-webkit-media-controls-overlay-volume-slider", AtomicString::ConstructFromLiteral));
+    return slider.release();
+}
+
+void MediaControlOverlayVolumeSliderElement::defaultEventHandler(Event* event)
+{
+    if (event->type() == EventTypeNames::touchend) {
+        if (!m_aboveThreshold) {
+            if (mediaElement().togglePlayStateWillPlay()) {
+                mediaElement().togglePlayState();
+                mediaControls().updateOverlayPlayButtonDisplayType();
+            } else {
+                mediaControls().showMediaControls();
+            }
+        } else {
+            mediaControls().setOverlayDisplayVisible(false, VOLUME_DISPLAY);
+        }
+        event->setDefaultHandled();
+        return;
+    }
+
+    MediaControlInputElement::defaultEventHandler(event);
+
+    if (event->type() == EventTypeNames::touchstart) {
+        m_touchStartPosition = value().toDouble();
+        m_touchPreviousPosition = value().toDouble();
+        m_aboveThreshold = false;
+    } else if (event->type() == EventTypeNames::touchmove) {
+        double change = value().toDouble() - m_touchStartPosition;
+
+        if (!m_aboveThreshold && std::abs(change) > touchChangeThreshold)
+            m_aboveThreshold = true;
+
+        if (m_aboveThreshold) {
+            double delta = value().toDouble() - m_touchPreviousPosition;
+            m_touchPreviousPosition = value().toDouble();
+
+            double volume = std::min(1.0, std::max(0.0, mediaElement().volume() + delta));
+            mediaElement().setVolume(volume, ASSERT_NO_EXCEPTION);
+            mediaElement().setMuted(false);
+            mediaControls().setOverlayDisplayVisible(true, VOLUME_DISPLAY);
+        }
+    }
+}
+
+// ----------------------------
+
+MediaControlOverlayDisplayElement::MediaControlOverlayDisplayElement(MediaControls& mediaControls)
+    : MediaControlInputElement(mediaControls, MediaOverlayDisplay)
+{
+}
+
+PassRefPtrWillBeRawPtr<MediaControlOverlayDisplayElement> MediaControlOverlayDisplayElement::create(MediaControls& mediaControls)
+{
+    RefPtrWillBeRawPtr<MediaControlOverlayDisplayElement> display = adoptRefWillBeNoop(new MediaControlOverlayDisplayElement(mediaControls));
+    display->ensureUserAgentShadowRoot();
+    display->setShadowPseudoId(AtomicString("-webkit-media-controls-overlay-display", AtomicString::ConstructFromLiteral));
+    return display.release();
+}
+
+bool MediaControlOverlayDisplayElement::keepEventInNode(Event* event)
+{
+    return false;
+}
 
 // ----------------------------
 

@@ -434,11 +434,20 @@ template<> inline CSSPrimitiveValue::CSSPrimitiveValue(ControlPart e)
     case MediaExitFullscreenButtonPart:
         m_value.valueID = CSSValueMediaExitFullscreenButton;
         break;
+    case MediaLockButtonPart:
+        m_value.valueID = CSSValueMediaLockButton;
+        break;
     case MediaPlayButtonPart:
         m_value.valueID = CSSValueMediaPlayButton;
         break;
     case MediaOverlayPlayButtonPart:
         m_value.valueID = CSSValueMediaOverlayPlayButton;
+        break;
+    case MediaOverlayUnlockButtonPart:
+        m_value.valueID = CSSValueMediaOverlayUnlockButton;
+        break;
+    case MediaOverlayDisplayPart:
+        m_value.valueID = CSSValueMediaOverlayDisplay;
         break;
     case MediaMuteButtonPart:
         m_value.valueID = CSSValueMediaMuteButton;

@@ -123,6 +123,9 @@ class WebMediaPlayerAndroid : public blink::WebMediaPlayer,
   virtual blink::WebTimeRanges buffered() const;
   virtual blink::WebTimeRanges seekable() const;
 
+  virtual void adjustBrightness(float) override;
+  virtual void setRotateLock(bool) override;
+
   // Poster image, as defined in the <video> element.
   virtual void setPoster(const blink::WebURL& poster) override;
 
@@ -209,6 +212,7 @@ class WebMediaPlayerAndroid : public blink::WebMediaPlayer,
   void OnMediaPlayerPlay();
   void OnMediaPlayerPause();
   void OnRemoteRouteAvailabilityChanged(bool routes_available);
+  void OnBrightnessChanged(float brightness);
 
   // StreamTextureFactoryContextObserver implementation.
   void ResetStreamTextureProxy() override;

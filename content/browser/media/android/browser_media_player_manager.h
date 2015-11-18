@@ -124,6 +124,9 @@ class CONTENT_EXPORT BrowserMediaPlayerManager
   virtual void OnSeek(int player_id, const base::TimeDelta& time);
   virtual void OnPause(int player_id, bool is_media_related_action);
   virtual void OnSetVolume(int player_id, double volume);
+  virtual void OnAdjustBrightness(int player_id, float delta);
+  virtual void OnSetRotateLock(int player_id, bool lock);
+  virtual void OnBrightnessChanged(float brightness);
   virtual void OnSetPoster(int player_id, const GURL& poster);
   virtual void OnReleaseResources(int player_id);
   virtual void OnDestroyPlayer(int player_id);

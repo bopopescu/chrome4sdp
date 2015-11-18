@@ -344,6 +344,11 @@ void WebRuntimeFeatures::enableNewMediaPlaybackUi(bool enable)
     RuntimeEnabledFeatures::setNewMediaPlaybackUiEnabled(enable);
 }
 
+void WebRuntimeFeatures::enableEnhancedVideoPlaybackUi(bool enable)
+{
+    RuntimeEnabledFeatures::setEnhancedVideoPlaybackUiEnabled(enable);
+}
+
 void WebRuntimeFeatures::enablePresentationAPI(bool enable)
 {
     RuntimeEnabledFeatures::setPresentationEnabled(enable);

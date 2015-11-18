@@ -42,6 +42,7 @@ namespace blink {
 // If you change this value, then also update the corresponding value in
 // LayoutTests/media/media-controls.js.
 static const double timeWithoutMouseMovementBeforeHidingMediaControls = 3;
+static const double timeBeforeHidingUnlock = 2;
 
 static bool shouldShowFullscreenButton(const HTMLMediaElement& mediaElement)
 {
@@ -99,9 +100,13 @@ MediaControls::MediaControls(HTMLMediaElement& mediaElement)
     , m_mediaElement(&mediaElement)
     , m_overlayEnclosure(nullptr)
     , m_overlayPlayButton(nullptr)
+    , m_overlayBrightnessSlider(nullptr)
+    , m_overlayVolumeSlider(nullptr)
+    , m_overlayDisplay(nullptr)
     , m_overlayCastButton(nullptr)
     , m_enclosure(nullptr)
     , m_panel(nullptr)
+    , m_lockButton(nullptr)
     , m_playButton(nullptr)
     , m_timeline(nullptr)
     , m_currentTimeDisplay(nullptr)
@@ -111,6 +116,8 @@ MediaControls::MediaControls(HTMLMediaElement& mediaElement)
     , m_toggleClosedCaptionsButton(nullptr)
     , m_castButton(nullptr)
     , m_fullScreenButton(nullptr)
+    , m_lockEnclosure(nullptr)
+    , m_unlockButton(nullptr)
     , m_hideMediaControlsTimer(this, &MediaControls::hideMediaControlsTimerFired)
     , m_hideTimerBehaviorFlags(IgnoreNone)
     , m_isMouseOverControls(false)
@@ -118,6 +125,8 @@ MediaControls::MediaControls(HTMLMediaElement& mediaElement)
     , m_panelWidthChangedTimer(this, &MediaControls::panelWidthChangedTimerFired)
     , m_panelWidth(0)
     , m_allowHiddenVolumeControls(RuntimeEnabledFeatures::newMediaPlaybackUiEnabled())
+    , m_hideUnlockTimer(this, &MediaControls::hideUnlockTimerFired)
+    , m_enhancedUiEnabled(true)
 {
 }
 
@@ -133,32 +142,63 @@ PassRefPtrWillBeRawPtr<MediaControls> MediaControls::create(HTMLMediaElement& me
 //
 // MediaControls                                       (-webkit-media-controls)
 // +-MediaControlOverlayEnclosureElement               (-webkit-media-controls-overlay-enclosure)
-// | +-MediaControlOverlayPlayButtonElement            (-webkit-media-controls-overlay-play-button)
+// | | {if RTE::enhancedVideoPlaybackUi()}
+// | +-MediaControlOverlayDisplayElement               (-webkit-media-controls-overlay-display)
 // | | {if mediaControlsOverlayPlayButtonEnabled}
+// | +-MediaControlOverlayPlayButtonElement            (-webkit-media-controls-overlay-play-button)
+// | | {if RTE::enhancedVideoPlaybackUi()}
+// | +-MediaControlOverlayBrightnessSliderElement      (-webkit-media-controls-overlay-brightness-slider)
+// | | {if RTE::enhancedVideoPlaybackUi()}
+// | +-MediaControlOverlayVolumeliderElement           (-webkit-media-controls-overlay-volume-slider)
 // | \-MediaControlCastButtonElement                   (-internal-media-controls-overlay-cast-button)
-// \-MediaControlPanelEnclosureElement                 (-webkit-media-controls-enclosure)
-//   \-MediaControlPanelElement                        (-webkit-media-controls-panel)
-//     +-MediaControlPlayButtonElement                 (-webkit-media-controls-play-button)
-//     | {if !RTE::newMediaPlaybackUi()}
-//     +-MediaControlTimelineElement                   (-webkit-media-controls-timeline)
-//     +-MediaControlCurrentTimeDisplayElement         (-webkit-media-controls-current-time-display)
-//     +-MediaControlTimeRemainingDisplayElement       (-webkit-media-controls-time-remaining-display)
-//     | {if RTE::newMediaPlaybackUi()}
-//     +-MediaControlTimelineElement                   (-webkit-media-controls-timeline)
-//     +-MediaControlMuteButtonElement                 (-webkit-media-controls-mute-button)
-//     +-MediaControlVolumeSliderElement               (-webkit-media-controls-volume-slider)
-//     +-MediaControlToggleClosedCaptionsButtonElement (-webkit-media-controls-toggle-closed-captions-button)
-//     +-MediaControlCastButtonElement                 (-internal-media-controls-cast-button)
-//     \-MediaControlFullscreenButtonElement           (-webkit-media-controls-fullscreen-button)
+// +-MediaControlPanelEnclosureElement                 (-webkit-media-controls-enclosure)
+// | \-MediaControlPanelElement                        (-webkit-media-controls-panel)
+// |   | {if RTE::enhancedVideoPlaybackUi()}
+// |   +-MediaControlUnlockButtonElement               (-webkit-media-controls-unlock-button)
+// |   +-MediaControlPlayButtonElement                 (-webkit-media-controls-play-button)
+// |   | {if !RTE::newMediaPlaybackUi()}
+// |   +-MediaControlTimelineElement                   (-webkit-media-controls-timeline)
+// |   +-MediaControlCurrentTimeDisplayElement         (-webkit-media-controls-current-time-display)
+// |   +-MediaControlTimeRemainingDisplayElement       (-webkit-media-controls-time-remaining-display)
+// |   | {if RTE::newMediaPlaybackUi()}
+// |   +-MediaControlTimelineElement                   (-webkit-media-controls-timeline)
+// |   +-MediaControlMuteButtonElement                 (-webkit-media-controls-mute-button)
+// |   +-MediaControlVolumeSliderElement               (-webkit-media-controls-volume-slider)
+// |   +-MediaControlToggleClosedCaptionsButtonElement (-webkit-media-controls-toggle-closed-captions-button)
+// |   +-MediaControlCastButtonElement                 (-internal-media-controls-cast-button)
+// |   \-MediaControlFullscreenButtonElement           (-webkit-media-controls-fullscreen-button)
+// | {if RTE::enhancedVideoPlaybackUi()}
+// \-MediaControlLockEnclosureElement                  (-webkit-media-controls-lock-enclosure)
+//   \-MediaControlUnlockButtonElement                 (-webkit-media-controls-unlock-button)
 void MediaControls::initializeControls()
 {
     const bool useNewUi = RuntimeEnabledFeatures::newMediaPlaybackUiEnabled();
+
+    m_enhancedUiEnabled = RuntimeEnabledFeatures::enhancedVideoPlaybackUiEnabled();
+
     RefPtrWillBeRawPtr<MediaControlOverlayEnclosureElement> overlayEnclosure = MediaControlOverlayEnclosureElement::create(*this);
+
+    if (m_enhancedUiEnabled) {
+        RefPtrWillBeRawPtr<MediaControlOverlayDisplayElement> overlayDisplay = MediaControlOverlayDisplayElement::create(*this);
+        m_overlayDisplay = overlayDisplay.get();
+        overlayEnclosure->appendChild(overlayDisplay.release());
+    }
 
     if (document().settings() && document().settings()->mediaControlsOverlayPlayButtonEnabled()) {
         RefPtrWillBeRawPtr<MediaControlOverlayPlayButtonElement> overlayPlayButton = MediaControlOverlayPlayButtonElement::create(*this);
         m_overlayPlayButton = overlayPlayButton.get();
         overlayEnclosure->appendChild(overlayPlayButton.release());
+    }
+
+    if (m_enhancedUiEnabled) {
+        RefPtrWillBeRawPtr<MediaControlOverlayBrightnessSliderElement> overlayBrightnessSlider = MediaControlOverlayBrightnessSliderElement::create(*this);
+        m_overlayBrightnessSlider = overlayBrightnessSlider.get();
+        overlayEnclosure->appendChild(overlayBrightnessSlider.release());
+
+
+        RefPtrWillBeRawPtr<MediaControlOverlayVolumeSliderElement> overlayVolumeSlider = MediaControlOverlayVolumeSliderElement::create(*this);
+        m_overlayVolumeSlider = overlayVolumeSlider.get();
+        overlayEnclosure->appendChild(overlayVolumeSlider.release());
     }
 
     RefPtrWillBeRawPtr<MediaControlCastButtonElement> overlayCastButton = MediaControlCastButtonElement::create(*this, true);
@@ -172,6 +212,12 @@ void MediaControls::initializeControls()
     RefPtrWillBeRawPtr<MediaControlPanelEnclosureElement> enclosure = MediaControlPanelEnclosureElement::create(*this);
 
     RefPtrWillBeRawPtr<MediaControlPanelElement> panel = MediaControlPanelElement::create(*this);
+
+    if (m_enhancedUiEnabled) {
+        RefPtrWillBeRawPtr<MediaControlLockButtonElement> lockButton = MediaControlLockButtonElement::create(*this);
+        m_lockButton = lockButton.get();
+        panel->appendChild(lockButton.release());
+    }
 
     RefPtrWillBeRawPtr<MediaControlPlayButtonElement> playButton = MediaControlPlayButtonElement::create(*this);
     m_playButton = playButton.get();
@@ -224,6 +270,25 @@ void MediaControls::initializeControls()
 
     m_enclosure = enclosure.get();
     appendChild(enclosure.release());
+
+    if (m_enhancedUiEnabled) {
+        RefPtrWillBeRawPtr<MediaControlLockEnclosureElement> lockEnclosure = MediaControlLockEnclosureElement::create(*this);
+        m_lockEnclosure = lockEnclosure.get();
+        appendChild(lockEnclosure.release());
+
+        RefPtrWillBeRawPtr<MediaControlUnlockButtonElement> unlockButton = MediaControlUnlockButtonElement::create(*this);
+        m_unlockButton = unlockButton.get();
+        m_lockEnclosure->appendChild(unlockButton.release());
+    }
+
+    // Initialize the visiblity of enhanced video controls
+    if (m_enhancedUiEnabled) {
+        m_lockButton->setIsWanted(mediaElement().isFullscreen());
+        m_overlayBrightnessSlider->setIsWanted(mediaElement().isFullscreen());
+        m_overlayVolumeSlider->setIsWanted(mediaElement().isFullscreen());
+        m_lockEnclosure->setIsWanted(false);
+        m_overlayDisplay->setIsWanted(false);
+    }
 }
 
 void MediaControls::reset()
@@ -445,6 +510,12 @@ void MediaControls::updateVolume()
     // Invalidate the volume slider because it paints differently according to volume.
     if (LayoutObject* layoutObject = m_volumeSlider->layoutObject())
         layoutObject->setShouldDoFullPaintInvalidation();
+
+    // Invalidate the overlay display because it paints differently according to volume.
+    if (m_enhancedUiEnabled) {
+        if (LayoutObject* layoutObject = m_overlayDisplay->layoutObject())
+            layoutObject->setShouldDoFullPaintInvalidation();
+    }
 }
 
 void MediaControls::changedClosedCaptionsVisibility()
@@ -529,6 +600,13 @@ void MediaControls::enteredFullscreen()
     m_fullScreenButton->setIsFullscreen(true);
     stopHideMediaControlsTimer();
     startHideMediaControlsTimer();
+
+    // start enhanced video player
+    if (m_enhancedUiEnabled) {
+        m_lockButton->setIsWanted(true);
+        m_overlayBrightnessSlider->setIsWanted(true);
+        m_overlayVolumeSlider->setIsWanted(true);
+    }
 }
 
 void MediaControls::exitedFullscreen()
@@ -536,6 +614,14 @@ void MediaControls::exitedFullscreen()
     m_fullScreenButton->setIsFullscreen(false);
     stopHideMediaControlsTimer();
     startHideMediaControlsTimer();
+
+    // stop enhanced video player
+    if (m_enhancedUiEnabled) {
+        m_lockButton->setIsWanted(false);
+        m_overlayBrightnessSlider->setIsWanted(false);
+        m_overlayVolumeSlider->setIsWanted(false);
+        m_lockEnclosure->setIsWanted(false);
+    }
 }
 
 void MediaControls::startedCasting()
@@ -679,6 +765,7 @@ void MediaControls::computeWhichControlsFit()
     // Controls that we'll hide / show, in order of decreasing priority.
     MediaControlElement* elements[] = {
         m_playButton.get(),
+        m_enhancedUiEnabled ? m_lockButton.get() : nullptr,
         m_toggleClosedCaptionsButton.get(),
         m_fullScreenButton.get(),
         m_timeline.get(),
@@ -721,6 +808,64 @@ void MediaControls::setAllowHiddenVolumeControls(bool allow)
     m_allowHiddenVolumeControls = allow;
     // Update the controls visibility.
     updateVolume();
+}
+
+void MediaControls::updateOverlayPlayButtonDisplayType()
+{
+    m_overlayPlayButton->updateDisplayType();
+}
+
+void MediaControls::setOverlayDisplayVisible(bool visible, OverlayDisplayType type)
+{
+    if (type == VOLUME_DISPLAY) {
+        m_mediaElement->setVolumeSliderActivated(visible);
+    }
+
+    m_overlayDisplay->setIsWanted(visible);
+}
+
+void MediaControls::lockScreen(bool lock)
+{
+    if (lock) {
+        makeTransparent();
+        startHideUnlockTimer();
+    } else {
+        makeOpaque();
+        if (shouldHideMediaControls())
+            startHideMediaControlsTimer();
+    }
+
+    m_lockEnclosure->setIsWanted(lock);
+    m_mediaElement->setRotateLock(lock);
+}
+
+void MediaControls::updateBrightness()
+{
+    // Invalidate the overlay display because it paints differently according to brightness.
+    if (m_enhancedUiEnabled) {
+        if (LayoutObject* layoutObject = m_overlayDisplay->layoutObject())
+            layoutObject->setShouldDoFullPaintInvalidation();
+    }
+}
+
+void MediaControls::startHideUnlockTimer()
+{
+    m_unlockButton->setIsWanted(true);
+    m_hideUnlockTimer.startOneShot(timeBeforeHidingUnlock, FROM_HERE);
+}
+
+void MediaControls::hideUnlockTimerFired(Timer<MediaControls>*)
+{
+    m_unlockButton->setIsWanted(false);
+}
+
+void MediaControls::showMediaControls()
+{
+    makeOpaque();
+
+    m_hideTimerBehaviorFlags |= IgnoreControlsHover;
+    if (shouldHideMediaControls(m_hideTimerBehaviorFlags | IgnoreVideoHover))
+        startHideMediaControlsTimer();
 }
 
 DEFINE_TRACE(MediaControls)

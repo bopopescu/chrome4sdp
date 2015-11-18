@@ -91,6 +91,12 @@ bool MediaWebContentsObserver::OnMediaPlayerMessageReceived(
     IPC_MESSAGE_FORWARD(MediaPlayerHostMsg_SetVolume,
                         GetMediaPlayerManager(render_frame_host),
                         BrowserMediaPlayerManager::OnSetVolume)
+    IPC_MESSAGE_FORWARD(MediaPlayerHostMsg_AdjustBrightness,
+                        GetMediaPlayerManager(render_frame_host),
+                        BrowserMediaPlayerManager::OnAdjustBrightness)
+    IPC_MESSAGE_FORWARD(MediaPlayerHostMsg_SetRotateLock,
+                        GetMediaPlayerManager(render_frame_host),
+                        BrowserMediaPlayerManager::OnSetRotateLock)
     IPC_MESSAGE_FORWARD(MediaPlayerHostMsg_SetPoster,
                         GetMediaPlayerManager(render_frame_host),
                         BrowserMediaPlayerManager::OnSetPoster)

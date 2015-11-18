@@ -10,6 +10,7 @@
   <release seq="1">
     <structures fallback_to_low_resolution="true">
       <structure type="chrome_scaled_image" name="IDR_BROKENIMAGE" file="blink/broken_image.png" />
+      <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_LOCK_BUTTON" file="blink/mediaplayer_screen_lock.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_PAUSE_BUTTON" file="blink/mediaplayer_pause.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_PAUSE_BUTTON_NEW" file="blink/mediaplayer_pause_new.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_PAUSE_BUTTON_HOVER" file="blink/mediaplayer_pause_hover.png" />
@@ -59,10 +60,19 @@
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_CAST_BUTTON_OFF_NEW" file="blink/mediaplayer_cast_off_new.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_CAST_BUTTON_ON" file="blink/mediaplayer_cast_on.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_CAST_BUTTON_ON_NEW" file="blink/mediaplayer_cast_on_new.png" />
+      <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_BRIGHTNESS_LEVEL3_BUTTON" file="blink/mediaplayer_overlay_brightness_level3.png" />
+      <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_BRIGHTNESS_LEVEL2_BUTTON" file="blink/mediaplayer_overlay_brightness_level2.png" />
+      <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_BRIGHTNESS_LEVEL1_BUTTON" file="blink/mediaplayer_overlay_brightness_level1.png" />
+      <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_BRIGHTNESS_LEVEL0_BUTTON" file="blink/mediaplayer_overlay_brightness_level0.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_CAST_BUTTON_OFF" file="blink/mediaplayer_overlay_cast_off.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_CAST_BUTTON_OFF_NEW" file="blink/mediaplayer_overlay_cast_off_new.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_PLAY_BUTTON" file="blink/mediaplayer_overlay_play.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_PLAY_BUTTON_NEW" file="blink/mediaplayer_overlay_play_new.png" />
+      <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_SOUND_LEVEL3_BUTTON" file="blink/mediaplayer_overlay_sound_level3.png" />
+      <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_SOUND_LEVEL2_BUTTON" file="blink/mediaplayer_overlay_sound_level2.png" />
+      <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_SOUND_LEVEL1_BUTTON" file="blink/mediaplayer_overlay_sound_level1.png" />
+      <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_SOUND_LEVEL0_BUTTON" file="blink/mediaplayer_overlay_sound_level0.png" />
+      <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_UNLOCK_BUTTON" file="blink/mediaplayer_overlay_unlock.png" />
       <structure type="chrome_scaled_image" name="IDR_SEARCH_CANCEL" file="blink/search_cancel.png" />
       <structure type="chrome_scaled_image" name="IDR_SEARCH_CANCEL_PRESSED" file="blink/search_cancel_pressed.png" />
       <structure type="chrome_scaled_image" name="IDR_SEARCH_MAGNIFIER" file="blink/search_magnifier.png" />

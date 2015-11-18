@@ -60,6 +60,10 @@ static const int mediaSliderThumbPaintHeightNew = 12;
 static const int mediaOverlayPlayButtonWidthNew = 48;
 static const int mediaOverlayPlayButtonHeightNew = 48;
 
+// New UI overlay volume display size.
+static const int mediaOverlayDisplayWidthNew = 48;
+static const int mediaOverlayDisplayHeightNew = 48;
+
 // Alpha for disabled elements.
 static const float kDisabledAlpha = 0.4;
 
@@ -138,6 +142,83 @@ bool MediaControlsPainter::paintMediaMuteButton(LayoutObject* object, const Pain
     return paintMediaButton(paintInfo.context, rect, soundLevel3);
 }
 
+bool MediaControlsPainter::paintMediaOverlayDisplay(LayoutObject* object, const PaintInfo& paintInfo, const IntRect& rect)
+{
+    HTMLMediaElement* mediaElement = toParentMediaElement(object);
+    if (!mediaElement)
+        return false;
+
+    static Image* soundLevel3 = platformResource("mediaplayerOverlaySoundLevel3",
+        "mediaplayerOverlaySoundLevel3");
+    static Image* soundLevel2 = platformResource("mediaplayerOverlaySoundLevel2",
+        "mediaplayerOverlaySoundLevel2");
+    static Image* soundLevel1 = platformResource("mediaplayerOverlaySoundLevel1",
+        "mediaplayerOverlaySoundLevel1");
+    static Image* soundLevel0 = platformResource("mediaplayerOverlaySoundLevel0",
+        "mediaplayerOverlaySoundLevel0");
+    static Image* soundDisabled = platformResource("mediaplayerOverlaySoundDisabled",
+        "mediaplayerOverlaySoundLevel0");
+
+    static Image* brightnessLevel3 = platformResource("mediaplayerOverlayBrightnessLevel3",
+        "mediaplayerOverlayBrightnessLevel3");
+    static Image* brightnessLevel2 = platformResource("mediaplayerOverlayBrightnessLevel2",
+        "mediaplayerOverlayBrightnessLevel2");
+    static Image* brightnessLevel1 = platformResource("mediaplayerOverlayBrightnessLevel1",
+        "mediaplayerOverlayBrightnessLevel1");
+    static Image* brightnessLevel0 = platformResource("mediaplayerOverlayBrightnessLevel0",
+        "mediaplayerOverlayBrightnessLevel0");
+
+    IntRect displayRect(rect);
+
+    const LayoutBox* box = mediaElement->layoutObject()->enclosingBox();
+    if (!box)
+        return false;
+
+    displayRect.setX(rect.center().x() - mediaOverlayDisplayWidthNew / 2);
+    displayRect.setY(mediaOverlayDisplayHeightNew / 2);
+    displayRect.setWidth(mediaOverlayDisplayWidthNew);
+    displayRect.setHeight(mediaOverlayDisplayHeightNew);
+
+    if (!hasSource(mediaElement) || !mediaElement->hasAudio())
+        return paintMediaButton(paintInfo.context, displayRect, soundDisabled,
+            false);
+
+    if (mediaElement->volumeSliderActivated()) {
+        if (mediaElement->muted() || mediaElement->volume() <= 0)
+            return paintMediaButton(paintInfo.context, displayRect, soundLevel0);
+
+        if (mediaElement->volume() <= 0.33)
+            return paintMediaButton(paintInfo.context, displayRect, soundLevel1);
+
+        if (mediaElement->volume() <= 0.66)
+            return paintMediaButton(paintInfo.context, displayRect, soundLevel2);
+
+        return paintMediaButton(paintInfo.context, displayRect, soundLevel3);
+    } else {
+        if (mediaElement->brightness() <= 0)
+            return paintMediaButton(paintInfo.context, displayRect, brightnessLevel0);
+
+        if (mediaElement->brightness() <= 0.33)
+            return paintMediaButton(paintInfo.context, displayRect, brightnessLevel1);
+
+        if (mediaElement->brightness() <= 0.66)
+            return paintMediaButton(paintInfo.context, displayRect, brightnessLevel2);
+
+        return paintMediaButton(paintInfo.context, displayRect, brightnessLevel3);
+    }
+}
+
+bool MediaControlsPainter::paintMediaLockButton(LayoutObject* object, const PaintInfo& paintInfo, const IntRect& rect)
+{
+    HTMLMediaElement* mediaElement = toParentMediaElement(object);
+    if (!mediaElement)
+        return false;
+
+    static Image* mediaLock = platformResource("mediaplayerLock", "mediaplayerLock");
+
+    return paintMediaButton(paintInfo.context, rect, mediaLock);
+}
+
 bool MediaControlsPainter::paintMediaPlayButton(LayoutObject* object, const PaintInfo& paintInfo, const IntRect& rect)
 {
     HTMLMediaElement* mediaElement = toParentMediaElement(object);
@@ -185,6 +266,17 @@ bool MediaControlsPainter::paintMediaOverlayPlayButton(LayoutObject* object, con
     }
 
     return paintMediaButton(paintInfo.context, buttonRect, mediaOverlayPlay);
+}
+
+bool MediaControlsPainter::paintMediaOverlayUnlockButton(LayoutObject* object, const PaintInfo& paintInfo, const IntRect& rect)
+{
+    HTMLMediaElement* mediaElement = toParentMediaElement(object);
+    if (!mediaElement)
+        return false;
+
+    static Image* mediaOverlayUnlock = platformResource("mediaplayerOverlayUnlock", "mediaplayerOverlayUnlock");
+
+    return paintMediaButton(paintInfo.context, rect, mediaOverlayUnlock);
 }
 
 static Image* getMediaSliderThumb()

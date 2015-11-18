@@ -601,6 +601,16 @@ blink::WebTimeRanges WebMediaPlayerAndroid::seekable() const {
   return blink::WebTimeRanges(&seekable_range, 1);
 }
 
+void WebMediaPlayerAndroid::adjustBrightness(float delta) {
+  DCHECK(main_thread_checker_.CalledOnValidThread());
+  player_manager_->AdjustBrightness(player_id_, delta);
+}
+
+void WebMediaPlayerAndroid::setRotateLock(bool lock) {
+  DCHECK(main_thread_checker_.CalledOnValidThread());
+  player_manager_->SetRotateLock(player_id_, lock);
+}
+
 bool WebMediaPlayerAndroid::didLoadingProgress() {
   bool ret = did_loading_progress_;
   did_loading_progress_ = false;
@@ -997,6 +1007,11 @@ void WebMediaPlayerAndroid::OnMediaPlayerPause() {
 void WebMediaPlayerAndroid::OnRemoteRouteAvailabilityChanged(
     bool routes_available) {
   client_->remoteRouteAvailabilityChanged(routes_available);
+}
+
+void WebMediaPlayerAndroid::OnBrightnessChanged(
+    float brightness) {
+  client_->brightnessChanged(brightness);
 }
 
 void WebMediaPlayerAndroid::OnDurationChanged(const base::TimeDelta& duration) {

@@ -358,9 +358,11 @@ HTMLMediaElement::HTMLMediaElement(const QualifiedName& tagName, Document& docum
     , m_initialPlayWithoutUserGestures(false)
     , m_autoplayMediaCounted(false)
     , m_inOverlayFullscreenVideo(false)
+    , m_volumeSliderActivated(false)
     , m_audioTracks(AudioTrackList::create(*this))
     , m_videoTracks(VideoTrackList::create(*this))
     , m_textTracks(nullptr)
+    , m_brightness(-1.f)
 #if ENABLE(WEB_AUDIO)
     , m_audioSourceNode(nullptr)
 #endif
@@ -2155,6 +2157,21 @@ double HTMLMediaElement::effectiveMediaVolume() const
     return volume;
 }
 
+void HTMLMediaElement::adjustBrightness(float delta)
+{
+    webMediaPlayer()->adjustBrightness(delta);
+}
+
+float HTMLMediaElement::brightness() const
+{
+    return m_brightness;
+}
+
+void HTMLMediaElement::setRotateLock(bool lock)
+{
+    webMediaPlayer()->setRotateLock(lock);
+}
+
 // The spec says to fire periodic timeupdate events (those sent while playing) every
 // "15 to 250ms", we choose the slowest frequency
 static const double maxTimeupdateEventFrequency = 0.25;
@@ -2826,6 +2843,14 @@ void HTMLMediaElement::remoteRouteAvailabilityChanged(bool routesAvailable)
     m_remoteRoutesAvailable = routesAvailable;
     if (mediaControls())
         mediaControls()->refreshCastButtonVisibility();
+}
+
+void HTMLMediaElement::brightnessChanged(float brightness)
+{
+    m_brightness = brightness;
+
+    if (mediaControls())
+        mediaControls()->updateBrightness();
 }
 
 void HTMLMediaElement::connectedToRemoteDevice()

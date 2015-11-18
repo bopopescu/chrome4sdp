@@ -162,6 +162,11 @@ public:
     bool muted() const;
     void setMuted(bool);
 
+    void adjustBrightness(float);
+    float brightness() const;
+
+    void setRotateLock(bool);
+
     // play/pause toggling that uses the media controller if present. togglePlayStateWillPlay() is
     // true if togglePlayState() will call play() or unpause() on the media element or controller.
     bool togglePlayStateWillPlay() const;
@@ -258,6 +263,9 @@ public:
     // Returns the "effective media volume" value as specified in the HTML5 spec.
     double effectiveMediaVolume() const;
 
+    void setVolumeSliderActivated(bool activated) { m_volumeSliderActivated = activated; }
+    bool volumeSliderActivated() { return m_volumeSliderActivated; }
+
     // Predicates also used when dispatching wrapper creation (cf. [SpecialWrapFor] IDL attribute usage.)
     virtual bool isHTMLAudioElement() const { return false; }
     virtual bool isHTMLVideoElement() const { return false; }
@@ -332,6 +340,7 @@ private:
     void mediaSourceOpened(WebMediaSource*) final;
     void requestSeek(double) final;
     void remoteRouteAvailabilityChanged(bool) final;
+    void brightnessChanged(float) final;
     void connectedToRemoteDevice() final;
     void disconnectedFromRemoteDevice() final;
 
@@ -549,12 +558,16 @@ private:
     // Whether this element is in overlay fullscreen mode.
     bool m_inOverlayFullscreenVideo : 1;
 
+    bool m_volumeSliderActivated : 1;
+
     PersistentWillBeMember<AudioTrackList> m_audioTracks;
     PersistentWillBeMember<VideoTrackList> m_videoTracks;
     PersistentWillBeMember<TextTrackList> m_textTracks;
     PersistentHeapVectorWillBeHeapVector<Member<TextTrack>> m_textTracksWhenResourceSelectionBegan;
 
     OwnPtrWillBeMember<CueTimeline> m_cueTimeline;
+
+    float m_brightness;
 
 #if ENABLE(WEB_AUDIO)
     // This is a weak reference, since m_audioSourceNode holds a reference to us.
