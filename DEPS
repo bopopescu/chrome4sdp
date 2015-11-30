@@ -128,6 +128,8 @@ deps = {
     (Var('webtech_devx_url')) + '/swe-core.git@25dd03c56762d43652d9e61831b25d226c222af7',
   'src/components/web_refiner':
     (Var('webtech_devx_url')) + '/web-refiner.git' + '@' + '7e7213ba4cbd4f360266dbe95f5846e1756d5b50',
+  'src/third_party/libnetxt':
+    (Var('webtech_devx_url')) + '/libnetxt.git' + '@' + '2a9759a2c160c98e411ca4816b9f52c9f49deb42',
 }
 
 deps_os = {
