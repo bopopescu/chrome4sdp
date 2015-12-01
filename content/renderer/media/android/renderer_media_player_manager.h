@@ -78,6 +78,9 @@ class RendererMediaPlayerManager : public RenderFrameObserver {
   // Sets the rotate lock for fullscreen video
   void SetRotateLock(int player_id, bool lock);
 
+  // Sets fit vertical for fullscreen video
+  void SetFitVertical(int player_id, bool fit);
+
   // Sets the poster image.
   void SetPoster(int player_id, const GURL& poster);
 
@@ -156,6 +159,7 @@ class RendererMediaPlayerManager : public RenderFrameObserver {
   void OnPlayerPause(int player_id);
   void OnRemoteRouteAvailabilityChanged(int player_id, bool routes_available);
   void OnBrightnessChanged(int player_id, float brightness);
+  void OnOrientationUpdated(int player_id, bool isOrientationPortrait);
 
   // Release all video player resources.
   // If something is in progress the resource will not be freed. It will

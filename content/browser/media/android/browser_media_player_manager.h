@@ -128,7 +128,9 @@ class CONTENT_EXPORT BrowserMediaPlayerManager
   virtual void OnSetVolume(int player_id, double volume);
   virtual void OnAdjustBrightness(int player_id, float delta);
   virtual void OnSetRotateLock(int player_id, bool lock);
+  virtual void OnSetFitVertical(int player_id, bool fit);
   virtual void OnBrightnessChanged(float brightness);
+  virtual void OnOrientationUpdated(bool isOrientationPortrait);
   virtual void OnSetPoster(int player_id, const GURL& poster);
   virtual void OnReleaseResources(int player_id);
   virtual void OnDestroyPlayer(int player_id);

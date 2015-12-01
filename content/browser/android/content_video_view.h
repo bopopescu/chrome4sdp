@@ -62,8 +62,10 @@ class ContentVideoView {
   void OnExitFullscreen();
   void AdjustBrightness(float);
   void SetRotateLock(bool);
+  void SetFitVertical(bool);
 
   void OnBrightnessChanged(JNIEnv*, jobject, float);
+  void OnOrientationUpdated(JNIEnv*, jobject, bool);
 
   // Functions called to record fullscreen playback UMA metrics.
   void RecordFullscreenPlayback(

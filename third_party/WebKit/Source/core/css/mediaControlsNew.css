@@ -403,6 +403,23 @@ input[type="range" i]::-webkit-media-slider-thumb {
     padding: 0px;
 }
 
+audio::-webkit-media-controls-zoom-button {
+    display: none;
+}
+
+video::-webkit-media-controls-zoom-button {
+    -webkit-appearance: media-zoom-button;
+    display: flex;
+    flex: none;
+    overflow: hidden;
+    border: none;
+    width: 48px;
+    height: 48px;
+    line-height: 48px;
+    background-color: initial;
+    color: inherit;
+}
+
 audio::-webkit-media-controls-fullscreen-button, video::-webkit-media-controls-fullscreen-button {
     -webkit-appearance: media-enter-fullscreen-button;
     display: flex;

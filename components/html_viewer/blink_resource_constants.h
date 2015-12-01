@@ -77,6 +77,8 @@ const DataResource kDataResources[] = {
     {"mediaplayerCastOnNew", IDR_MEDIAPLAYER_CAST_BUTTON_ON_NEW},
     {"mediaplayerFullscreenDisabled",
      IDR_MEDIAPLAYER_FULLSCREEN_BUTTON_DISABLED},
+    {"mediaplayerZoomFitVertical", IDR_MEDIAPLAYER_ZOOM_FIT_VERTICAL_BUTTON},
+    {"mediaplayerZoomNormal", IDR_MEDIAPLAYER_ZOOM_NORMAL_BUTTON}
     {"mediaplayerOverlayBrightnessLevel3",
      IDR_MEDIAPLAYER_OVERLAY_BRIGHTNESS_LEVEL3_BUTTON},
     {"mediaplayerOverlayBrightnessLevel2",

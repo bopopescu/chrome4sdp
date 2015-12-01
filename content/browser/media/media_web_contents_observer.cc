@@ -103,6 +103,9 @@ bool MediaWebContentsObserver::OnMediaPlayerMessageReceived(
     IPC_MESSAGE_FORWARD(MediaPlayerHostMsg_SetRotateLock,
                         GetMediaPlayerManager(render_frame_host),
                         BrowserMediaPlayerManager::OnSetRotateLock)
+    IPC_MESSAGE_FORWARD(MediaPlayerHostMsg_SetFitVertical,
+                        GetMediaPlayerManager(render_frame_host),
+                        BrowserMediaPlayerManager::OnSetFitVertical)
     IPC_MESSAGE_FORWARD(MediaPlayerHostMsg_SetPoster,
                         GetMediaPlayerManager(render_frame_host),
                         BrowserMediaPlayerManager::OnSetPoster)

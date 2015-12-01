@@ -561,6 +561,26 @@ bool MediaControlsPainter::paintMediaVolumeSliderThumb(LayoutObject* object, con
     return paintMediaButton(paintInfo.context, paintRect, mediaVolumeSliderThumb);
 }
 
+bool MediaControlsPainter::paintMediaZoomButton(LayoutObject* object, const PaintInfo& paintInfo, const IntRect& rect)
+{
+    HTMLMediaElement* mediaElement = toParentMediaElement(object);
+    if (!mediaElement)
+        return false;
+
+    // With the new player UI, we have separate assets for enter / exit
+    // fullscreen mode.
+    static Image* mediaZoomFitVerticalButton = platformResource(
+        "mediaplayerZoomFitVertical", "mediaplayerZoomFitVertical");
+    static Image* mediaZoomNormalButton = platformResource(
+        "mediaplayerZoomNormal", "mediaplayerZoomNormal");
+
+    bool isEnabled = hasSource(mediaElement);
+
+    if (mediaElement->fitVertical())
+        return paintMediaButton(paintInfo.context, rect, mediaZoomNormalButton, isEnabled);
+    return paintMediaButton(paintInfo.context, rect, mediaZoomFitVerticalButton, isEnabled);
+}
+
 bool MediaControlsPainter::paintMediaFullscreenButton(LayoutObject* object, const PaintInfo& paintInfo, const IntRect& rect)
 {
     HTMLMediaElement* mediaElement = toParentMediaElement(object);

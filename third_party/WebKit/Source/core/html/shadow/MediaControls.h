@@ -88,6 +88,7 @@ public:
     void lockScreen(bool);
     void setVolumeSliderActivated(bool);
     void updateBrightness();
+    void updateOrientation();
     void startHideUnlockTimer();
     void showMediaControls();
 
@@ -156,6 +157,7 @@ private:
     RawPtrWillBeMember<MediaControlVolumeSliderElement> m_volumeSlider;
     RawPtrWillBeMember<MediaControlToggleClosedCaptionsButtonElement> m_toggleClosedCaptionsButton;
     RawPtrWillBeMember<MediaControlCastButtonElement> m_castButton;
+    RawPtrWillBeMember<MediaControlZoomButtonElement> m_zoomButton;
     RawPtrWillBeMember<MediaControlFullscreenButtonElement> m_fullScreenButton;
     RawPtrWillBeMember<MediaControlLockEnclosureElement> m_lockEnclosure;
     RawPtrWillBeMember<MediaControlUnlockButtonElement> m_unlockButton;

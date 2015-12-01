@@ -108,6 +108,7 @@ public class ContentVideoView extends FrameLayout
     private int mOriginalRequestedOrientation;
 
     private class VideoSurfaceView extends SurfaceView {
+        boolean mFitVertical = false;
 
         public VideoSurfaceView(Context context) {
             super(context);
@@ -122,10 +123,11 @@ public class ContentVideoView extends FrameLayout
             if (mVideoWidth > 0 && mVideoHeight > 0) {
                 width = getDefaultSize(mVideoWidth, widthMeasureSpec);
                 height = getDefaultSize(mVideoHeight, heightMeasureSpec);
-                if (mVideoWidth * height  > width * mVideoHeight) {
-                    height = width * mVideoHeight / mVideoWidth;
-                } else if (mVideoWidth * height  < width * mVideoHeight) {
+                if ((mFitVertical && isOrientationPortrait())
+                        || mVideoWidth * height  < width * mVideoHeight) {
                     width = height * mVideoWidth / mVideoHeight;
+                } else if (mVideoWidth * height  > width * mVideoHeight) {
+                    height = width * mVideoHeight / mVideoWidth;
                 }
             }
             if (mUmaRecorded) {
@@ -145,7 +147,12 @@ public class ContentVideoView extends FrameLayout
                     }
                 }
             }
+            nativeOnOrientationUpdated(mNativeContentVideoView, isOrientationPortrait());
             setMeasuredDimension(width, height);
+        }
+
+        public void setFitVertical(boolean fit) {
+            mFitVertical = fit;
         }
     }
 
@@ -499,6 +506,12 @@ public class ContentVideoView extends FrameLayout
         }
     }
 
+    @CalledByNative
+    private void setFitVertical(boolean fit) {
+        mVideoSurfaceView.setFitVertical(fit);
+        mVideoSurfaceView.requestLayout();
+    }
+
     /**
      * This method shall only be called by native and exitFullscreen,
      * To exit fullscreen, use exitFullscreen in Java.
@@ -553,4 +566,6 @@ public class ContentVideoView extends FrameLayout
             long playbackDurationAfterOrientationChange);
     private native void nativeOnBrightnessChanged(
             long nativeContentVideoView, float brightness);
+    private native void nativeOnOrientationUpdated(long nativeContentVideoView,
+            boolean isOrientationPortrait);
 }

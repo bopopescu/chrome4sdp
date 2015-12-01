@@ -46,6 +46,7 @@ public:
     static bool paintMediaSliderThumb(LayoutObject*, const PaintInfo&, const IntRect&);
     static bool paintMediaVolumeSlider(LayoutObject*, const PaintInfo&, const IntRect&);
     static bool paintMediaVolumeSliderThumb(LayoutObject*, const PaintInfo&, const IntRect&);
+    static bool paintMediaZoomButton(LayoutObject*, const PaintInfo&, const IntRect&);
     static bool paintMediaFullscreenButton(LayoutObject*, const PaintInfo&, const IntRect&);
     static bool paintMediaOverlayPlayButton(LayoutObject*, const PaintInfo&, const IntRect&);
     static bool paintMediaOverlayUnlockButton(LayoutObject*, const PaintInfo&, const IntRect&);

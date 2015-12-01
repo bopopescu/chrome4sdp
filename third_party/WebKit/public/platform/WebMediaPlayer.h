@@ -115,6 +115,7 @@ public:
 
     virtual void adjustBrightness(float) { }
     virtual void setRotateLock(bool) { }
+    virtual void setFitVertical(bool) { }
 
     virtual void requestRemotePlayback() { }
     virtual void requestRemotePlaybackControl() { }

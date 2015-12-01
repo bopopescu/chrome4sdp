@@ -611,6 +611,11 @@ void WebMediaPlayerAndroid::setRotateLock(bool lock) {
   player_manager_->SetRotateLock(player_id_, lock);
 }
 
+void WebMediaPlayerAndroid::setFitVertical(bool fit) {
+  DCHECK(main_thread_checker_.CalledOnValidThread());
+  player_manager_->SetFitVertical(player_id_, fit);
+}
+
 bool WebMediaPlayerAndroid::didLoadingProgress() {
   bool ret = did_loading_progress_;
   did_loading_progress_ = false;
@@ -1012,6 +1017,10 @@ void WebMediaPlayerAndroid::OnRemoteRouteAvailabilityChanged(
 void WebMediaPlayerAndroid::OnBrightnessChanged(
     float brightness) {
   client_->brightnessChanged(brightness);
+}
+
+void WebMediaPlayerAndroid::OnOrientationUpdated(bool isOrientationPortrait) {
+  client_->orientationUpdated(isOrientationPortrait);
 }
 
 void WebMediaPlayerAndroid::OnDurationChanged(const base::TimeDelta& duration) {

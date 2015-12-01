@@ -60,6 +60,8 @@
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_CAST_BUTTON_OFF_NEW" file="blink/mediaplayer_cast_off_new.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_CAST_BUTTON_ON" file="blink/mediaplayer_cast_on.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_CAST_BUTTON_ON_NEW" file="blink/mediaplayer_cast_on_new.png" />
+      <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_ZOOM_FIT_VERTICAL_BUTTON" file="blink/mediaplayer_zoom_fit_vertical.png" />
+      <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_ZOOM_NORMAL_BUTTON" file="blink/mediaplayer_zoom_normal.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_BRIGHTNESS_LEVEL3_BUTTON" file="blink/mediaplayer_overlay_brightness_level3.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_BRIGHTNESS_LEVEL2_BUTTON" file="blink/mediaplayer_overlay_brightness_level2.png" />
       <structure type="chrome_scaled_image" name="IDR_MEDIAPLAYER_OVERLAY_BRIGHTNESS_LEVEL1_BUTTON" file="blink/mediaplayer_overlay_brightness_level1.png" />

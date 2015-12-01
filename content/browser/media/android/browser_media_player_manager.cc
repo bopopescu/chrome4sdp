@@ -602,8 +602,18 @@ void BrowserMediaPlayerManager::OnSetRotateLock(int player_id, bool lock) {
   }
 }
 
+void BrowserMediaPlayerManager::OnSetFitVertical(int player_id, bool fit) {
+  if (fullscreen_player_id_ == player_id && video_view_.get()) {
+    video_view_->SetFitVertical(fit);
+  }
+}
+
 void BrowserMediaPlayerManager::OnBrightnessChanged(float brightness) {
   Send(new MediaPlayerMsg_MediaBrightnessChanged(RoutingID(), fullscreen_player_id_, brightness));
+}
+
+void BrowserMediaPlayerManager::OnOrientationUpdated(bool isOrientaionPortrait) {
+  Send(new MediaPlayerMsg_MediaOrientationUpdated(RoutingID(), fullscreen_player_id_, isOrientaionPortrait));
 }
 
 void BrowserMediaPlayerManager::OnSetPoster(int player_id, const GURL& url) {

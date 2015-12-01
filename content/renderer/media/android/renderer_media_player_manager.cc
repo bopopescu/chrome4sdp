@@ -59,6 +59,8 @@ bool RendererMediaPlayerManager::OnMessageReceived(const IPC::Message& msg) {
                         OnRemoteRouteAvailabilityChanged)
     IPC_MESSAGE_HANDLER(MediaPlayerMsg_MediaBrightnessChanged,
                         OnBrightnessChanged)
+    IPC_MESSAGE_HANDLER(MediaPlayerMsg_MediaOrientationUpdated,
+                        OnOrientationUpdated)
   IPC_MESSAGE_UNHANDLED(handled = false)
   IPC_END_MESSAGE_MAP()
   return handled;
@@ -138,6 +140,10 @@ void RendererMediaPlayerManager::AdjustBrightness(int player_id, float delta) {
 
 void RendererMediaPlayerManager::SetRotateLock(int player_id, bool lock) {
   Send(new MediaPlayerHostMsg_SetRotateLock(routing_id(), player_id, lock));
+}
+
+void RendererMediaPlayerManager::SetFitVertical(int player_id, bool fit) {
+  Send(new MediaPlayerHostMsg_SetFitVertical(routing_id(), player_id, fit));
 }
 
 void RendererMediaPlayerManager::SetPoster(int player_id, const GURL& poster) {
@@ -281,6 +287,14 @@ void RendererMediaPlayerManager::OnBrightnessChanged(
   WebMediaPlayerAndroid* player = GetMediaPlayer(player_id);
   if (player)
     player->OnBrightnessChanged(brightness);
+}
+
+void RendererMediaPlayerManager::OnOrientationUpdated(
+    int player_id,
+    bool isOrientationPortrait) {
+  WebMediaPlayerAndroid* player = GetMediaPlayer(player_id);
+  if (player)
+    player->OnOrientationUpdated(isOrientationPortrait);
 }
 
 void RendererMediaPlayerManager::EnterFullscreen(int player_id) {

@@ -363,6 +363,8 @@ HTMLMediaElement::HTMLMediaElement(const QualifiedName& tagName, Document& docum
     , m_videoTracks(VideoTrackList::create(*this))
     , m_textTracks(nullptr)
     , m_brightness(-1.f)
+    , m_fitVertical(false)
+    , m_isOrientationPortrait(true)
 #if ENABLE(WEB_AUDIO)
     , m_audioSourceNode(nullptr)
 #endif
@@ -2172,6 +2174,22 @@ void HTMLMediaElement::setRotateLock(bool lock)
     webMediaPlayer()->setRotateLock(lock);
 }
 
+void HTMLMediaElement::setFitVertical(bool fit)
+{
+    m_fitVertical = fit;
+    webMediaPlayer()->setFitVertical(fit);
+}
+
+bool HTMLMediaElement::fitVertical() const
+{
+    return m_fitVertical;
+}
+
+bool HTMLMediaElement::isOrientationPortrait() const
+{
+    return m_isOrientationPortrait;
+}
+
 // The spec says to fire periodic timeupdate events (those sent while playing) every
 // "15 to 250ms", we choose the slowest frequency
 static const double maxTimeupdateEventFrequency = 0.25;
@@ -2851,6 +2869,14 @@ void HTMLMediaElement::brightnessChanged(float brightness)
 
     if (mediaControls())
         mediaControls()->updateBrightness();
+}
+
+void HTMLMediaElement::orientationUpdated(bool isOrientationUpdated)
+{
+    m_isOrientationPortrait = isOrientationUpdated;
+
+    if (mediaControls())
+        mediaControls()->updateOrientation();
 }
 
 void HTMLMediaElement::connectedToRemoteDevice()

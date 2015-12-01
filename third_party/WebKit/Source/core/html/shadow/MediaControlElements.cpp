@@ -718,6 +718,32 @@ bool MediaControlVolumeSliderElement::keepEventInNode(Event* event)
 
 // ----------------------------
 
+MediaControlZoomButtonElement::MediaControlZoomButtonElement(MediaControls& mediaControls)
+    : MediaControlInputElement(mediaControls, MediaZoomButton)
+{
+}
+
+PassRefPtrWillBeRawPtr<MediaControlZoomButtonElement> MediaControlZoomButtonElement::create(MediaControls& mediaControls)
+{
+    RefPtrWillBeRawPtr<MediaControlZoomButtonElement> button = adoptRefWillBeNoop(new MediaControlZoomButtonElement(mediaControls));
+    button->ensureUserAgentShadowRoot();
+    button->setType(InputTypeNames::button);
+    button->setShadowPseudoId(AtomicString("-webkit-media-controls-zoom-button", AtomicString::ConstructFromLiteral));
+    button->setIsWanted(false);
+    return button.release();
+}
+
+void MediaControlZoomButtonElement::defaultEventHandler(Event* event)
+{
+    if (event->type() == EventTypeNames::click) {
+        mediaElement().setFitVertical(!mediaElement().fitVertical());
+        event->setDefaultHandled();
+    }
+    HTMLInputElement::defaultEventHandler(event);
+}
+
+// ----------------------------
+
 MediaControlFullscreenButtonElement::MediaControlFullscreenButtonElement(MediaControls& mediaControls)
     : MediaControlInputElement(mediaControls, MediaEnterFullscreenButton)
 {

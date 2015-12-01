@@ -115,6 +115,7 @@ MediaControls::MediaControls(HTMLMediaElement& mediaElement)
     , m_volumeSlider(nullptr)
     , m_toggleClosedCaptionsButton(nullptr)
     , m_castButton(nullptr)
+    , m_zoomButton(nullptr)
     , m_fullScreenButton(nullptr)
     , m_lockEnclosure(nullptr)
     , m_unlockButton(nullptr)
@@ -261,6 +262,10 @@ void MediaControls::initializeControls()
     m_castButton = castButton.get();
     panel->appendChild(castButton.release());
 
+    RefPtrWillBeRawPtr<MediaControlZoomButtonElement> zoomButton = MediaControlZoomButtonElement::create(*this);
+    m_zoomButton = zoomButton.get();
+    panel->appendChild(zoomButton.release());
+
     RefPtrWillBeRawPtr<MediaControlFullscreenButtonElement> fullscreenButton = MediaControlFullscreenButtonElement::create(*this);
     m_fullScreenButton = fullscreenButton.get();
     panel->appendChild(fullscreenButton.release());
@@ -284,6 +289,7 @@ void MediaControls::initializeControls()
     // Initialize the visiblity of enhanced video controls
     if (m_enhancedUiEnabled) {
         m_lockButton->setIsWanted(mediaElement().isFullscreen());
+        m_zoomButton->setIsWanted(mediaElement().isFullscreen());
         m_overlayBrightnessSlider->setIsWanted(mediaElement().isFullscreen());
         m_overlayVolumeSlider->setIsWanted(mediaElement().isFullscreen());
         m_lockEnclosure->setIsWanted(false);
@@ -604,6 +610,10 @@ void MediaControls::enteredFullscreen()
     // start enhanced video player
     if (m_enhancedUiEnabled) {
         m_lockButton->setIsWanted(true);
+
+        m_zoomButton->setIsWanted(true);
+        m_mediaElement->setFitVertical(false);
+
         m_overlayBrightnessSlider->setIsWanted(true);
         m_overlayVolumeSlider->setIsWanted(true);
     }
@@ -618,6 +628,7 @@ void MediaControls::exitedFullscreen()
     // stop enhanced video player
     if (m_enhancedUiEnabled) {
         m_lockButton->setIsWanted(false);
+        m_zoomButton->setIsWanted(false);
         m_overlayBrightnessSlider->setIsWanted(false);
         m_overlayVolumeSlider->setIsWanted(false);
         m_lockEnclosure->setIsWanted(false);
@@ -768,6 +779,7 @@ void MediaControls::computeWhichControlsFit()
         m_enhancedUiEnabled ? m_lockButton.get() : nullptr,
         m_toggleClosedCaptionsButton.get(),
         m_fullScreenButton.get(),
+        m_enhancedUiEnabled ? m_zoomButton.get() : nullptr,
         m_timeline.get(),
         m_currentTimeDisplay.get(),
         m_volumeSlider.get(),
@@ -845,6 +857,13 @@ void MediaControls::updateBrightness()
     if (m_enhancedUiEnabled) {
         if (LayoutObject* layoutObject = m_overlayDisplay->layoutObject())
             layoutObject->setShouldDoFullPaintInvalidation();
+    }
+}
+
+void MediaControls::updateOrientation()
+{
+    if (m_enhancedUiEnabled) {
+        m_zoomButton->setIsWanted(m_mediaElement->isOrientationPortrait());
     }
 }
 

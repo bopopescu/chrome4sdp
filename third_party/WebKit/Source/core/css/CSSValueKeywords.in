@@ -602,6 +602,7 @@ media-fullscreen-volume-slider
 media-fullscreen-volume-slider-thumb
 media-mute-button
 media-lock-button
+media-zoom-button
 media-play-button
 media-overlay-play-button
 media-overlay-unlock-button

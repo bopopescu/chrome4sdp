@@ -167,6 +167,10 @@ public:
 
     void setRotateLock(bool);
 
+    void setFitVertical(bool);
+    bool fitVertical() const;
+    bool isOrientationPortrait() const;
+
     // play/pause toggling that uses the media controller if present. togglePlayStateWillPlay() is
     // true if togglePlayState() will call play() or unpause() on the media element or controller.
     bool togglePlayStateWillPlay() const;
@@ -341,6 +345,7 @@ private:
     void requestSeek(double) final;
     void remoteRouteAvailabilityChanged(bool) final;
     void brightnessChanged(float) final;
+    void orientationUpdated(bool) final;
     void connectedToRemoteDevice() final;
     void disconnectedFromRemoteDevice() final;
 
@@ -568,6 +573,9 @@ private:
     OwnPtrWillBeMember<CueTimeline> m_cueTimeline;
 
     float m_brightness;
+
+    bool m_fitVertical : 1;
+    bool m_isOrientationPortrait : 1;
 
 #if ENABLE(WEB_AUDIO)
     // This is a weak reference, since m_audioSourceNode holds a reference to us.

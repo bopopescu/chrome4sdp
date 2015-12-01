@@ -125,6 +125,7 @@ class WebMediaPlayerAndroid : public blink::WebMediaPlayer,
 
   virtual void adjustBrightness(float) override;
   virtual void setRotateLock(bool) override;
+  virtual void setFitVertical(bool) override;
 
   // Poster image, as defined in the <video> element.
   virtual void setPoster(const blink::WebURL& poster) override;
@@ -213,6 +214,7 @@ class WebMediaPlayerAndroid : public blink::WebMediaPlayer,
   void OnMediaPlayerPause();
   void OnRemoteRouteAvailabilityChanged(bool routes_available);
   void OnBrightnessChanged(float brightness);
+  void OnOrientationUpdated(bool isOrientationPortrait);
 
   // StreamTextureFactoryContextObserver implementation.
   void ResetStreamTextureProxy() override;

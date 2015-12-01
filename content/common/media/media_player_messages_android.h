@@ -211,6 +211,10 @@ IPC_MESSAGE_ROUTED2(MediaPlayerMsg_MediaBrightnessChanged,
                     int /* player_id */,
                     float /* brightness */)
 
+IPC_MESSAGE_ROUTED2(MediaPlayerMsg_MediaOrientationUpdated,
+                    int /* player_id */,
+                    bool /* isOrientationPortrait */)
+
 // Messages for controlling the media playback in browser process ----------
 
 // Destroy the media player object.
@@ -256,6 +260,10 @@ IPC_MESSAGE_ROUTED2(MediaPlayerHostMsg_AdjustBrightness,
 IPC_MESSAGE_ROUTED2(MediaPlayerHostMsg_SetRotateLock,
                     int /* player_id */,
                     bool /* lock */)
+
+IPC_MESSAGE_ROUTED2(MediaPlayerHostMsg_SetFitVertical,
+                    int /* player_id */,
+                    bool /* fit */)
 
 // Set the poster image.
 IPC_MESSAGE_ROUTED2(MediaPlayerHostMsg_SetPoster,

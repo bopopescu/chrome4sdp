@@ -249,6 +249,20 @@ private:
 
 // ----------------------------
 
+class MediaControlZoomButtonElement final : public MediaControlInputElement {
+public:
+    static PassRefPtrWillBeRawPtr<MediaControlZoomButtonElement> create(MediaControls&);
+
+    bool willRespondToMouseClickEvents() override { return true; }
+
+private:
+    explicit MediaControlZoomButtonElement(MediaControls&);
+
+    void defaultEventHandler(Event*) override;
+};
+
+// ----------------------------
+
 class MediaControlFullscreenButtonElement final : public MediaControlInputElement {
 public:
     static PassRefPtrWillBeRawPtr<MediaControlFullscreenButtonElement> create(MediaControls&);

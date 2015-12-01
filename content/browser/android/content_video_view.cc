@@ -133,8 +133,21 @@ void ContentVideoView::SetRotateLock(bool lock) {
   }
 }
 
+void ContentVideoView::SetFitVertical(bool fit) {
+  JNIEnv* env = AttachCurrentThread();
+  ScopedJavaLocalRef<jobject> content_video_view = GetJavaObject(env);
+  if (!content_video_view.is_null()) {
+    Java_ContentVideoView_setFitVertical(env, content_video_view.obj(), fit);
+  }
+}
+
 void ContentVideoView::OnBrightnessChanged(JNIEnv*, jobject, float brightness) {
   manager_->OnBrightnessChanged(brightness);
+}
+
+void ContentVideoView::OnOrientationUpdated(
+    JNIEnv*, jobject, bool isOrientationPortrait) {
+  manager_->OnOrientationUpdated(isOrientationPortrait);
 }
 
 void ContentVideoView::RecordFullscreenPlayback(
