@@ -56,7 +56,7 @@ public class WebRefiner {
 
     public static class RuleSet {
         /**
-         * Ruleset categories.
+         * WebRefiner Ruleset categories.
          */
         public static final int CATEGORY_MDM                      = 1;
         public static final int CATEGORY_ADS                      = 1 << 1;
@@ -141,6 +141,21 @@ public class WebRefiner {
             mTotalUrls = totalUrls;
             mBlockedUrls = blockedUrls;
             mWhiteListedUrls = whiteListedUrls;
+        }
+    }
+
+    public static class FeatureName {
+        /**
+         * Common product name/label under which this feature exists.
+         */
+        public final String mProductName;
+        /**
+         * Actual name/label of the feature.
+         */
+        public final String mLocalName;
+        public FeatureName(String product, String local) {
+            mProductName = product;
+            mLocalName = local;
         }
     }
 
@@ -272,4 +287,10 @@ public class WebRefiner {
      * @param origins List of origins .
      */
     public void useDefaultPermissionForOrigins(String[] origins) {}
+
+    /**
+     * Returns the unified and local name (en-us strings) for WebRefiner.
+     * @return A valid FeatureName object or null.
+     */
+    public FeatureName getFeatureName() { return null; }
 }

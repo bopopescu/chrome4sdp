@@ -100,6 +100,38 @@ public class WebDefender {
         }
     }
 
+    public static class TrackerDomainStats {
+        /**
+         * Total number of potential tracker domains, but WebDefender didn't do anything about them.
+         */
+        public final int mPotentialTrackerDomains;
+        /**
+         * Total number of tracker domains that are allowed to connect, but their tracking vectors are blocked.
+         */
+        public final int mYellowTrackerDomains;
+        /**
+         * Total number of tracker domains that are not allowed to connect (effectively blocked all the contents).
+         */
+        public final int mRedTrackerDomains;
+        /**
+         * Total number of tracker domains that used tracking vectors to store/retrieve private information.
+         * mTotalTrackerDomains = mPotentialTrackerDomains + mYellowTrackerDomains + mRedTrackerDomains + 'unclassified/unrestricted tracker domains';
+         */
+        public final int mTotalTrackerDomains;
+        /**
+         * Flag to indicate whether the tracking protection is enabled on a given web page.
+         */
+        public final boolean mTrackingProtectionEnabled;
+
+        public TrackerDomainStats(int potentialTrackerDomains, int yellowTrackerDomains, int redTrackerDomains, int totalTrackerDomains, boolean trackingProtectionEnabled) {
+            mPotentialTrackerDomains = potentialTrackerDomains;
+            mYellowTrackerDomains = yellowTrackerDomains;
+            mRedTrackerDomains = redTrackerDomains;
+            mTotalTrackerDomains = totalTrackerDomains;
+            mTrackingProtectionEnabled = trackingProtectionEnabled;
+        }
+    }
+
     private static WebDefender sInstance = null;
 
     /**
@@ -137,6 +169,16 @@ public class WebDefender {
     public ProtectionStatus getProtectionStatus(ContentViewCore cvc) { return null; }
 
     /**
+     * Returns TrackerDomainStats object that contains various tracker domain counts.
+     * You could alternatively calculate all the information in TrackerDomainStats from
+     * {@link #getProtectionStatus(ContentViewCore)}, but this API is convenient if you
+     * don't really want the list of {@link TrackerDomain}s and calculate the numbers.
+     * @param cvc The ContentViewCore of the given page.
+     * @return TrackerDomainStats object or null for the given ContentViewCore session.
+     */
+    public TrackerDomainStats getTrackerDomainStats(ContentViewCore cvc) { return null; }
+
+    /**
      * Enables or disables tracking protection by default on all the websites.
      * Can be overridden by {@link #setPermissionForOrigins(String[], int, boolean)}.
      * @param allow True to enable and False to disable tracking protection on all the websites.
@@ -170,4 +212,11 @@ public class WebDefender {
      * @param trackerDomains List of tracker domains to be reset.
      */
     public void resetProtectiveActionsForTrackerDomains(TrackerDomain[] trackerDomains) {}
+
+    /**
+     * Returns the unified and local name (en-us strings) for WebDefender.
+     * @return A valid FeatureName object or null.
+     */
+    public WebRefiner.FeatureName getFeatureName() { return null; }
+
 }
