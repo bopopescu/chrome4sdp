@@ -16,10 +16,12 @@ import org.chromium.chrome.browser.TabState;
 import org.chromium.chrome.browser.UrlConstants;
 import org.chromium.chrome.browser.document.ChromeLauncherActivity;
 import org.chromium.chrome.browser.document.DocumentMetricIds;
+import org.chromium.chrome.browser.partnercustomizations.HomepageManager;
 import org.chromium.chrome.browser.tab.ChromeTab;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabIdManager;
 import org.chromium.chrome.browser.tabmodel.TabCreatorManager.TabCreator;
+import org.chromium.chrome.browser.tabmodel.TabModel;
 import org.chromium.chrome.browser.tabmodel.TabModel.TabLaunchType;
 import org.chromium.chrome.browser.util.FeatureUtilities;
 import org.chromium.components.service_tab_launcher.ServiceTabLauncher;
@@ -171,6 +173,18 @@ public class TabDelegate extends TabCreator {
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             IntentHandler.startActivityForTrustedIntent(intent, context);
         }
+    }
+
+
+    @Override
+    public void launchNTP() {
+        String homePageUrl =
+                HomepageManager.getHomepageUri(ApplicationStatus.getApplicationContext());
+        if (TextUtils.isEmpty(homePageUrl) || mIsIncognito) {
+            super.launchNTP();
+            return;
+        }
+        launchUrl(homePageUrl, TabModel.TabLaunchType.FROM_MENU_OR_OVERVIEW);
     }
 
     /**

@@ -10,6 +10,7 @@ import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 import org.chromium.base.ObserverList;
+import org.chromium.base.VisibleForTesting;
 
 /**
  * Provides information regarding homepage enabled states and URI.
@@ -29,7 +30,7 @@ public class HomepageManager {
     }
 
     private static final String PREF_HOMEPAGE_ENABLED = "homepage";
-    private static final String PREF_HOMEPAGE_CUSTOM_URI = "homepage_custom_uri";
+    public static final String PREF_HOMEPAGE_CUSTOM_URI = "homepage_custom_uri";
     private static final String PREF_HOMEPAGE_USE_DEFAULT_URI = "homepage_partner_enabled";
 
     private static HomepageManager sInstance;
@@ -81,13 +82,13 @@ public class HomepageManager {
      * @return Whether or not homepage is enabled.
      */
     public static boolean isHomepageEnabled(Context context) {
-        return PartnerBrowserCustomizations.isHomepageProviderAvailableAndEnabled()
-                && getInstance(context).getPrefHomepageEnabled();
+        return getInstance(context).getPrefHomepageEnabled();
     }
 
     /**
      * @return Whether or not homepage setting should be shown.
      */
+    @VisibleForTesting
     public static boolean shouldShowHomepageSetting() {
         return PartnerBrowserCustomizations.isHomepageProviderAvailableAndEnabled();
     }
@@ -112,7 +113,7 @@ public class HomepageManager {
      * @see #isHomepageEnabled
      */
     public boolean getPrefHomepageEnabled() {
-        return mSharedPreferences.getBoolean(PREF_HOMEPAGE_ENABLED, true);
+        return mSharedPreferences.getBoolean(PREF_HOMEPAGE_ENABLED, false);
     }
 
     /**
@@ -145,7 +146,7 @@ public class HomepageManager {
      * @return Whether the homepage URL is the default value.
      */
     public boolean getPrefHomepageUseDefaultUri() {
-        return mSharedPreferences.getBoolean(PREF_HOMEPAGE_USE_DEFAULT_URI, true);
+        return mSharedPreferences.getBoolean(PREF_HOMEPAGE_USE_DEFAULT_URI, false);
     }
 
     /**

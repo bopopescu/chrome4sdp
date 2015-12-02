@@ -232,7 +232,6 @@ public class ToolbarManager implements ToolbarTabController, UrlFocusChangeListe
                         HomepageManager.isHomepageEnabled(mToolbar.getContext()));
             }
         };
-        HomepageManager.getInstance(mToolbar.getContext()).addListener(mHomepageStateListener);
 
         mTabModelSelectorObserver = new EmptyTabModelSelectorObserver() {
             @Override

@@ -167,12 +167,22 @@ public class MainPreferences extends BrowserPreferenceFragment implements SignIn
                 PrefServiceBridge.getInstance().getBackgroundAudioEnabled());
 
         Preference homepagePref = findPreference(PREF_HOMEPAGE);
-        if (HomepageManager.shouldShowHomepageSetting()) {
-            setOnOffSummary(homepagePref,
-                    HomepageManager.getInstance(getActivity()).getPrefHomepageEnabled());
-        } else {
-            getPreferenceScreen().removePreference(homepagePref);
-        }
+        setOnOffSummary(homepagePref,
+                HomepageManager.getInstance(getActivity()).getPrefHomepageEnabled());
+        homepagePref.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                if (preference.getFragment() != null &&
+                        getActivity() instanceof OnPreferenceStartFragmentCallback) {
+                    if (getArguments() != null) {
+                        preference.getExtras().putAll(getArguments());
+                    }
+                    return ((OnPreferenceStartFragmentCallback) getActivity())
+                            .onPreferenceStartFragment(MainPreferences.this, preference);
+                }
+                return false;
+            }
+        });
 
         ChromeBasePreference dataReduction =
                 (ChromeBasePreference) findPreference(PREF_DATA_REDUCTION);

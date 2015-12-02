@@ -22,6 +22,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
+import org.chromium.base.ApplicationStatus;
 import org.chromium.base.CommandLine;
 import org.chromium.base.MemoryPressureListener;
 import org.chromium.base.TraceEvent;
@@ -194,14 +195,10 @@ public class ChromeTabbedActivity extends ChromeActivity implements OverviewMode
 
             mTabModelObserver = new EmptyTabModelObserver() {
                 @Override
-                public void didCloseTab(Tab tab) {
-                    closeIfNoTabsAndHomepageEnabled();
-                }
+                public void didCloseTab(Tab tab) { }
 
                 @Override
-                public void tabPendingClosure(Tab tab) {
-                    closeIfNoTabsAndHomepageEnabled();
-                }
+                public void tabPendingClosure(Tab tab) { }
 
                 private void closeIfNoTabsAndHomepageEnabled() {
                     // If the last tab is closed, and homepage is enabled, then exit Chrome.
@@ -893,8 +890,13 @@ public class ChromeTabbedActivity extends ChromeActivity implements OverviewMode
     public boolean onMenuOrKeyboardAction(final int id, boolean fromMenu) {
         final Tab currentTab = getActivityTab();
         if (id == R.id.new_tab_menu_id) {
+            String homePageUrl =
+                    HomepageManager.getHomepageUri(getApplicationContext());
+            if (TextUtils.isEmpty(homePageUrl)) {
+                homePageUrl = UrlConstants.NTP_URL; //Load NTP if no homepage is defined.
+            }
             Tab launchedTab = getTabCreator(false).launchUrl(
-                    UrlConstants.NTP_URL,
+                    homePageUrl,
                     fromMenu ? TabLaunchType.FROM_MENU_OR_OVERVIEW : TabLaunchType.FROM_KEYBOARD);
             RecordUserAction.record("MobileMenuNewTab");
             RecordUserAction.record("MobileNewTabOpened");

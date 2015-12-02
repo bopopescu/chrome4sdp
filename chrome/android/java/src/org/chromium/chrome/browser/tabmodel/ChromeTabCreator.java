@@ -15,6 +15,7 @@ import org.chromium.chrome.browser.TabState;
 import org.chromium.chrome.browser.UrlUtilities;
 import org.chromium.chrome.browser.WarmupManager;
 import org.chromium.chrome.browser.compositor.layouts.content.TabContentManager;
+import org.chromium.chrome.browser.partnercustomizations.HomepageManager;
 import org.chromium.chrome.browser.tab.ChromeTab;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.TabModel.TabLaunchType;
@@ -186,6 +187,17 @@ public class ChromeTabCreator extends TabCreatorManager.TabCreator {
     @Override
     public Tab launchUrl(String url, TabModel.TabLaunchType type) {
         return launchUrl(url, type, null, 0);
+    }
+
+    @Override
+    public void launchNTP() {
+        String homePageUrl =
+                HomepageManager.getHomepageUri(mActivity);
+        if (TextUtils.isEmpty(homePageUrl) || mIncognito) {
+            super.launchNTP();
+            return;
+        }
+        launchUrl(homePageUrl, TabModel.TabLaunchType.FROM_MENU_OR_OVERVIEW);
     }
 
     /**

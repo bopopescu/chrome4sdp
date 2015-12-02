@@ -313,6 +313,27 @@ CHAR-LIMIT guidelines:
       <message name="IDS_OPTIONS_HOMEPAGE_EDIT_LABEL" desc="The label for the edit text field that allows the user to change the URL that is opened when they tap on the home page button in the omnibox.">
         Open this page
       </message>
+      <message name="IDS_TOUCH_TO_SELECT" desc="Allow the user to touch to select their behavior">
+        Touch to select
+      </message>
+      <message name="IDS_DEFAULT_HOMEPAGE_URL" desc="The default homepage url" translateable="false">
+        https://www.google.com/
+      </message>
+      <message name="IDS_DEFAULT_HOMEPAGE" desc="The text for selecting the default homepage">
+        Default Page
+      </message>
+      <message name="IDS_MOST_VISITED_SITES_HOMEPAGE" desc="The text for selecting the most visited sites page as the homepage">
+        Most Visited Sites
+      </message>
+      <message name="IDS_OTHER_HOMEPAGE" desc="The text for selecting a custom homepage (Other than the options provided)">
+        Other
+      </message>
+      <message name="IDS_BLANK_HOMEPAGE" desc="The text for selecting a blank page as the homepage">
+        Blank Page
+      </message>
+      <message name="IDS_CURRENT_PAGE_HOMEPAGE" desc="The text for selecting the current website as the homepage">
+        Current Page
+      </message>
 
       <!-- Privacy preferences -->
       <message name="IDS_PREFS_PRIVACY" desc="Title for the Privacy preferences. [CHAR-LIMIT=32]">

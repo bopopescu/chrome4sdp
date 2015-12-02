@@ -1334,13 +1334,13 @@ public abstract class ChromeActivity extends BrowserChromeActivity
      */
     @Override
     public boolean onMenuOrKeyboardAction(int id, boolean fromMenu) {
+        if (super.onMenuOrKeyboardAction(id, fromMenu)) {
+            return true;
+        }
+
         if (id == R.id.preferences_id) {
             PreferencesLauncher.launchSettingsPage(this, null);
             RecordUserAction.record("MobileMenuSettings");
-        }
-
-        if (super.onMenuOrKeyboardAction(id, fromMenu)) {
-            return true;
         }
 
         // All the code below assumes currentTab is not null, so return early if it is null.

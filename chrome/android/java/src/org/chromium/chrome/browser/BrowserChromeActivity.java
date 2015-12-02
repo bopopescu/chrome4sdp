@@ -43,7 +43,9 @@ import org.chromium.base.metrics.RecordUserAction;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.init.AsyncInitializationActivity;
 import org.chromium.chrome.browser.preferences.AboutChromePreferences;
+import org.chromium.chrome.browser.preferences.BrowserHomepagePreferences;
 import org.chromium.chrome.browser.preferences.PrefServiceBridge;
+import org.chromium.chrome.browser.preferences.Preferences;
 import org.chromium.chrome.browser.preferences.PreferencesLauncher;
 import org.chromium.chrome.browser.preferences.website.WebDefenderPreferenceHandler;
 import org.chromium.chrome.browser.preferences.website.WebRefinerPreferenceHandler;
@@ -173,6 +175,7 @@ public abstract class BrowserChromeActivity extends AsyncInitializationActivity 
      * @return Whether the action was handled.
      */
     public boolean onMenuOrKeyboardAction(int id, boolean fromMenu) {
+
         if (id == R.id.about_id) {
             Intent preferencesIntent = PreferencesLauncher.createIntentForSettingsPage(
                     this, AboutChromePreferences.class.getName());
@@ -183,8 +186,20 @@ public abstract class BrowserChromeActivity extends AsyncInitializationActivity 
             this.startActivity(preferencesIntent, bundle);
             RecordUserAction.record("MobileMenuAbout");
             return true;
+        } else if (id == R.id.preferences_id) {
+            Intent intent = PreferencesLauncher.createIntentForSettingsPage(this, null);
+            Tab currentTab = getActivityTab();
+            if (currentTab != null && !currentTab.isIncognito() && !currentTab.isNativePage()
+                    && !currentTab.isShowingInterstitialPage() && !currentTab.isShowingSadTab()
+                    && !UrlUtilities.isInternalScheme(Uri.parse(currentTab.getUrl()))) {
+                Bundle args = new Bundle();
+                args.putString(BrowserHomepagePreferences.CURRENT_URL, getActivityTab().getUrl());
+                intent.putExtra(Preferences.EXTRA_SHOW_FRAGMENT_ARGUMENTS, args);
+            }
+            this.startActivity(intent);
+            RecordUserAction.record("MobileMenuSettings");
+            return true;
         }
-
         return false;
     }
 

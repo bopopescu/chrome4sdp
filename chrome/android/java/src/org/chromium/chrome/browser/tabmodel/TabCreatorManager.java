@@ -84,7 +84,7 @@ public interface TabCreatorManager {
         /**
          * Creates a new tab and loads the NTP.
          */
-        public final void launchNTP() {
+        public void launchNTP() {
             try {
                 TraceEvent.begin("TabCreator.launchNTP");
                 launchUrl(UrlConstants.NTP_URL, TabModel.TabLaunchType.FROM_MENU_OR_OVERVIEW);

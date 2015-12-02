@@ -42,7 +42,7 @@
         android:key="background_audio"
         android:title="@string/background_audio_title" />
     <Preference
-        android:fragment="org.chromium.chrome.browser.preferences.HomepagePreferences"
+        android:fragment="org.chromium.chrome.browser.preferences.BrowserHomepagePreferences"
         android:key="homepage"
         android:title="@string/options_homepage_title" />
 

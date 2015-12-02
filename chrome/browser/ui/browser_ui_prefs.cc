@@ -99,7 +99,7 @@ void RegisterBrowserUserPrefs(user_prefs::PrefRegistrySyncable* registry) {
   registry->RegisterBooleanPref(prefs::kImportSearchEngine, true);
   registry->RegisterBooleanPref(
       prefs::kEnableDoNotTrack,
-      false,
+      true,
       user_prefs::PrefRegistrySyncable::SYNCABLE_PREF);
   registry->RegisterBooleanPref(
       prefs::kEnableBackgroundAudio,
