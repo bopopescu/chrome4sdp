@@ -573,6 +573,10 @@ bool ChromeNetworkDelegate::OnCanGetCookies(
   bool allow = cookie_settings_->IsReadingCookieAllowed(
       request.url(), request.first_party_for_cookies());
 
+  bool allowed_by_webrefiner = content::WebRefiner::Get()->OnCanGetCookies(&request, cookie_list);
+  if (allow)
+    allow = allowed_by_webrefiner;
+
   int render_process_id = -1;
   int render_frame_id = -1;
   if (content::ResourceRequestInfo::GetRenderFrameForRequest(
@@ -597,6 +601,10 @@ bool ChromeNetworkDelegate::OnCanSetCookie(const net::URLRequest& request,
 
   bool allow = cookie_settings_->IsSettingCookieAllowed(
       request.url(), request.first_party_for_cookies());
+
+  bool allowed_by_webrefiner = content::WebRefiner::Get()->OnCanSetCookie(&request, cookie_line, options);
+  if (allow)
+    allow = allowed_by_webrefiner;
 
   int render_process_id = -1;
   int render_frame_id = -1;

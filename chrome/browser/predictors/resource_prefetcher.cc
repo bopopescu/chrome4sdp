@@ -8,6 +8,7 @@
 
 #include "base/stl_util.h"
 #include "content/public/browser/browser_thread.h"
+#include "content/public/common/web_refiner_common.h"
 #include "net/base/io_buffer.h"
 #include "net/base/load_flags.h"
 #include "net/base/request_priority.h"
@@ -22,8 +23,9 @@ static const size_t kResourceBufferSizeBytes = 50000;
 
 namespace predictors {
 
-ResourcePrefetcher::Request::Request(const GURL& i_resource_url)
+ResourcePrefetcher::Request::Request(const GURL& i_resource_url, content::ResourceType i_resource_type)
     : resource_url(i_resource_url),
+      resource_type(i_resource_type),
       prefetch_status(PREFETCH_STATUS_NOT_STARTED),
       usage_status(USAGE_STATUS_NOT_REQUESTED) {
 }
@@ -127,6 +129,14 @@ void ResourcePrefetcher::SendRequest(Request* request) {
   net::URLRequest* url_request =
       delegate_->GetURLRequestContext()->CreateRequest(
           request->resource_url, net::LOW, this).release();
+
+  content::URLRequestID* url_request_id = new content::URLRequestID(
+                                        navigation_id_.render_process_id,
+                                        navigation_id_.route_id,
+                                        navigation_id_.render_frame_id,
+                                        navigation_id_.parent_render_frame_id,
+                                        request->resource_type);
+  url_request_id->AssociateWithRequest(url_request);
 
   inflight_requests_[url_request] = request;
   host_inflight_counts_[url_request->original_url().host()] += 1;

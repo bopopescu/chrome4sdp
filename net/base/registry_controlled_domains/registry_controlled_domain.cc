@@ -351,6 +351,11 @@ bool SameDomainOrHost(
                   host1.len);
 }
 
+int LookupStringInDAFSA(const unsigned char* graph, size_t length,
+                                    const char* key, size_t key_length) {
+  return LookupString(graph, length, key, key_length);
+}
+
 size_t GetRegistryLength(
     const GURL& gurl,
     UnknownRegistryFilter unknown_filter,

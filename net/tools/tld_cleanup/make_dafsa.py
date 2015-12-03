@@ -450,8 +450,8 @@ def parse_gperf(infile):
       raise InputError('Expected "domainname, <digit>", found "%s"' % line)
     # Technically the DAFSA format could support return values in range [0-31],
     # but the values below are the only with a defined meaning.
-    if line[-1] not in '0124':
-      raise InputError('Expected value to be one of {0,1,2,4}, found "%s"' %
+    if int(line[-1]) not in range(13):
+      raise InputError('Expected value to be one of {0-12}, found "%s"' %
                        line[-1])
   return [line[:-3] + line[-1] for line in lines]
 

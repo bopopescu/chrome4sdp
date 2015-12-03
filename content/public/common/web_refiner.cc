@@ -57,6 +57,14 @@ public:
     void OnHeadersReceived(net::URLRequest*, const net::HttpResponseHeaders*, scoped_refptr<net::HttpResponseHeaders>*) override { }
 
     void OnCompleted(net::URLRequest*, bool) override { }
+
+    bool OnCanGetCookies(const net::URLRequest*, const net::CookieList&) override { return true; }
+
+    bool AllowGetCookies(int, int, int, const GURL&, const GURL&, const net::CookieList&) override { return true; }
+
+    bool OnCanSetCookie(const net::URLRequest*, const std::string&, net::CookieOptions*) override { return true; }
+
+    bool AllowSetCookie(int, int, int, const GURL&, const GURL&, const std::string&, net::CookieOptions*) override { return true; }
 };
 
 static base::LazyInstance<MockWebRefiner> g_mock_web_refiner = LAZY_INSTANCE_INITIALIZER;

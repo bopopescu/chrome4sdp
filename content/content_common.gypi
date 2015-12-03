@@ -154,6 +154,8 @@
       'public/common/web_preferences.h',
       'public/common/web_refiner.h',
       'public/common/web_refiner.cc',
+      'public/common/web_refiner_common.h',
+      'public/common/web_refiner_common.cc',
       'public/common/webplugininfo.cc',
       'public/common/webplugininfo.h',
       'public/common/window_container_type.cc',

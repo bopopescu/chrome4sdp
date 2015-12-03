@@ -30,13 +30,19 @@
 #ifndef WEB_REFINER_H_
 #define WEB_REFINER_H_
 
+#include <vector>
+
 #include "base/basictypes.h"
 #include "base/memory/ref_counted.h"
 #include "content/public/common/web_refiner_export.h"
+#include "url/gurl.h"
 
 namespace net {
 class URLRequest;
 class HttpResponseHeaders;
+class CanonicalCookie;
+class CookieOptions;
+typedef std::vector<CanonicalCookie> CookieList;
 }
 
 namespace content {
@@ -71,6 +77,16 @@ public:
     virtual void OnHeadersReceived(net::URLRequest* request, const net::HttpResponseHeaders*, scoped_refptr<net::HttpResponseHeaders>*) = 0;
 
     virtual void OnCompleted(net::URLRequest* request, bool started) = 0;
+
+    virtual bool OnCanGetCookies(const net::URLRequest* request, const net::CookieList& cookie_list) = 0;
+
+    virtual bool AllowGetCookies(int process_id, int routing_id, int render_frame_id, const GURL& cookie_url,
+                                    const GURL& first_party_url, const net::CookieList& cookie_list) = 0;
+
+    virtual bool OnCanSetCookie(const net::URLRequest* request, const std::string& cookie_line, net::CookieOptions* options) = 0;
+
+    virtual bool AllowSetCookie(int process_id, int routing_id, int render_frame_id, const GURL& cookie_url,
+                                    const GURL& first_party_url, const std::string& cookie_line, net::CookieOptions* options) = 0;
 };
 
 } // namespace content

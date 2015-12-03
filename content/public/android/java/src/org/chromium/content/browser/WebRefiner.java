@@ -35,6 +35,7 @@ import android.util.Log;
 import java.lang.reflect.Constructor;
 
 import org.chromium.base.ThreadUtils;
+import org.chromium.base.VisibleForTesting;
 
 public class WebRefiner {
 
@@ -71,17 +72,21 @@ public class WebRefiner {
          */
         public static final int CATEGORY_ALL                      = 0x7FFFFFFF;
 
+        public final String mName;
         public final String mPath;
         public final int mCategory;
         public final int mPriority;
 
         /**
+         * @param name Human readable RuleSet name.
          * @param path Absolute file system path where the rule set file is stored.
          * @param category One of the rule set categories listed above (excluding CATEGORY_ALL).
          * @param priority Order of priority that determines the RuleSet precedence.
          *                 Valid values 1-99, 1 - Highest priority, 99 - Lowest priority
          */
-        public RuleSet(String path, int category, int priority) {
+        @VisibleForTesting
+        public RuleSet(String name, String path, int category, int priority) {
+            mName = name;
             mPath = path;
             mCategory = category;
             mPriority = priority;
@@ -212,14 +217,9 @@ public class WebRefiner {
     }
 
     /**
-     * Returns the WebRefiner's initialization status.
-     * @return Status.
-     */
-    public int getInitializationStatus() { return STATUS_FAILED; }
-
-    /**
      * Master switch to turn on/off WebRefiner.
      * Overrides all the other settings.
+     * Use {@link #setPermissionForOrigins(String[], int, boolean)} for default site permission"
      * @param flag True to enable and False to disable WebRefiner.
      */
     public void setEnabled(boolean flag)    {}
@@ -269,24 +269,26 @@ public class WebRefiner {
 
     /**
      * Enables or disables all the rules by default on all the websites.
-     * Can be overridden by {@link #setPermissionForOrigins(String[], boolean)}.
-     * @param allow True to enable rules and False to disable rules on all the websites.
+     * Can be overridden by {@link #setPermissionForOrigins(String[], int, boolean)}.
+     * @param enable True to enable and False to disable rule sets by default.
      */
-    public void setDefaultPermission(boolean allow)    {}
+    public void setDefaultPermission(boolean enable)    {}
 
     /**
      * Enables or disables all the rules for the given origins.
      * Overrides {@link #setDefaultPermission(boolean)}.
      * @param origins List of origins .
-     * @param allow True to enable and False to disable all the rules for the given origins.
+     * @param permission one of {@link #PERMISSION_USE_DEFAULT}, {@link #PERMISSION_ENABLE} and {@link #PERMISSION_DISABLE} .
+     * @param incognitoOnly True to apply these permissions only on Incognito sessions
+     *                      and False to apply these permissions on all the sessions.
      */
-    public void setPermissionForOrigins(String[] origins, boolean allow) {}
+    public void setPermissionForOrigins(String[] origins, int permission, boolean incognitoOnly) {}
 
     /**
-     * Uses the permission set by {@link #setDefaultPermission(boolean)} for the given origins.
-     * @param origins List of origins .
+     * Resets all the permissions set by {@link #setPermissionForOrigins(String[], int, boolean)}
+     * when 'boolean incognitoOnly' was set to True .
      */
-    public void useDefaultPermissionForOrigins(String[] origins) {}
+    public void resetAllIncognitoPermissions() {}
 
     /**
      * Returns the unified and local name (en-us strings) for WebRefiner.

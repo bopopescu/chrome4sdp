@@ -105,7 +105,9 @@ void ResourcePrefetchPredictorObserver::OnRequestStarted(
     net::URLRequest* request,
     content::ResourceType resource_type,
     int child_id,
-    int frame_id) {
+    int route_id,
+    int frame_id,
+    int parent_frame_id) {
   DCHECK_CURRENTLY_ON(BrowserThread::IO);
 
   if (resource_type == content::RESOURCE_TYPE_MAIN_FRAME)
@@ -116,7 +118,9 @@ void ResourcePrefetchPredictorObserver::OnRequestStarted(
 
   ResourcePrefetchPredictor::URLRequestSummary summary;
   summary.navigation_id.render_process_id = child_id;
+  summary.navigation_id.route_id = route_id;
   summary.navigation_id.render_frame_id = frame_id;
+  summary.navigation_id.parent_render_frame_id = parent_frame_id;
   summary.navigation_id.main_frame_url = request->first_party_for_cookies();
   summary.navigation_id.creation_time = request->creation_time();
   summary.resource_url = request->original_url();

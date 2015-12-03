@@ -17,7 +17,6 @@
         '..',
       ],
       'defines': [
-        'COMPONENT_BUILD',
         'URL_MATCHER_IMPLEMENTATION',
       ],
       'sources': [

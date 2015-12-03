@@ -14,6 +14,7 @@
 #include "base/memory/scoped_vector.h"
 #include "base/threading/thread_checker.h"
 #include "chrome/browser/predictors/resource_prefetch_common.h"
+#include "content/public/common/resource_type.h"
 #include "net/url_request/redirect_info.h"
 #include "net/url_request/url_request.h"
 #include "url/gurl.h"
@@ -34,7 +35,7 @@ class ResourcePrefetcher : public net::URLRequest::Delegate {
  public:
   // Denotes the prefetch request for a single subresource.
   struct Request {
-    explicit Request(const GURL& i_resource_url);
+    explicit Request(const GURL& i_resource_url, content::ResourceType i_resource_type);
     Request(const Request& other);
 
     enum PrefetchStatus {
@@ -62,6 +63,7 @@ class ResourcePrefetcher : public net::URLRequest::Delegate {
     };
 
     GURL resource_url;
+    content::ResourceType resource_type;
     PrefetchStatus prefetch_status;
     UsageStatus usage_status;
   };

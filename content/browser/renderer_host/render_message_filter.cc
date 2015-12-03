@@ -44,12 +44,15 @@
 #include "content/public/browser/content_browser_client.h"
 #include "content/public/browser/download_save_info.h"
 #include "content/public/browser/plugin_service_filter.h"
+#include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/resource_context.h"
 #include "content/public/browser/user_metrics.h"
+#include "content/public/browser/web_contents.h"
 #include "content/public/common/content_constants.h"
 #include "content/public/common/content_switches.h"
 #include "content/public/common/context_menu_params.h"
 #include "content/public/common/url_constants.h"
+#include "content/public/common/web_refiner.h"
 #include "content/public/common/webplugininfo.h"
 #include "ipc/ipc_channel_handle.h"
 #include "ipc/ipc_platform_file.h"
@@ -551,6 +554,12 @@ void RenderMessageFilter::OnGetProcessMemorySizes(size_t* private_bytes,
   }
 }
 
+static int GetRoutingIDForRenderFrame(int render_process_id, int render_frame_id) {
+  RenderFrameHost* frame = RenderFrameHost::FromID(render_process_id, render_frame_id);
+  WebContents* web_contents = WebContents::FromRenderFrameHost(frame);
+  return web_contents ? web_contents->GetRoutingID() : MSG_ROUTING_NONE;
+}
+
 void RenderMessageFilter::OnSetCookie(int render_frame_id,
                                       const GURL& url,
                                       const GURL& first_party_for_cookies,
@@ -564,6 +573,12 @@ void RenderMessageFilter::OnSetCookie(int render_frame_id,
   }
 
   net::CookieOptions options;
+  int routing_id = GetRoutingIDForRenderFrame(render_process_id_, render_frame_id);
+  if (routing_id != MSG_ROUTING_NONE
+      && !WebRefiner::Get()->AllowSetCookie( render_process_id_, routing_id,
+              render_frame_id, url, first_party_for_cookies, cookie, &options)) {
+    return;
+  }
   if (GetContentClient()->browser()->AllowSetCookie(
           url, first_party_for_cookies, cookie, resource_context_,
           render_process_id_, render_frame_id, &options)) {
@@ -1069,6 +1084,13 @@ void RenderMessageFilter::CheckPolicyForCookies(
   net::URLRequestContext* context = GetRequestContextForURL(url);
   // Check the policy for get cookies, and pass cookie_list to the
   // TabSpecificContentSetting for logging purpose.
+  int routing_id = GetRoutingIDForRenderFrame(render_process_id_, render_frame_id);
+  if (routing_id != MSG_ROUTING_NONE
+      && !WebRefiner::Get()->AllowGetCookies(render_process_id_, routing_id, render_frame_id,
+                                      url, first_party_for_cookies, cookie_list)) {
+      SendGetCookiesResponse(reply_msg, std::string());
+      return;
+  }
   if (GetContentClient()->browser()->AllowGetCookie(
           url, first_party_for_cookies, cookie_list, resource_context_,
           render_process_id_, render_frame_id)) {

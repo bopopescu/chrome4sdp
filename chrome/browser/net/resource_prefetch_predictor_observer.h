@@ -34,7 +34,9 @@ class ResourcePrefetchPredictorObserver {
   void OnRequestStarted(net::URLRequest* request,
                         content::ResourceType resource_type,
                         int child_id,
-                        int frame_id);
+                        int route_id,
+                        int frame_id,
+                        int parent_frame_id);
   void OnRequestRedirected(const GURL& redirect_url, net::URLRequest* request);
   void OnResponseStarted(net::URLRequest* request);
 

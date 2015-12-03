@@ -415,7 +415,7 @@ void ChromeResourceDispatcherHostDelegate::RequestBeginning(
 
   if (io_data->resource_prefetch_predictor_observer()) {
     io_data->resource_prefetch_predictor_observer()->OnRequestStarted(
-        request, resource_type, info->GetChildID(), info->GetRenderFrameID());
+        request, resource_type, info->GetChildID(), info->GetRouteID(), info->GetRenderFrameID(), info->GetParentRenderFrameID());
   }
 }
 

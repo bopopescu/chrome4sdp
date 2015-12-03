@@ -634,7 +634,7 @@ void ResourcePrefetchPredictor::PopulatePrefetcherRequest(
     }
 
     ResourcePrefetcher::Request* req = new ResourcePrefetcher::Request(
-        it->resource_url);
+        it->resource_url, it->resource_type);
     requests->push_back(req);
   }
 }

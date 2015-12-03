@@ -156,29 +156,29 @@ TEST_F(ResourcePrefetcherTest, TestPrefetcherFinishes) {
   scoped_ptr<ResourcePrefetcher::RequestVector> requests(
       new ResourcePrefetcher::RequestVector);
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://www.google.com/resource1.html")));
+      "http://www.google.com/resource1.html"), content::RESOURCE_TYPE_MAIN_FRAME));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://www.google.com/resource2.png")));
+      "http://www.google.com/resource2.png"), content::RESOURCE_TYPE_IMAGE));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://yahoo.com/resource1.png")));
+      "http://yahoo.com/resource1.png"), content::RESOURCE_TYPE_IMAGE));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://yahoo.com/resource2.png")));
+      "http://yahoo.com/resource2.png"), content::RESOURCE_TYPE_IMAGE));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://yahoo.com/resource3.png")));
+      "http://yahoo.com/resource3.png"), content::RESOURCE_TYPE_IMAGE));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://m.google.com/resource1.jpg")));
+      "http://m.google.com/resource1.jpg"), content::RESOURCE_TYPE_IMAGE));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://www.google.com/resource3.html")));
+      "http://www.google.com/resource3.html"), content::RESOURCE_TYPE_MAIN_FRAME));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://m.google.com/resource2.html")));
+      "http://m.google.com/resource2.html"), content::RESOURCE_TYPE_MAIN_FRAME));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://m.google.com/resource3.css")));
+      "http://m.google.com/resource3.css"), content::RESOURCE_TYPE_STYLESHEET));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://m.google.com/resource4.png")));
+      "http://m.google.com/resource4.png"), content::RESOURCE_TYPE_IMAGE));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://yahoo.com/resource4.png")));
+      "http://yahoo.com/resource4.png"), content::RESOURCE_TYPE_IMAGE));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://yahoo.com/resource5.png")));
+      "http://yahoo.com/resource5.png"), content::RESOURCE_TYPE_IMAGE));
 
   NavigationID navigation_id;
   navigation_id.render_process_id = 1;
@@ -291,17 +291,17 @@ TEST_F(ResourcePrefetcherTest, TestPrefetcherStopped) {
   scoped_ptr<ResourcePrefetcher::RequestVector> requests(
       new ResourcePrefetcher::RequestVector);
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://www.google.com/resource1.html")));
+      "http://www.google.com/resource1.html"), content::RESOURCE_TYPE_MAIN_FRAME));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://www.google.com/resource2.png")));
+      "http://www.google.com/resource2.png"), content::RESOURCE_TYPE_IMAGE));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://yahoo.com/resource1.png")));
+      "http://yahoo.com/resource1.png"), content::RESOURCE_TYPE_IMAGE));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://yahoo.com/resource2.png")));
+      "http://yahoo.com/resource2.png"), content::RESOURCE_TYPE_IMAGE));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://yahoo.com/resource3.png")));
+      "http://yahoo.com/resource3.png"), content::RESOURCE_TYPE_IMAGE));
   requests->push_back(new ResourcePrefetcher::Request(GURL(
-      "http://m.google.com/resource1.jpg")));
+      "http://m.google.com/resource1.jpg"), content::RESOURCE_TYPE_IMAGE));
 
   NavigationID navigation_id;
   navigation_id.render_process_id = 1;

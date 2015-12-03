@@ -47,7 +47,9 @@ struct NavigationID {
   bool is_valid() const;
 
   int render_process_id;
+  int route_id;
   int render_frame_id;
+  int parent_render_frame_id;
   GURL main_frame_url;
 
   // NOTE: Even though we store the creation time here, it is not used during
