@@ -149,11 +149,8 @@ public class ChromeLauncherActivity extends Activity
         // Read partner browser customizations information asynchronously.
         // We want to initialize early because when there is no tabs to restore, we should possibly
         // show homepage, which might require reading PartnerBrowserCustomizations provider.
-        if (CommandLine.getInstance().hasSwitch(ChromeSwitches.
-                ENABLE_SUPPRESSED_CHROMIUM_FEATURES)) {
             PartnerBrowserCustomizations.initializeAsync(getApplicationContext(),
                     PARTNER_BROWSER_CUSTOMIZATIONS_TIMEOUT_MS);
-        }
 
         mIsInMultiInstanceMode = MultiWindowUtils.getInstance().shouldRunInMultiInstanceMode(this);
         mIntentHandler = new IntentHandler(this, getPackageName());

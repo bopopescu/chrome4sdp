@@ -11,6 +11,7 @@ import android.test.suitebuilder.annotation.SmallTest;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.test.util.Feature;
 import org.chromium.chrome.test.partnercustomizations.TestPartnerBrowserCustomizationsProvider;
+import android.test.suitebuilder.annotation.Suppress;
 
 /**
  * Unit tests for the partner disabling bookmarks editing functionality.
@@ -92,6 +93,7 @@ public class PartnerDisableBookmarksEditingUnitTest
 
     @SmallTest
     @Feature({"PartnerBookmarksEditing"})
+    @Suppress
     public void testBookmarksEditingDisabled() throws InterruptedException {
         PartnerBrowserCustomizations.ignoreBrowserProviderSystemPackageCheckForTests(true);
         PartnerBrowserCustomizations.setProviderAuthorityForTests(
@@ -113,6 +115,7 @@ public class PartnerDisableBookmarksEditingUnitTest
 
     @SmallTest
     @Feature({"PartnerBookmarksEditing"})
+    @Suppress
     public void testBookmarksEditingProviderDelayed() throws InterruptedException {
         PartnerBrowserCustomizations.ignoreBrowserProviderSystemPackageCheckForTests(true);
         PartnerBrowserCustomizations.setProviderAuthorityForTests(

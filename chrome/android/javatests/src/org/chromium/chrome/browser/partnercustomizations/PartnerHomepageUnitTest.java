@@ -105,6 +105,7 @@ public class PartnerHomepageUnitTest extends BasePartnerBrowserCustomizationUnit
      */
     @SmallTest
     @Feature({"Homepage"})
+    @Suppress
     public void testHomepageDisabled() throws InterruptedException {
         mHomepageManager.setPrefHomepageEnabled(false);
         mHomepageManager.setPrefHomepageUseDefaultUri(true);
@@ -138,6 +139,7 @@ public class PartnerHomepageUnitTest extends BasePartnerBrowserCustomizationUnit
      */
     @SmallTest
     @Feature({"Homepage"})
+    @Suppress
     public void testCustomHomepage() throws InterruptedException {
         mHomepageManager.setPrefHomepageEnabled(true);
         mHomepageManager.setPrefHomepageUseDefaultUri(false);
@@ -264,6 +266,7 @@ public class PartnerHomepageUnitTest extends BasePartnerBrowserCustomizationUnit
      */
     @SmallTest
     @Feature({"Homepage"})
+    @Suppress
     public void testReadHomepageProvider() throws InterruptedException {
         mHomepageManager.setPrefHomepageEnabled(true);
         mHomepageManager.setPrefHomepageUseDefaultUri(true);

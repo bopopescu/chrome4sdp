@@ -708,7 +708,7 @@ public abstract class ChromeActivity extends BrowserChromeActivity
         if (mContextReporter != null) mContextReporter.disable();
 
         // We want to refresh partner browser provider every onStart().
-        mPartnerBrowserRefreshNeeded = partnerBrowserRefreshNeeded();
+        mPartnerBrowserRefreshNeeded = true;
 
         if (mCompositorViewHolder != null) mCompositorViewHolder.onStop();
     }

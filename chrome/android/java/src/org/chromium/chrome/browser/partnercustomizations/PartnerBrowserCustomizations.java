@@ -14,8 +14,10 @@ import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.chromium.base.CommandLine;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.VisibleForTesting;
+import org.chromium.chrome.browser.ChromeSwitches;
 import org.chromium.chrome.browser.partnerbookmarks.PartnerBookmarksReader;
 
 import java.util.ArrayList;
@@ -173,6 +175,10 @@ public class PartnerBrowserCustomizations {
             @Override
             protected Void doInBackground(Void... params) {
                 try {
+                    if (!CommandLine.getInstance()
+                            .hasSwitch(ChromeSwitches.ENABLE_SUPPRESSED_CHROMIUM_FEATURES)) {
+                        return null;
+                    }
                     ProviderInfo providerInfo = context.getPackageManager()
                             .resolveContentProvider(sProviderAuthority, 0);
                     if (providerInfo == null) return null;

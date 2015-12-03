@@ -271,9 +271,7 @@ public class ChromeBrowserInitializer {
 
     private static void configureStrictMode() {
         CommandLine commandLine = CommandLine.getInstance();
-        if ("eng".equals(Build.TYPE)
-                || ("userdebug".equals(Build.TYPE) && !ChromeVersionInfo.isStableBuild())
-                || commandLine.hasSwitch(ChromeSwitches.STRICT_MODE)) {
+        if (commandLine.hasSwitch(ChromeSwitches.STRICT_MODE)) {
             StrictMode.enableDefaults();
             StrictMode.ThreadPolicy.Builder threadPolicy =
                     new StrictMode.ThreadPolicy.Builder(StrictMode.getThreadPolicy());

@@ -161,11 +161,6 @@ public abstract class BrowserChromeActivity extends AsyncInitializationActivity 
         }
     }
 
-    protected boolean partnerBrowserRefreshNeeded() {
-        return CommandLine.getInstance().hasSwitch(ChromeSwitches.
-                ENABLE_SUPPRESSED_CHROMIUM_FEATURES);
-    }
-
     /**
      * Handles menu item selection and keyboard shortcuts.
      *

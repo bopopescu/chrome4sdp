@@ -11,6 +11,7 @@ import android.test.suitebuilder.annotation.SmallTest;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.test.util.Feature;
 import org.chromium.chrome.test.partnercustomizations.TestPartnerBrowserCustomizationsProvider;
+import android.test.suitebuilder.annotation.Suppress;
 
 /**
  * Unit tests for the partner disabling incognito mode functionality.
@@ -91,6 +92,7 @@ public class PartnerDisableIncognitoModeUnitTest extends BasePartnerBrowserCusto
 
     @SmallTest
     @Feature({"ParentalControls"})
+    @Suppress
     public void testParentalControlsEnabled() throws InterruptedException {
         PartnerBrowserCustomizations.ignoreBrowserProviderSystemPackageCheckForTests(true);
         PartnerBrowserCustomizations.setProviderAuthorityForTests(
@@ -112,6 +114,7 @@ public class PartnerDisableIncognitoModeUnitTest extends BasePartnerBrowserCusto
 
     @SmallTest
     @Feature({"ParentalControls"})
+    @Suppress
     public void testParentalControlsProviderDelayed() throws InterruptedException {
         PartnerBrowserCustomizations.ignoreBrowserProviderSystemPackageCheckForTests(true);
         PartnerBrowserCustomizations.setProviderAuthorityForTests(
