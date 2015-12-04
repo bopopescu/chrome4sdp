@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.test.suitebuilder.annotation.MediumTest;
+import android.test.suitebuilder.annotation.Suppress;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Checkable;
@@ -67,6 +68,7 @@ public class PartnerHomepageIntegrationTest extends BasePartnerBrowserCustomizat
      */
     @MediumTest
     @Feature({"Homepage" })
+    @Suppress
     public void testHomepageInitialLoading() {
         assertEquals(Uri.parse(TestPartnerBrowserCustomizationsProvider.HOMEPAGE_URI),
                 Uri.parse(getActivity().getActivityTab().getUrl()));
@@ -77,6 +79,7 @@ public class PartnerHomepageIntegrationTest extends BasePartnerBrowserCustomizat
      */
     @MediumTest
     @Feature({"Homepage"})
+    @Suppress
     public void testHomepageButtonClick() throws InterruptedException {
         // Load non-homepage URL.
         loadUrl(TEST_URL);
@@ -104,6 +107,7 @@ public class PartnerHomepageIntegrationTest extends BasePartnerBrowserCustomizat
      */
     @MediumTest
     @Feature({"Homepage"})
+    @Suppress
     public void testHomepageButtonEnableDisable() throws InterruptedException {
         // Disable homepage.
         Preferences homepagePreferenceActivity =
@@ -161,6 +165,7 @@ public class PartnerHomepageIntegrationTest extends BasePartnerBrowserCustomizat
      */
     @MediumTest
     @Feature({"Homepage"})
+    @Suppress
     public void testPreferenceCustomUriFixup() throws InterruptedException {
         // Change home page custom URI on hompage edit screen.
         final Preferences editHomepagePreferenceActivity =
@@ -192,6 +197,7 @@ public class PartnerHomepageIntegrationTest extends BasePartnerBrowserCustomizat
     @CommandLineFlags.Add(ChromeSwitches.DISABLE_DOCUMENT_MODE)
     @MediumTest
     @Feature({"Homepage" })
+    @Suppress
     public void testLastTabClosed() throws InterruptedException {
         ChromeTabUtils.closeCurrentTab(getInstrumentation(), (ChromeTabbedActivity) getActivity());
         assertTrue("Activity was not closed.",
@@ -204,6 +210,7 @@ public class PartnerHomepageIntegrationTest extends BasePartnerBrowserCustomizat
     @CommandLineFlags.Add(ChromeSwitches.DISABLE_DOCUMENT_MODE)
     @MediumTest
     @Feature({"Homepage" })
+    @Suppress
     public void testCloseAllTabs() throws InterruptedException {
         final CallbackHelper tabClosed = new CallbackHelper();
         final TabModel tabModel = getActivity().getCurrentTabModel();

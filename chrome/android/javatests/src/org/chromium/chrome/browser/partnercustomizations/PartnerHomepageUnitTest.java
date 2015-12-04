@@ -5,6 +5,7 @@
 package org.chromium.chrome.browser.partnercustomizations;
 
 import android.test.suitebuilder.annotation.SmallTest;
+import android.test.suitebuilder.annotation.Suppress;
 
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.test.util.Feature;
@@ -37,6 +38,7 @@ public class PartnerHomepageUnitTest extends BasePartnerBrowserCustomizationUnit
      */
     @SmallTest
     @Feature({"Homepage"})
+    @Suppress
     public void testProviderNotFromSystemPackage() throws InterruptedException {
         mHomepageManager.setPrefHomepageEnabled(true);
         mHomepageManager.setPrefHomepageUseDefaultUri(true);
@@ -71,6 +73,7 @@ public class PartnerHomepageUnitTest extends BasePartnerBrowserCustomizationUnit
      */
     @SmallTest
     @Feature({"Homepage"})
+    @Suppress
     public void testNoProvider() throws InterruptedException {
         mHomepageManager.setPrefHomepageEnabled(true);
         mHomepageManager.setPrefHomepageUseDefaultUri(true);
@@ -168,6 +171,7 @@ public class PartnerHomepageUnitTest extends BasePartnerBrowserCustomizationUnit
      */
     @SmallTest
     @Feature({"Homepage"})
+    @Suppress
     public void testHomepageProviderTimeout() throws InterruptedException {
         mHomepageManager.setPrefHomepageEnabled(true);
         mHomepageManager.setPrefHomepageUseDefaultUri(true);
@@ -213,6 +217,7 @@ public class PartnerHomepageUnitTest extends BasePartnerBrowserCustomizationUnit
      */
     @SmallTest
     @Feature({"Homepage"})
+    @Suppress
     public void testHomepageProviderDelayed() throws InterruptedException {
         mHomepageManager.setPrefHomepageEnabled(true);
         mHomepageManager.setPrefHomepageUseDefaultUri(true);
