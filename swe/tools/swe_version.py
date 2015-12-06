@@ -93,15 +93,16 @@ def run_script(script, stdin=None):
 #Get buildid # (number of patches on top of base commit)
 def get_build_id(directory):
 
-  hsh = getData(directory, ['rev-parse', '--short', 'HEAD'])
+  #hsh = getData(directory, ['rev-parse', '--short', 'HEAD'])
+  hsh = getData(directory, ['rev-parse', 'HEAD'])
   if hsh is None:
     return None
 
-  merge_base = getData(directory, ['merge-base', 'remotes/origin/master', '%s' %(hsh)])
-  if merge_base is None:
-    return None
+  #merge_base = getData(directory, ['merge-base', 'remotes/origin/master', '%s' %(hsh)])
+  #if merge_base is None:
+  #  return None
 
-  patch_count = getData(directory, ['rev-list', '%s..' %(merge_base), '--count', '--author=codeaurora'])
+  patch_count = getData(directory, ['rev-list', '%s' %(hsh), '--count'])
   if patch_count is None:
     return None
 
@@ -152,7 +153,7 @@ def main():
   buildid = get_build_id(path)
   values = dict([('BUILDID', '%s' %(buildid))])
 
-  last_swe_change = getData(path, ['log', '-1', '--committer=@codeaurora.org', '--pretty=%H'] )
+  last_swe_change = getData(path, ['log', '-1', '--pretty=%H'] )
   values.update({'LASTSWECHANGE' :'%s' %(last_swe_change)})
 
   #fetch KEY=VALUE pairs
