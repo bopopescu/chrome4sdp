@@ -1818,6 +1818,9 @@ Hit the back button to exit.
       <message name="IDS_RECENT_TABS" desc="Text for button to show 'Recent tabs', i.e. recently closed tabs and tabs that are open on other devices [CHAR-LIMIT=20]">
         Recent tabs
       </message>
+      <message name="IDS_MOST_VISITED" desc="Text for title of most visited pages.">
+        Most Frequent
+      </message>
       <message name="IDS_MOST_VISITED_PLACEHOLDER_TITLE" desc="Header text shown on the new tab page when there are no most visited tiles yet.">
         Nothing to see here… yet
       </message>

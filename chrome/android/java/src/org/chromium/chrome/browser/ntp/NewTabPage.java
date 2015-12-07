@@ -83,7 +83,7 @@ public class NewTabPage
     private FaviconHelper mFaviconHelper;
     private LargeIconBridge mLargeIconBridge;
     private LogoBridge mLogoBridge;
-    private boolean mSearchProviderHasLogo;
+    protected boolean mSearchProviderHasLogo;
     private final boolean mOptOutPromoShown;
     private String mOnLogoClickUrl;
     private FakeboxDelegate mFakeboxDelegate;
@@ -172,7 +172,7 @@ public class NewTabPage
         sMostVisitedSitesForTests = mostVisitedSitesForTests;
     }
 
-    private final NewTabPageManager mNewTabPageManager = new NewTabPageManager() {
+    protected final NewTabPageManager mNewTabPageManager = new NewTabPageManager() {
         @Override
         public boolean isLocationBarShownInNTP() {
             if (mIsDestroyed) return false;
@@ -441,7 +441,7 @@ public class NewTabPage
         return mSearchProviderHasLogo;
     }
 
-    private void updateSearchProviderHasLogo() {
+    protected void updateSearchProviderHasLogo() {
         mSearchProviderHasLogo = !mOptOutPromoShown
                 && TemplateUrlService.getInstance().isDefaultSearchEngineGoogle();
     }

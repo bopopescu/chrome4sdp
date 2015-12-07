@@ -67,17 +67,6 @@
 
     <PreferenceCategory
         android:layout="@layout/browser_preference_category"
-        android:key="site_usage"
-        android:title="@string/website_settings_usage_category" />
-    <org.chromium.chrome.browser.preferences.website.ClearWebsiteStorage
-        android:key="clear_data"
-        android:title="@string/webstorage_clear_data_dialog_title"
-        android:dialogMessage="@string/webstorage_clear_data_dialog_message"
-        android:positiveButtonText="@string/webstorage_clear_data_dialog_ok_button"
-        android:negativeButtonText="@string/cancel"
-        android:widgetLayout="@layout/clear_storage" />
-    <PreferenceCategory
-        android:layout="@layout/browser_preference_category"
         android:key="site_permissions"
         android:title="@string/website_settings_permissions_category" />
 
@@ -104,4 +93,16 @@
     <org.chromium.chrome.browser.preferences.ButtonPreference
         android:key="reset_site_button"
         android:title="@string/website_reset" />
+
+    <PreferenceCategory
+        android:layout="@layout/browser_preference_category"
+        android:key="site_usage"
+        android:title="@string/website_settings_usage_category" />
+    <org.chromium.chrome.browser.preferences.website.ClearWebsiteStorage
+        android:key="clear_data"
+        android:title="@string/webstorage_clear_data_dialog_title"
+        android:dialogMessage="@string/webstorage_clear_data_dialog_message"
+        android:positiveButtonText="@string/webstorage_clear_data_dialog_ok_button"
+        android:negativeButtonText="@string/cancel"
+        android:widgetLayout="@layout/clear_storage" />
 </PreferenceScreen>

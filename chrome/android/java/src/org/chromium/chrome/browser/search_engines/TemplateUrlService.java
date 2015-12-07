@@ -309,6 +309,10 @@ public class TemplateUrlService {
         return nativeGetSearchEngineUrlFromTemplateUrl(mNativeTemplateUrlServiceAndroid, index);
     }
 
+    public String getSearchEngineFavicon(int index) {
+        return nativeGetUrlForSearchEngineFavicon(mNativeTemplateUrlServiceAndroid, index);
+    }
+
     private native long nativeInit();
     private native void nativeLoad(long nativeTemplateUrlServiceAndroid);
     private native boolean nativeIsLoaded(long nativeTemplateUrlServiceAndroid);
@@ -330,5 +334,7 @@ public class TemplateUrlService {
     private native String nativeGetUrlForContextualSearchQuery(long nativeTemplateUrlServiceAndroid,
             String query, String alternateTerm, boolean shouldPrefetch);
     private native String nativeGetSearchEngineUrlFromTemplateUrl(
+            long nativeTemplateUrlServiceAndroid, int index);
+    private native String nativeGetUrlForSearchEngineFavicon(
             long nativeTemplateUrlServiceAndroid, int index);
 }

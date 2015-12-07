@@ -614,4 +614,8 @@ abstract class ToolbarLayout extends FrameLayout implements Toolbar {
         getLocationBar().hideSuggestions();
         if (mToolbarTabController != null) mToolbarTabController.openHomepage();
     }
+
+    public void resume() {
+        mFaviconView.refreshFavicon();
+    }
 }

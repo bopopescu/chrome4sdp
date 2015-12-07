@@ -848,6 +848,10 @@ public class ToolbarManager implements ToolbarTabController, UrlFocusChangeListe
         return mToolbar.getFirstDrawTime() != 0;
     }
 
+    public void onActivityResume() {
+        mToolbar.resume();
+    }
+
     /**
      * Handle all necessary tasks that can be delayed until initialization completes.
      * @param activityCreationTimeMs The time of creation for the activity this toolbar belongs to.

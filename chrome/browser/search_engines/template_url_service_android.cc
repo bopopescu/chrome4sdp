@@ -257,6 +257,16 @@ TemplateUrlServiceAndroid::GetSearchEngineUrlFromTemplateUrl(
   return base::android::ConvertUTF8ToJavaString(env, url);
 }
 
+base::android::ScopedJavaLocalRef<jstring>
+TemplateUrlServiceAndroid::GetUrlForSearchEngineFavicon(
+   JNIEnv* env,
+   jobject obj,
+   jint index) {
+  TemplateURL* template_url = template_url_service_->GetTemplateURLs()[index];
+  std::string favicon_url = template_url->favicon_url().spec();
+  return base::android::ConvertUTF8ToJavaString(env, favicon_url);
+}
+
 static jlong Init(JNIEnv* env, jobject obj) {
   TemplateUrlServiceAndroid* template_url_service_android =
       new TemplateUrlServiceAndroid(env, obj);

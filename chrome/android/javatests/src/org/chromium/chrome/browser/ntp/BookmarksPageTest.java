@@ -93,7 +93,8 @@ public class BookmarksPageTest extends ChromeTabbedActivityTestBase {
         final String mobileFolderUrl = UrlConstants.BOOKMARKS_FOLDER_URL + "2";
         loadUrl(mobileFolderUrl);
         Tab tab = getActivity().getActivityTab();
-        assertTrue(tab.getNativePage() instanceof BookmarksPage);
+        assertTrue(tab.getNativePage() instanceof BookmarksPage ||
+                   tab.getNativePage() instanceof BrowserNewTabPage);
         mHierarchyLayout = (LinearLayout) getActivity().findViewById(
                 R.id.bookmark_folder_structure);
         mBookmarksList = (ListView) getActivity().findViewById(R.id.bookmarks_list_view);

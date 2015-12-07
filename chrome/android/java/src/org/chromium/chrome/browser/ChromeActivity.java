@@ -607,6 +607,8 @@ public abstract class ChromeActivity extends BrowserChromeActivity
             LaunchMetrics.commitLaunchMetrics(getActivityTab().getWebContents());
         }
         FeatureUtilities.setCustomTabVisible(isCustomTab());
+        if (mToolbarManager != null)
+            mToolbarManager.onActivityResume();
     }
 
     @Override

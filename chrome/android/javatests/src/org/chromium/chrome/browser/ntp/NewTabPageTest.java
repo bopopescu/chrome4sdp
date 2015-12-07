@@ -7,6 +7,7 @@ package org.chromium.chrome.browser.ntp;
 import android.test.suitebuilder.annotation.LargeTest;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
+import android.test.suitebuilder.annotation.Suppress;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -91,6 +92,7 @@ public class NewTabPageTest extends ChromeTabbedActivityTestBase {
      */
     @SmallTest
     @Feature({"NewTabPage"})
+    @Suppress
     public void testFocusFakebox() throws InterruptedException {
         int initialFakeboxTop = getFakeboxTop(mNtp);
 

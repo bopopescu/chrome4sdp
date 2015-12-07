@@ -56,6 +56,10 @@ class TemplateUrlServiceAndroid : public TemplateURLServiceObserver {
       JNIEnv* env,
       jobject obj,
       jint index);
+  base::android::ScopedJavaLocalRef<jstring> GetUrlForSearchEngineFavicon(
+      JNIEnv* env,
+      jobject obj,
+      jint index);
 
   static bool Register(JNIEnv* env);
 

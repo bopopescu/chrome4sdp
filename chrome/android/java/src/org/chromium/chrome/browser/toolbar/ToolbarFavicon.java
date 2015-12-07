@@ -32,7 +32,9 @@ import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -42,8 +44,10 @@ import android.view.View;
 import android.view.WindowManager;
 
 import org.chromium.base.ApplicationStatus;
+import org.chromium.base.ThreadUtils;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.NativePage;
 import org.chromium.chrome.browser.SiteTileView;
 import org.chromium.chrome.browser.TabLoadStatus;
 import org.chromium.chrome.browser.UrlUtilities;
@@ -51,12 +55,16 @@ import org.chromium.chrome.browser.document.BrandColorUtils;
 import org.chromium.chrome.browser.document.DocumentActivity;
 import org.chromium.chrome.browser.favicon.FaviconHelper;
 import org.chromium.chrome.browser.favicon.LargeIconBridge;
+import org.chromium.chrome.browser.ntp.IncognitoNewTabPage;
+import org.chromium.chrome.browser.ntp.NewTabPage;
 import org.chromium.chrome.browser.preferences.Preferences;
 import org.chromium.chrome.browser.preferences.PreferencesLauncher;
 import org.chromium.chrome.browser.preferences.PrefServiceBridge;
+import org.chromium.chrome.browser.preferences.SearchEnginePreference;
 import org.chromium.chrome.browser.preferences.website.BrowserSingleWebsitePreferences;
 import org.chromium.chrome.browser.preferences.website.WebRefinerPreferenceHandler;
 import org.chromium.chrome.browser.profiles.Profile;
+import org.chromium.chrome.browser.search_engines.TemplateUrlService;
 import org.chromium.chrome.browser.ssl.ConnectionSecurityLevel;
 import org.chromium.chrome.browser.tab.ChromeTab;
 import org.chromium.chrome.browser.tab.EmptyTabObserver;
@@ -64,6 +72,8 @@ import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabObserver;
 import org.chromium.chrome.browser.widget.RoundedIconGenerator;
 import org.chromium.content_public.browser.LoadUrlParams;
+
+import java.util.List;
 
 public class ToolbarFavicon implements View.OnClickListener {
 
@@ -84,11 +94,19 @@ public class ToolbarFavicon implements View.OnClickListener {
 
     //Favicon statics
     private static final int FAVICON_MIN_SIZE = 48;
+    public static final int SEARCHENGINE_FAVICON_MIN_SIZE = 16;
     private static final int FAVICON_CORNER_RADIUS = 4;
     private static final int FAVICON_TEXT_SIZE = 20;
+    public static final int OVERRIDE_SEARCHENGINE_COLOR = 0xff4285f4;
 
     private ValueAnimator mAnimator;
     private Integer mStatusBarColor;
+
+    private TemplateUrlService.TemplateUrlServiceObserver mTemplateUrlObserver;
+    private TemplateUrlService.LoadListener mTemplateUrlLoadListener;
+    private String[] mSearchEngineNames;
+    private int[] mSearchEngineIndices;
+    private int mDefaultSearchEngineIndex;
 
     public ToolbarFavicon(final ToolbarLayout parent) {
         mFaviconView = (SiteTileView) parent.findViewById(R.id.swe_favicon_badge);
@@ -136,6 +154,11 @@ public class ToolbarFavicon implements View.OnClickListener {
                         refreshFavicon();
                         refreshTabSecurityState();
                     }
+                }
+
+                @Override
+                public void onUrlUpdated(Tab tab) {
+                    refreshFavicon();
                 }
 
                 @Override
@@ -187,9 +210,36 @@ public class ToolbarFavicon implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (mFaviconView == v && tabHasPermissions() ) {
-            showCurrentSiteSettings();
-            mbSiteSettingsVisible = true;
+        if (mFaviconView == v) {
+            NativePage page = mTab.getNativePage();
+            if (page instanceof NewTabPage) {
+                new AlertDialog.Builder(v.getContext())
+                    .setSingleChoiceItems(
+                        mSearchEngineNames,
+                        mDefaultSearchEngineIndex,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                            final int index = which;
+                            ThreadUtils.runOnUiThread(
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            TemplateUrlService.getInstance()
+                                                    .setSearchEngine(mSearchEngineIndices[index]);
+                                        }
+                                    }
+                            );
+                            dialog.dismiss();
+                            }
+                        }
+                    )
+                    .setTitle(R.string.prefs_search_engine)
+                    .show();
+            } else if (tabHasPermissions()) {
+                showCurrentSiteSettings();
+                mbSiteSettingsVisible = true;
+            }
         }
     }
 
@@ -199,6 +249,62 @@ public class ToolbarFavicon implements View.OnClickListener {
         boolean isInternalPage = UrlUtilities.isInternalScheme(parsedUrl);
         return !isNativePage() && !mTab.isShowingInterstitialPage()
                 && !mTab.isShowingSadTab() && !isInternalPage;
+    }
+
+    private void updateSearchEngineList(Tab tab) {
+        TemplateUrlService templateUrlService = TemplateUrlService.getInstance();
+        List<TemplateUrlService.TemplateUrl> searchEngines =
+                templateUrlService.getLocalizedSearchEngines();
+        mSearchEngineNames = new String[searchEngines.size()];
+        mSearchEngineIndices = new int[searchEngines.size()];
+
+        FaviconHelper faviconHelper = new FaviconHelper();
+        for (int i = 0; i < searchEngines.size(); ++i) {
+            int index = searchEngines.get(i).getIndex();
+            String url = templateUrlService.getSearchEngineFavicon(index);
+            mSearchEngineNames[i] = searchEngines.get(i).getShortName();
+            mSearchEngineIndices[i] = index;
+
+            faviconHelper.ensureFaviconIsAvailable(Profile.getLastUsedProfile(),
+                    tab.getWebContents(), url, url,
+                    new FaviconHelper.FaviconAvailabilityCallback() {
+                        @Override
+                        public void onFaviconAvailabilityChecked(boolean newlyAvailable) {
+                            if (newlyAvailable) {
+                                if (mFavicon == null) refreshFavicon();
+                            }
+                        }
+                    }
+            );
+        }
+    }
+
+    private void ensureSearchEngineFaviconAvailability(Tab tab) {
+        if (tab == null || TemplateUrlService.getInstance() == null) return;
+
+        if (mTemplateUrlObserver == null) {
+            mTemplateUrlObserver = new TemplateUrlService.TemplateUrlServiceObserver() {
+                @Override
+                public void onTemplateURLServiceChanged() {
+                    updateSearchEngine();
+                }
+            };
+
+            TemplateUrlService.getInstance().addObserver(mTemplateUrlObserver);
+        }
+
+        if (mTemplateUrlLoadListener == null) {
+            final Tab localTab = tab;
+            mTemplateUrlLoadListener = new TemplateUrlService.LoadListener() {
+                @Override
+                public void onTemplateUrlServiceLoaded() {
+                    updateSearchEngineList(localTab);
+                }
+            };
+
+            TemplateUrlService.getInstance().registerLoadListener(mTemplateUrlLoadListener);
+            updateSearchEngineList(localTab);
+        }
     }
 
     public void refreshTab(Tab tab) {
@@ -221,6 +327,7 @@ public class ToolbarFavicon implements View.OnClickListener {
         refreshFavicon();
         refreshTabSecurityState();
         refreshBlockedCount();
+        ensureSearchEngineFaviconAvailability(tab);
     }
 
     private void refreshBlockedCount() {
@@ -228,7 +335,8 @@ public class ToolbarFavicon implements View.OnClickListener {
                 mTab.getContentViewCore() == null) return ;
         int count = WebRefinerPreferenceHandler.getBlockedURLCount(
                 mTab.getContentViewCore());
-        mFaviconView.setBadgeBlockedObjectsCount(count);
+        if (mFaviconView != null)
+            mFaviconView.setBadgeBlockedObjectsCount(count);
         if (count > 0)
             mBlockedCountSet = true;
     }
@@ -242,19 +350,56 @@ public class ToolbarFavicon implements View.OnClickListener {
         return mFaviconView;
     }
 
+    public void updateSearchEngine() {
+        if (mTab != null && isNativePage()) {
+            TemplateUrlService templateUrlService = TemplateUrlService.getInstance();
+            TemplateUrlService.TemplateUrl mSearchEngine =
+                    templateUrlService.getDefaultSearchEngineTemplateUrl();
+
+            if (mSearchEngine == null) return;
+
+            int index = mSearchEngine.getIndex();
+            String favicon_url = templateUrlService.getSearchEngineFavicon(index);
+            mDefaultSearchEngineIndex = index;
+
+            NativePage page = mTab.getNativePage();
+            if (page instanceof NewTabPage || page instanceof IncognitoNewTabPage) {
+                if (mLargeIconBridge == null) mLargeIconBridge =
+                        new LargeIconBridge(Profile.getLastUsedProfile());
+
+                LargeIconForTab callback = new LargeIconForTab(mTab);
+                mLargeIconBridge.getLargeIconForUrl(favicon_url,
+                        SEARCHENGINE_FAVICON_MIN_SIZE, callback);
+            }
+        }
+    }
+
     public void refreshFavicon() {
-        if (isNativePage() && mFaviconView.getVisibility() != View.GONE) {
-            mFaviconView.setVisibility(View.GONE);
+        if (mTab == null) {
+            if (mFaviconView != null)
+                mFaviconView.setVisibility(View.GONE);
             mFavicon = null;
+            return;
         }
-        if (mTab != null) {
-            String url = mTab.getUrl();
-            if (mLargeIconBridge == null) mLargeIconBridge =
-                    new LargeIconBridge(Profile.getLastUsedProfile());
-            LargeIconForTab callback = new LargeIconForTab(mTab);
-            mLargeIconBridge.getLargeIconForUrl(
-                    url, FAVICON_MIN_SIZE, callback);
+
+        if (isNativePage()) {
+            NativePage page = mTab.getNativePage();
+            if (page instanceof NewTabPage) {
+                updateSearchEngine();
+                return;
+            } else {
+                if (mFaviconView != null)
+                    mFaviconView.setVisibility(View.GONE);
+                mFavicon = null;
+            }
         }
+
+        String url = mTab.getUrl();
+        if (mLargeIconBridge == null) mLargeIconBridge =
+                new LargeIconBridge(Profile.getLastUsedProfile());
+
+        LargeIconForTab callback = new LargeIconForTab(mTab);
+        mLargeIconBridge.getLargeIconForUrl(url, FAVICON_MIN_SIZE, callback);
     }
 
     @VisibleForTesting
@@ -297,6 +442,10 @@ public class ToolbarFavicon implements View.OnClickListener {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             final Activity activity = ApplicationStatus.getLastTrackedFocusedActivity();
             if (activity instanceof DocumentActivity && mUsingBrandColor) {
+                return;
+            }
+
+            if (activity instanceof Preferences) {
                 return;
             }
 
@@ -350,6 +499,14 @@ public class ToolbarFavicon implements View.OnClickListener {
         context.startActivity(preferencesIntent);
     }
 
+    private void showSearchEnginePreference() {
+        Context context = ApplicationStatus.getApplicationContext();
+
+        Intent preferencesIntent = PreferencesLauncher.createIntentForSettingsPage(
+                context, SearchEnginePreference.class.getName());
+        context.startActivity(preferencesIntent);
+    }
+
     public void setVisibility(int browsingModeVisibility) {
         mBrowsingModeViewsHidden = browsingModeVisibility == View.INVISIBLE;
 
@@ -371,25 +528,31 @@ public class ToolbarFavicon implements View.OnClickListener {
         public void onLargeIconAvailable(Bitmap icon, int fallbackColor) {
             if (mClientTab == null || mTab == null || mTab != mClientTab) return;
 
-            if (icon == null) {
-                String url;
-                url = mClientTab.getUrl();
-                if (mClientTab.isIncognito()) {
-                    fallbackColor = FaviconHelper.
-                            getDominantColorForBitmap(mClientTab.getFavicon());
-                }
-                RoundedIconGenerator roundedIconGenerator = new RoundedIconGenerator(
-                        mContext, FAVICON_MIN_SIZE, FAVICON_MIN_SIZE,
-                        FAVICON_CORNER_RADIUS, fallbackColor,
-                        FAVICON_TEXT_SIZE);
-                icon = roundedIconGenerator.generateIconForUrl(url);
-                setStatusBarColor(fallbackColor);
+            NativePage page = mTab.getNativePage();
+            if (page instanceof NewTabPage &&
+                    TemplateUrlService.getInstance().isDefaultSearchEngineGoogle()) {
+                setStatusBarColor(OVERRIDE_SEARCHENGINE_COLOR);
             } else {
-                int color = FaviconHelper.getDominantColorForBitmap(icon);
-                setStatusBarColor(color);
+                if (icon == null) {
+                    String url;
+                    url = mClientTab.getUrl();
+                    if (mClientTab.isIncognito()) {
+                        fallbackColor = FaviconHelper.
+                                getDominantColorForBitmap(mClientTab.getFavicon());
+                    }
+                    RoundedIconGenerator roundedIconGenerator = new RoundedIconGenerator(
+                            mContext, FAVICON_MIN_SIZE, FAVICON_MIN_SIZE,
+                            FAVICON_CORNER_RADIUS, fallbackColor,
+                            FAVICON_TEXT_SIZE);
+                    icon = roundedIconGenerator.generateIconForUrl(url);
+                    setStatusBarColor(fallbackColor);
+                } else {
+                    int color = FaviconHelper.getDominantColorForBitmap(icon);
+                    setStatusBarColor(color);
+                }
             }
 
-            if (mFaviconView != null && !isNativePage()) {
+            if (mFaviconView != null) {
                 setFavicon(icon);
             }
         }

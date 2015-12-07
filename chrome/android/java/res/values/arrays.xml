@@ -38,5 +38,10 @@
     <item>@string/website_settings_webdefender_vector_not_connect</item>
     <item>@string/website_settings_webdefender_vector_system_default</item>
   </string-array>
+  <string-array name="ntp_page_title">
+    <item>@string/most_visited</item>
+    <item>@string/ntp_bookmarks</item>
+    <item>@string/recent_tabs</item>
+  </string-array>
 
 </resources>
