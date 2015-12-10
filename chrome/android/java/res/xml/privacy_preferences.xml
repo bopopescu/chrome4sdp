@@ -15,6 +15,11 @@
         android:summary="@string/search_suggestions_summary"
         android:defaultValue="true" />
     <org.chromium.chrome.browser.preferences.ChromeBaseCheckBoxPreference
+        android:key="block_screen_observers"
+        android:title="@string/block_screen_observers_title"
+        android:summary="@string/block_screen_observers_summary"
+        android:defaultValue="true" />
+    <org.chromium.chrome.browser.preferences.ChromeBaseCheckBoxPreference
         android:key="safe_browsing_extended_reporting"
         android:title="@string/safe_browsing_extended_reporting_title"
         android:summary="@string/safe_browsing_extended_reporting_summary" />

@@ -354,6 +354,12 @@ CHAR-LIMIT guidelines:
       <message name="IDS_SEARCH_SUGGESTIONS_SUMMARY" desc="Summary for search and url suggestions.">
         Use a prediction service to show related queries and popular websites as you type in the address bar
       </message>
+      <message name="IDS_BLOCK_SCREEN_OBSERVERS_TITLE" desc="Title for screen capture blocking.">
+        Block screen observers
+      </message>
+      <message name="IDS_BLOCK_SCREEN_OBSERVERS_SUMMARY" desc="Summary for screen capture blocking">
+        Allow or block browser screen capturing from other applications
+      </message>
       <message name="IDS_SAFE_BROWSING_EXTENDED_REPORTING_TITLE" desc="Title for checkbox that controls whether details of possible security incidents will be sent to Google.">
       Security incidents
       </message>

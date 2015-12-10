@@ -51,7 +51,7 @@ public class Preferences extends AppCompatActivity implements
     public static final String EXTRA_SHOW_FRAGMENT = "show_fragment";
     public static final String EXTRA_SHOW_FRAGMENT_ARGUMENTS = "show_fragment_args";
     public static final String EXTRA_DISPLAY_HOME_AS_UP = "display_home_as_up";
-
+    private static final int PREFERENCE_FRAGMENT_REQUEST = 1;
     private static final String TAG = "Preferences";
 
     /** The current instance of Preferences in the resumed state, if any. */
@@ -160,7 +160,15 @@ public class Preferences extends AppCompatActivity implements
         intent.setClass(this, getClass());
         intent.putExtra(EXTRA_SHOW_FRAGMENT, fragmentClass);
         intent.putExtra(EXTRA_SHOW_FRAGMENT_ARGUMENTS, args);
-        startActivity(intent);
+        startActivityForResult(intent, PREFERENCE_FRAGMENT_REQUEST);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PREFERENCE_FRAGMENT_REQUEST && resultCode == RESULT_OK) {
+            setResult(resultCode, data);
+        }
     }
 
     @Override

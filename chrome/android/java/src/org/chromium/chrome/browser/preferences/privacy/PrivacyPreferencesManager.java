@@ -30,6 +30,7 @@ public class PrivacyPreferencesManager implements CrashReportingPermissionManage
     private static final String PREF_BANDWIDTH_NO_CELLULAR_OLD = "prefetch_bandwidth_no_cellular";
     private static final String PREF_METRICS_REPORTING = "metrics_reporting";
     private static final String PREF_CELLULAR_EXPERIMENT = "cellular_experiment";
+    private static final String PREF_BLOCK_SCREEN_OBSERVERS = "block_screen_observers";
     private static final String ALLOW_PRERENDER_OLD = "allow_prefetch";
 
     private static PrivacyPreferencesManager sInstance;
@@ -265,6 +266,24 @@ public class PrivacyPreferencesManager implements CrashReportingPermissionManage
     public boolean isCellularExperimentEnabled() {
         return mSharedPreferences.getBoolean(PREF_CELLULAR_EXPERIMENT, false);
     }
+
+    /**
+     * Sets the screen capture blocking is enabled or not.
+     */
+    @VisibleForTesting
+    public void setBlockScreenObservers(boolean enabled) {
+        mSharedPreferences.edit().putBoolean(PREF_BLOCK_SCREEN_OBSERVERS, enabled).apply();
+    }
+
+    /**
+     * Checks whether screen capture blocking is enabled or not.
+     *
+     * @return boolean whether the screen capture blocking is enabled.
+     */
+    public boolean isBlockScreenObserversEnabled() {
+        return mSharedPreferences.getBoolean(PREF_BLOCK_SCREEN_OBSERVERS, true);
+    }
+
 
     /**
      * Sets the crash upload preference, which determines whether crash dumps will be uploaded

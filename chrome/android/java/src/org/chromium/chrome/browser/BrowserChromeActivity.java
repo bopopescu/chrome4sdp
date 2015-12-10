@@ -47,6 +47,7 @@ import org.chromium.chrome.browser.preferences.BrowserHomepagePreferences;
 import org.chromium.chrome.browser.preferences.PrefServiceBridge;
 import org.chromium.chrome.browser.preferences.Preferences;
 import org.chromium.chrome.browser.preferences.PreferencesLauncher;
+import org.chromium.chrome.browser.preferences.privacy.PrivacyPreferencesManager;
 import org.chromium.chrome.browser.preferences.website.WebDefenderPreferenceHandler;
 import org.chromium.chrome.browser.preferences.website.WebRefinerPreferenceHandler;
 import org.chromium.chrome.browser.preferences.website.WebsiteAddress;
@@ -67,6 +68,7 @@ public abstract class BrowserChromeActivity extends AsyncInitializationActivity 
     protected PowerConnectionReceiver mLowPowerReceiver;
     private TabModelSelector mTabModelSelector;
     private EmptyTabModelObserver mBrowserTabModelObserver;
+    private static final int PREFERENCE_REQUEST = 1;
 
     @SuppressLint("NewApi")
     @Override
@@ -83,6 +85,11 @@ public abstract class BrowserChromeActivity extends AsyncInitializationActivity 
         }
         filter.addAction(Intent.ACTION_BATTERY_OKAY);
         this.registerReceiver(mPowerChangeReceiver, filter);
+
+        if (PrivacyPreferencesManager.getInstance(this).isBlockScreenObserversEnabled()) {
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                                 WindowManager.LayoutParams.FLAG_SECURE);
+        }
     }
 
     @Override
@@ -116,6 +123,22 @@ public abstract class BrowserChromeActivity extends AsyncInitializationActivity 
     protected void onDestroy() {
         this.unregisterReceiver(mPowerChangeReceiver);
         super.onDestroy();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PREFERENCE_REQUEST && resultCode == RESULT_OK) {
+            if (data.getExtras().containsKey("Secure")){
+                if (data.getBooleanExtra("Secure", false)){
+                    getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                                         WindowManager.LayoutParams.FLAG_SECURE);
+                }
+                else {
+                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+                }
+            }
+        }
     }
 
     /**
@@ -191,7 +214,7 @@ public abstract class BrowserChromeActivity extends AsyncInitializationActivity 
                 args.putString(BrowserHomepagePreferences.CURRENT_URL, getActivityTab().getUrl());
                 intent.putExtra(Preferences.EXTRA_SHOW_FRAGMENT_ARGUMENTS, args);
             }
-            this.startActivity(intent);
+            this.startActivityForResult(intent, PREFERENCE_REQUEST);
             RecordUserAction.record("MobileMenuSettings");
             return true;
         }

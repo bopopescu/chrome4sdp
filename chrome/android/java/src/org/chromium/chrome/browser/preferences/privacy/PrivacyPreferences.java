@@ -13,6 +13,7 @@ import android.preference.PreferenceScreen;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.content.Intent;
 
 import org.chromium.base.CommandLine;
 import org.chromium.chrome.R;
@@ -45,6 +46,7 @@ public class PrivacyPreferences extends BrowserPreferenceFragment
 
     private static final String PREF_NAVIGATION_ERROR = "navigation_error";
     private static final String PREF_SEARCH_SUGGESTIONS = "search_suggestions";
+    private static final String PREF_BLOCK_SCREEN_OBSERVERS = "block_screen_observers";
     private static final String PREF_SAFE_BROWSING_EXTENDED_REPORTING =
             "safe_browsing_extended_reporting";
     private static final String PREF_SAFE_BROWSING = "safe_browsing";
@@ -137,6 +139,11 @@ public class PrivacyPreferences extends BrowserPreferenceFragment
         searchSuggestionsPref.setOnPreferenceChangeListener(this);
         searchSuggestionsPref.setManagedPreferenceDelegate(mManagedPreferenceDelegate);
 
+        ChromeBaseCheckBoxPreference blockScreenObserversPref =
+                (ChromeBaseCheckBoxPreference) findPreference(PREF_BLOCK_SCREEN_OBSERVERS);
+        blockScreenObserversPref.setOnPreferenceChangeListener(this);
+        blockScreenObserversPref.setManagedPreferenceDelegate(mManagedPreferenceDelegate);
+
         if (!ContextualSearchFieldTrial.isEnabled()) {
             preferenceScreen.removePreference(findPreference(PREF_CONTEXTUAL_SEARCH));
         }
@@ -195,6 +202,12 @@ public class PrivacyPreferences extends BrowserPreferenceFragment
         String key = preference.getKey();
         if (PREF_SEARCH_SUGGESTIONS.equals(key)) {
             PrefServiceBridge.getInstance().setSearchSuggestEnabled((boolean) newValue);
+        } else if (PREF_BLOCK_SCREEN_OBSERVERS.equals(key)) {
+            Intent resultIntent = getActivity().getIntent();
+            resultIntent.putExtra("Secure", (boolean) newValue);
+            getActivity().setResult(getActivity().RESULT_OK, resultIntent);
+            PrivacyPreferencesManager.getInstance(getActivity()).setBlockScreenObservers(
+                    (boolean) newValue);
         } else if (PREF_SAFE_BROWSING.equals(key)) {
             PrefServiceBridge.getInstance().setSafeBrowsingEnabled((boolean) newValue);
         } else if (PREF_SAFE_BROWSING_EXTENDED_REPORTING.equals(key)) {
