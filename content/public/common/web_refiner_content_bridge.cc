@@ -34,6 +34,7 @@
 #include "content/browser/renderer_host/render_process_host_impl.h"
 #include "content/browser/web_contents/web_contents_impl.h"
 #include "content/public/common/child_process_host.h"
+#include "content/public/browser/browser_context.h"
 #include "content/public/browser/browser_thread.h"
 #include "content/public/browser/render_frame_host.h"
 #include "content/public/browser/render_process_host.h"
@@ -139,6 +140,8 @@ public:
         : WebContentsObserver(web_contents)
         , ext_(ext) {}
     ~WebContentsObserverBridge() override {}
+    void DidStartLoading() override { ext_->DidStartLoading(); }
+    void DidStopLoading() override { ext_->DidStopLoading(); }
     void DidStartProvisionalLoadForFrame(
         RenderFrameHost* render_frame_host, const GURL& validated_url,
         bool is_error_page, bool is_iframe_srcdoc) override {
@@ -176,6 +179,14 @@ int WebContentsObserverExt::GetProcessID() const {
 int WebContentsObserverExt::GetRoutingID() const {
     return WebContents_GetRoutingID(web_contents());
 }
+
+bool WebContentsObserverExt::IsOffTheRecord() const {
+    if (web_contents() && web_contents()->GetBrowserContext())
+        return web_contents()->GetBrowserContext()->IsOffTheRecord();
+
+    return false;
+}
+
 
 WebContents* ContentViewCore_GetWebContents(content::ContentViewCore* content_view_core) {
     return content_view_core ? content_view_core->GetWebContents() : 0;

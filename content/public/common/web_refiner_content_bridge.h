@@ -123,6 +123,8 @@ class WEB_REFINER_EXPORT WebContentsObserverExt {
 public:
     WebContentsObserverExt(WebContents* web_contents);
     virtual ~WebContentsObserverExt();
+    virtual void DidStartLoading() {}
+    virtual void DidStopLoading() {}
     virtual void DidStartProvisionalLoadForFrame(
         RenderFrameHost* render_frame_host, const GURL& validated_url,
         bool is_error_page, bool is_iframe_srcdoc) {}
@@ -137,6 +139,7 @@ protected:
     WebContents* web_contents() const;
     int GetProcessID() const;
     int GetRoutingID() const;
+    bool IsOffTheRecord() const;
 private:
     DISALLOW_COPY_AND_ASSIGN(WebContentsObserverExt);
     WebContentsObserverBridge* bridge_;
