@@ -24,6 +24,7 @@
 #include "platform/PlatformInstrumentation.h"
 #include "platform/graphics/DeferredImageDecoder.h"
 #include "platform/image-decoders/bmp/BMPImageDecoder.h"
+#include "platform/image-decoders/wbmp/WBMPImageDecoder.h"
 #include "platform/image-decoders/gif/GIFImageDecoder.h"
 #include "platform/image-decoders/ico/ICOImageDecoder.h"
 #include "platform/image-decoders/jpeg/JPEGImageDecoder.h"
@@ -66,6 +67,11 @@ inline bool matchesGIFSignature(char* contents)
 inline bool matchesWebPSignature(char* contents)
 {
     return !memcmp(contents, "RIFF", 4) && !memcmp(contents + 8, "WEBPVP", 6);
+}
+
+inline bool matchesWBMPSignature(char* contents)
+{
+    return !memcmp(contents, "\x00\x00", 2);
 }
 
 inline bool matchesICOSignature(char* contents)
@@ -111,6 +117,9 @@ PassOwnPtr<ImageDecoder> ImageDecoder::create(const SharedBuffer& data, AlphaOpt
 
     if (matchesBMPSignature(contents))
         return adoptPtr(new BMPImageDecoder(alphaOption, colorOptions, maxDecodedBytes));
+
+    if (matchesWBMPSignature(contents))
+        return adoptPtr(new WBMPImageDecoder(alphaOption, colorOptions, maxDecodedBytes));
 
     return nullptr;
 }

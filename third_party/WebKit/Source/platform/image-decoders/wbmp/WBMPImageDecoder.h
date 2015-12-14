@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  * Copyright (c) 2008, 2009, Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,25 +29,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef BMPImageDecoder_h
-#define BMPImageDecoder_h
+#ifndef WBMPImageDecoder_h
+#define WBMPImageDecoder_h
 
-#include "platform/image-decoders/bmp/BMPImageReader.h"
+#include "platform/image-decoders/wbmp/WBMPImageReader.h"
 #include "wtf/OwnPtr.h"
 
 namespace blink {
 
-// This class decodes the BMP image format.
-class PLATFORM_EXPORT BMPImageDecoder : public ImageDecoder {
+// This class decodes the WBMP image format.
+class PLATFORM_EXPORT WBMPImageDecoder : public ImageDecoder {
 public:
-    BMPImageDecoder(AlphaOption, GammaAndColorProfileOption, size_t maxDecodedBytes);
+    WBMPImageDecoder(AlphaOption alphaOption, GammaAndColorProfileOption gammaAndColorProfileOption, size_t maxDecodedBytes);
 
-    // ImageDecoder:
-    String filenameExtension() const override { return "bmp"; }
+    // ImageDecoder
+    String filenameExtension() const override { return "wbmp"; }
     void onSetData(SharedBuffer*) override;
     // CAUTION: setFailed() deletes |m_reader|.  Be careful to avoid
     // accessing deleted memory, especially when calling this from inside
-    // BMPImageReader!
+    // WBMPImageReader!
     bool setFailed() override;
 
 private:
@@ -54,32 +55,21 @@ private:
     void decodeSize() override { decode(true); }
     void decode(size_t) override { decode(false); }
 
-    inline uint32_t readUint32(int offset) const
-    {
-        return BMPImageReader::readUint32(m_data.get(), m_decodedOffset + offset);
-    }
-
     // Decodes the image.  If |onlySize| is true, stops decoding after
-    // calculating the image size. If decoding fails but there is no more
+    // calculating the image size.  If decoding fails but there is no more
     // data coming, sets the "decode failure" flag.
     void decode(bool onlySize);
-
-    // Decodes the image.  If |onlySize| is true, stops decoding after
-    // calculating the image size. Returns whether decoding succeeded.
-    bool decodeHelper(bool onlySize);
 
     // Processes the file header at the beginning of the data.  Sets
     // |imgDataOffset| based on the header contents. Returns true if the
     // file header could be decoded.
     bool processFileHeader(size_t& imgDataOffset);
 
-    // An index into |m_data| representing how much we've already decoded.
-    // Note that this only tracks data _this_ class decodes; once the
-    // BMPImageReader takes over this will not be updated further.
-    size_t m_decodedOffset;
+    int m_width;
+    int m_height;
 
-    // The reader used to do most of the BMP decoding.
-    OwnPtr<BMPImageReader> m_reader;
+    // The reader used to do most of the WBMP decoding.
+    OwnPtr<WBMPImageReader> m_reader;
 };
 
 } // namespace blink

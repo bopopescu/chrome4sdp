@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
  * Copyright (c) 2008, 2009, Google Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,94 +28,133 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #include "config.h"
-#include "platform/image-decoders/bmp/BMPImageDecoder.h"
-
+#include "platform/image-decoders/wbmp/WBMPImageDecoder.h"
+#include "platform/image-decoders/wbmp/WBMPImageReader.h"
 #include "wtf/PassOwnPtr.h"
 
 namespace blink {
 
-// Number of bits in .BMP used to store the file header (doesn't match
-// "sizeof(BMPImageDecoder::BitmapFileHeader)" since we omit some fields and
-// don't pack).
-static const size_t sizeOfFileHeader = 14;
-
-BMPImageDecoder::BMPImageDecoder(AlphaOption alphaOption, GammaAndColorProfileOption colorOptions, size_t maxDecodedBytes)
-    : ImageDecoder(alphaOption, colorOptions, maxDecodedBytes)
-    , m_decodedOffset(0)
+WBMPImageDecoder::WBMPImageDecoder(
+    AlphaOption alphaOption,
+    GammaAndColorProfileOption gammaAndColorProfileOption,
+    size_t maxDecodedBytes)
+    : ImageDecoder(alphaOption, gammaAndColorProfileOption, maxDecodedBytes)
+    , m_width(0)
+    , m_height(0)
 {
 }
 
-void BMPImageDecoder::onSetData(SharedBuffer* data)
+void WBMPImageDecoder::onSetData(SharedBuffer* data)
 {
+    if (failed())
+        return;
+
     if (m_reader)
         m_reader->setData(data);
 }
 
-bool BMPImageDecoder::setFailed()
+bool WBMPImageDecoder::setFailed()
 {
     m_reader.clear();
     return ImageDecoder::setFailed();
 }
 
-void BMPImageDecoder::decode(bool onlySize)
+void WBMPImageDecoder::decode(bool onlySize)
 {
     if (failed())
         return;
 
-    // If we couldn't decode the image but we've received all the data, decoding
-    // has failed.
-    if (!decodeHelper(onlySize) && isAllDataReceived())
-        setFailed();
-    // If we're done decoding the image, we don't need the BMPImageReader
-    // anymore.  (If we failed, |m_reader| has already been cleared.)
-    else if (!m_frameBufferCache.isEmpty() && (m_frameBufferCache.first().status() == ImageFrame::FrameComplete))
-        m_reader.clear();
-}
-
-bool BMPImageDecoder::decodeHelper(bool onlySize)
-{
     size_t imgDataOffset = 0;
-    if ((m_decodedOffset < sizeOfFileHeader) && !processFileHeader(imgDataOffset))
-        return false;
+    if (!processFileHeader(imgDataOffset)) {
+        if (isAllDataReceived()) {
+            setFailed();
+        }
+        return;
+    }
+
+    if (onlySize)
+        return;
 
     if (!m_reader) {
-        m_reader = adoptPtr(new BMPImageReader(this, m_decodedOffset, imgDataOffset, false));
+        m_reader = adoptPtr(new WBMPImageReader(this, m_width, m_height, imgDataOffset));
         m_reader->setData(m_data.get());
     }
 
     if (!m_frameBufferCache.isEmpty())
         m_reader->setBuffer(&m_frameBufferCache.first());
 
-    return m_reader->decodeBMP(onlySize);
+    if (!m_reader->decodeWBMP()) {
+        if (isAllDataReceived()) {
+            setFailed();
+        }
+        return;
+    }
+
+    if (!failed()) {
+        // If we're done decoding the image, we don't need the WBMPImageReader
+        // anymore.  (If we failed, |m_reader| has already been cleared.)
+        if (!m_frameBufferCache.isEmpty() && (m_frameBufferCache.first().status() == ImageFrame::FrameComplete)) {
+            m_reader.clear();
+        }
+    }
 }
 
-bool BMPImageDecoder::processFileHeader(size_t& imgDataOffset)
+long readVarInt(SharedBuffer * buffer, size_t &cursor)
 {
-    // Read file header.
-    ASSERT(!m_decodedOffset);
-    if (m_data->size() < sizeOfFileHeader)
-        return false;
-    const uint16_t fileType = (m_data->data()[0] << 8) | static_cast<uint8_t>(m_data->data()[1]);
-    imgDataOffset = readUint32(10);
-    m_decodedOffset = sizeOfFileHeader;
+    ASSERT(cursor >= 0);
+    ASSERT(cursor < buffer->size());
 
-    // See if this is a bitmap filetype we understand.
-    enum {
-        BMAP = 0x424D,  // "BM"
-        // The following additional OS/2 2.x header values (see
-        // http://www.fileformat.info/format/os2bmp/egff.htm ) aren't widely
-        // decoded, and are unlikely to be in much use.
-        /*
-        ICON = 0x4943,  // "IC"
-        POINTER = 0x5054,  // "PT"
-        COLORICON = 0x4349,  // "CI"
-        COLORPOINTER = 0x4350,  // "CP"
-        BITMAPARRAY = 0x4241,  // "BA"
-        */
-    };
-    return (fileType == BMAP) || setFailed();
+    int quantity = 0;
+
+    do {
+        if (quantity >= (1<<23)) {
+            // overflow (something is wrong)
+            quantity = -1;
+            break;
+        }
+        quantity <<= 7;
+        quantity += (buffer->data()[cursor] & 0x7f);
+    } while (buffer->data()[cursor++] & 0x80);
+
+    return quantity;
+}
+
+bool WBMPImageDecoder::processFileHeader(size_t& imgDataOffset)
+{
+    size_t decodedOffset = 0;
+    long type;
+    long fixedHeader;
+
+    type = readVarInt(m_data.get(), decodedOffset);
+
+    // We only support type 0 for now.  We've never seen anything else.
+    if (type != 0) {
+        return setFailed();
+    }
+
+    fixedHeader = m_data->data()[decodedOffset++];
+
+    // The spec says that bits 6:5 can legally be any value but that
+    // the rest of the bits *must* be 0 for a type 0 WBMP image.
+    if (fixedHeader & ~0x60) {
+        return setFailed();
+    }
+
+    m_width = readVarInt(m_data.get(), decodedOffset);
+    if ((m_width < 0) || (m_width >= (1 << 16)))
+        return setFailed();
+
+    m_height = readVarInt(m_data.get(), decodedOffset);
+    if ((m_height < 0) || (m_height >= (1 << 16)))
+        return setFailed();
+
+    if (!setSize(m_width, m_height))
+        return setFailed();
+
+    imgDataOffset = decodedOffset;
+
+    return true;
 }
 
 } // namespace blink
