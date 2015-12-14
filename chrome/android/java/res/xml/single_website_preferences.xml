@@ -4,13 +4,6 @@
      found in the LICENSE file. -->
 
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <org.chromium.chrome.browser.preferences.ChromeBasePreference
-        android:key="os_permissions_warning" />
-    <org.chromium.chrome.browser.preferences.ChromeBasePreference
-        android:key="os_permissions_warning_extra" />
-    <Preference
-        android:key="os_permissions_warning_divider"
-        android:layout="@layout/divider_preference" />
     <PreferenceCategory
         android:layout="@layout/browser_preference_category_first"
         android:key="site_heading"
@@ -18,7 +11,7 @@
     <org.chromium.chrome.browser.preferences.TextMessagePreference
         android:key="site_title" />
 
-    <PreferenceCategory
+    <org.chromium.chrome.browser.preferences.website.SmartProtectPreferenceCategory
         android:layout="@layout/browser_preference_category"
         android:key="smartprotect_title"
         android:title="@string/website_settings_smartprotect_title" />
@@ -70,6 +63,13 @@
         android:key="site_permissions"
         android:title="@string/website_settings_permissions_category" />
 
+    <org.chromium.chrome.browser.preferences.ChromeBasePreference
+        android:key="os_permissions_warning" />
+    <org.chromium.chrome.browser.preferences.ChromeBasePreference
+        android:key="os_permissions_warning_extra" />
+    <Preference
+        android:key="os_permissions_warning_divider"
+        android:layout="@layout/divider_preference" />
     <org.chromium.chrome.browser.preferences.ChromeBaseListPreference
         android:key="cookies_permission_list" />
     <org.chromium.chrome.browser.preferences.ChromeBaseListPreference

@@ -30,6 +30,8 @@
 package org.chromium.chrome.browser.preferences.website;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -43,13 +45,17 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.PreferenceCategory;
+import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -81,6 +87,8 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
     public static final String EXTRA_WEB_REFINER_TRACKER_INFO = "website_refiner_tracker_info";
     public static final String EXTRA_WEB_REFINER_MALWARE_INFO = "website_refiner_malware_info";
     public static final String EXTRA_INCOGNITO = "website_incognito";
+    public static final String WEBDEFENDER_SETTING = "WebDefender_setting";
+    public static final String WEBREFINER_SETTING = "WebRefiner_setting";
 
     private int mSecurityLevel = -1;
     private int mSiteColor = -1;
@@ -97,6 +105,7 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
     private String mWebRefinerName;
     private String mWebDefenderName;
     private int mSmartProtectColor;
+    private int mWebRefinerBlockedCount;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -113,7 +122,6 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
                 mWebDefenderStatus = parcel.getStatus();
         }
         super.onActivityCreated(savedInstanceState);
-        mSmartProtectColor = getResources().getColor(R.color.smart_protect);
     }
 
     private void updateSecurityInfo() {
@@ -161,6 +169,50 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
         }
     }
 
+    protected void setupBranding() {
+        mSmartProtectColor = getResources().getColor(R.color.smart_protect);
+        SmartProtectPreferenceCategory smartProtect =
+                (SmartProtectPreferenceCategory) findPreference("smartprotect_title");
+        Preference meterPref = findPreference("webdefender_privacy_meter");
+        Preference details = findPreference("webdefender_details");
+        PreferenceCategory category = (PreferenceCategory)
+                findPreference("webdefender_title");
+        if (!WebDefenderPreferenceHandler.isInitialized()
+                && !WebRefinerPreferenceHandler.isInitialized()) {
+            if (category != null) {
+                category.removePreference(meterPref);
+                category.removePreference(details);
+            }
+            getPreferenceScreen().removePreference(smartProtect);
+            return;
+        } else if ((mWebDefenderStatus == null || mWebDefenderStatus.mTrackerDomains == null)
+                && category != null) {
+            category.removePreference(meterPref);
+            category.removePreference(details);
+        } else if (mWebDefenderStatus.mTrackerDomains.length == 0 && category != null) {
+            category.removePreference(details);
+        }
+
+        if (WebDefender.getInstance() != null) {
+            WebRefiner.FeatureName name = WebDefender.getInstance().getFeatureName();
+            if (name != null) {
+                mSmartProtectName = name.mProductName;
+                mWebDefenderName = name.mLocalName;
+            }
+        }
+        if (WebRefiner.getInstance() != null) {
+            WebRefiner.FeatureName name = WebRefiner.getInstance().getFeatureName();
+            if (name != null) {
+                if (TextUtils.isEmpty(mSmartProtectName)) {
+                    mSmartProtectName = name.mProductName;
+                }
+                mWebRefinerName = name.mLocalName;
+            }
+        }
+        smartProtect.setTitle(mSmartProtectName);
+        smartProtect.setTitleAttributes(mSmartProtectColor, Color.WHITE);
+    }
+
     @Override
     protected void displayExtraSitePermissions(Preference preference) {
         super.displayExtraSitePermissions(preference);
@@ -196,10 +248,10 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
 
             String title = (mSiteAddress != null)
                     ? mSiteAddress.getTitle() : mSite.getAddress().getTitle();
-
             Preference meterPref = findPreference("webdefender_privacy_meter");
-            if (meterPref != null)
-                meterPref.setSummary("on " + title);
+            if (meterPref != null) {
+                meterPref.setSummary(title);
+            }
         } else if (preference.getKey().equals("webdefender_details")) {
             preference.setOnPreferenceClickListener(this);
         }
@@ -225,7 +277,7 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
         if (PREF_WEBREFINER_PERMISSION.equals(preference.getKey())) {
             preference.setTitle(value == ContentSetting.ALLOW
                     ? (mWebRefinerMessages != null) ?
-                    mWebRefinerMessages
+                    Html.fromHtml(mWebRefinerMessages)
                     : getResources().getString(R.string.website_settings_webrefiner_enabled)
                     : getResources().getString(R.string.website_settings_webrefiner_disabled));
         } else if (PREF_WEBDEFENDER_PERMISSION.equals(preference.getKey())) {
@@ -234,7 +286,8 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
                     WebDefenderDetailsPreferences.getOverviewMessage(getResources(),
                             mWebDefenderStatus)
                     : getResources().getString(R.string.website_settings_webdefender_enabled)
-                    : getResources().getString(R.string.website_settings_webdefender_disabled));
+                    : WebDefenderDetailsPreferences.getDisabledMessage(getResources(),
+                    mWebDefenderStatus));
             }
         }
 
@@ -331,7 +384,6 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
         }
         return super.hasUsagePreferences();
     }
-
 
     @Override
     protected void updateSummary(Preference preference, int contentType, ContentSetting value){
@@ -555,7 +607,7 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
         } else if (PREF_WEBDEFENDER_PERMISSION.equals(preferenceKey)
                 && mSite.getWebDefenderInfo() == null) {
             mSite.setWebDefenderInfo(
-                    new WebDefenderInfo(mSiteAddress.getOrigin(), null, mIsIncognito));
+                    new WebDefenderInfo(mSite.getAddress().getOrigin(), null, mIsIncognito));
         }
     }
 
@@ -622,6 +674,7 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
     private void setWebDefenderPermission(boolean value) {
         Preference preference = findPreference(PREF_WEBDEFENDER_PERMISSION);
         ContentSetting permission = (value) ? ContentSetting.ALLOW : ContentSetting.BLOCK;
+        PrefServiceBridge.getInstance().requestReload();
         setTextForPreference(preference, permission);
         createPermissionInfo(preference, permission);
         if (mIsIncognito) {
@@ -640,6 +693,11 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
             boolean currentPermission = getWebRefinerPermission();
             setWebRefinerPermission(!currentPermission);
             mWebRefinerSwitch.setChecked(!currentPermission);
+            if (mPrivacyMeter != null) {
+                WebDefenderDetailsPreferences.setupPrivacyMeterDisplay(
+                        mPrivacyMeter, mWebDefenderSwitch.isChecked(), !currentPermission,
+                        mWebDefenderStatus, mWebRefinerBlockedCount);
+            }
             return true;
         } else if (PREF_WEBDEFENDER_PERMISSION.equals(preferenceKey)) {
             boolean currentPermission = getWebDefenderPermission();
@@ -647,7 +705,8 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
             mWebDefenderSwitch.setChecked(!currentPermission);
             if (mPrivacyMeter != null) {
                 WebDefenderDetailsPreferences.setupPrivacyMeterDisplay(
-                        mPrivacyMeter, !currentPermission, mWebDefenderStatus);
+                        mPrivacyMeter, !currentPermission, mWebRefinerSwitch.isChecked(),
+                        mWebDefenderStatus, mWebRefinerBlockedCount);
             }
             return true;
         } else if (preferenceKey.equals("webdefender_details")) {
@@ -655,10 +714,11 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
                     getActivity() instanceof OnPreferenceStartFragmentCallback) {
                 Bundle args = getArguments();
                 if (args != null) {
+                    args.putBoolean(WEBDEFENDER_SETTING, getWebDefenderPermission());
+                    args.putBoolean(WEBREFINER_SETTING, getWebRefinerPermission());
                     Bundle extra = preference.getExtras();
                     extra.putAll(args);
                 }
-
                 return ((OnPreferenceStartFragmentCallback)getActivity()).onPreferenceStartFragment(
                         this, preference);
             }
@@ -689,35 +749,14 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
         if (view != null) {
             if (view.getText().equals(
                     getResources().getText(R.string.website_settings_webdefender_privacy_meter_title))) {
-                mPrivacyMeter = child.findViewById(R.id.webdefender_privacy_meter);
+                    mPrivacyMeter = child.findViewById(R.id.webdefender_privacy_meter);
                 if (mPrivacyMeter != null) {
                     WebDefenderDetailsPreferences.setupPrivacyMeterDisplay(
-                            mPrivacyMeter, getWebDefenderPermission(), mWebDefenderStatus);
+                        mPrivacyMeter, getWebDefenderPermission(), getWebRefinerPermission(),
+                            mWebDefenderStatus, mWebRefinerBlockedCount);
                 }
-            } else if (view.getText().equals(
-                    getResources().getText(R.string.website_settings_smartprotect_title))) {
-                if (WebDefender.getInstance() != null) {
-                    WebRefiner.FeatureName name = WebDefender.getInstance().getFeatureName();
-                    if (name != null) {
-                        mSmartProtectName = name.mProductName;
-                        mWebDefenderName = name.mLocalName;
-                        view.setText(mSmartProtectName);
-                    }
-                }
-                if (WebRefiner.getInstance() != null) {
-                    WebRefiner.FeatureName name = WebRefiner.getInstance().getFeatureName();
-                    if (name != null) {
-                        if (TextUtils.isEmpty(mSmartProtectName)) {
-                            mSmartProtectName = name.mProductName;
-                            view.setText(mSmartProtectName);
-                        }
-                        mWebRefinerName = name.mLocalName;
-                    }
-                }
-                bgColor = mSmartProtectColor;
-                textColor = Color.WHITE;
-                btnColor = Color.WHITE;
-                switchColor = Color.WHITE;
+            } else if (view.getText().equals(mSmartProtectName)) {
+                return;
             }
         }
 
@@ -730,10 +769,17 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
                     boolean currentSetting = getWebRefinerPermission();
                     mWebRefinerSwitch = switchBtn;
                     switchBtn.setChecked(currentSetting);
-                    switchBtn.setOnClickListener(new View.OnClickListener() {
+                    switchBtn.setOnCheckedChangeListener(
+                            new CompoundButton.OnCheckedChangeListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                             setWebRefinerPermission(mWebRefinerSwitch.isChecked());
+                            if (mPrivacyMeter != null) {
+                                WebDefenderDetailsPreferences.setupPrivacyMeterDisplay(
+                                        mPrivacyMeter, mWebDefenderSwitch.isChecked(),
+                                        mWebRefinerSwitch.isChecked(),
+                                        mWebDefenderStatus, mWebRefinerBlockedCount);
+                            }
                         }
                     });
                     textColor = mSmartProtectColor;
@@ -744,14 +790,16 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
                     boolean currentSetting = getWebDefenderPermission();
                     switchBtn.setChecked(currentSetting);
                     mWebDefenderSwitch = switchBtn;
-                    switchBtn.setOnClickListener(new View.OnClickListener() {
+                    switchBtn.setOnCheckedChangeListener(
+                            new CompoundButton.OnCheckedChangeListener() {
                         @Override
-                        public void onClick(View v) {
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                             setWebDefenderPermission(mWebDefenderSwitch.isChecked());
                             if (mPrivacyMeter != null) {
                                 WebDefenderDetailsPreferences.setupPrivacyMeterDisplay(
                                         mPrivacyMeter, mWebDefenderSwitch.isChecked(),
-                                        mWebDefenderStatus);
+                                        mWebRefinerSwitch.isChecked(),
+                                        mWebDefenderStatus, mWebRefinerBlockedCount);
                             }
                         }
                     });
@@ -859,28 +907,41 @@ public class BrowserSingleWebsitePreferences extends SingleWebsitePreferences {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        clearTemporaryTrackerDomainList(getActivity());
+    }
+
+    public static void clearTemporaryTrackerDomainList(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        prefs.edit().putString("tracker_domains", "").commit();
+    }
+
     private void setupWebRefinerInformation(Bundle args) {
         int ads = args.getInt(EXTRA_WEB_REFINER_ADS_INFO, 0);
+        mWebRefinerBlockedCount = ads;
         String[] strings = new String[3];
         int index = 0;
 
         if (ads > 0) {
-            strings[index++] = ads + " " + getResources().getString((ads > 1) ?
+            strings[index++] = "<b>" + ads + "</b>" + " " + getResources().getString((ads > 1) ?
                     R.string.webrefiner_ads_plural :
                     R.string.webrefiner_ads);
         }
 
         int trackers = args.getInt(EXTRA_WEB_REFINER_TRACKER_INFO, 0);
+        mWebRefinerBlockedCount += trackers;
         if (trackers > 0) {
-            strings[index++] = trackers + " " + getResources().getString((trackers > 1) ?
-                    R.string.webrefiner_trackers_plural :
-                    R.string.webrefiner_trackers);
+            strings[index++] = "<b>" + trackers + "</b>" + " " +
+                    getResources().getString((trackers > 1) ? R.string.webrefiner_trackers_plural : R.string.webrefiner_trackers);
 
         }
 
         int malware = args.getInt(EXTRA_WEB_REFINER_MALWARE_INFO, 0);
+        mWebRefinerBlockedCount += malware;
         if (malware > 0) {
-            strings[index++] = malware + " " + getResources().getString(
+            strings[index++] = "<b>" + malware + "</b>" + " " + getResources().getString(
                     R.string.webrefiner_malware);
         }
         if (index > 0) {

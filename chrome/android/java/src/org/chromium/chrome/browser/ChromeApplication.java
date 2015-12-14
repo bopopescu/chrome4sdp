@@ -511,8 +511,11 @@ public class ChromeApplication extends ContentApplication {
             if (!CommandLine.getInstance().hasSwitch(ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE)) {
                 CommandLine.getInstance().appendSwitch(ChromeSwitches.DISABLE_FIRST_RUN_EXPERIENCE);
             }
-            CommandLine.getInstance().
-                    appendSwitchWithValue(ChromeSwitches.ENABLE_ENHANCED_BOOKMARKS, "0");
+            if (!"0".equals(CommandLine.getInstance()
+                    .getSwitchValue(ChromeSwitches.ENABLE_ENHANCED_BOOKMARKS))) {
+                CommandLine.getInstance().
+                        appendSwitchWithValue(ChromeSwitches.ENABLE_ENHANCED_BOOKMARKS, "0");
+            }
         }
     }
 

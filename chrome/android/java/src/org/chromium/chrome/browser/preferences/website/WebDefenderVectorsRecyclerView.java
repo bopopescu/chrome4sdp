@@ -43,15 +43,23 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.chromium.chrome.R;
+import org.chromium.chrome.browser.preferences.PrefServiceBridge;
 import org.chromium.content.browser.WebDefender;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class WebDefenderVectorsRecyclerView extends RecyclerView {
     Context mContext;
     int mDefaultOptionIndex;
     WebDefender.TrackerDomain[] mTrackerDomains;
+    HashMap<String, Integer> mModifiedTrackerDomains = new HashMap<>();
     String mRadioButtonOptions[];
+
+    public void setUpdatedDomains(HashMap<String, Integer> updatedTrackerDomains) {
+        if (updatedTrackerDomains != null)
+            mModifiedTrackerDomains = updatedTrackerDomains;
+    }
 
     public class VectorListAdapter
             extends RecyclerView.Adapter<VectorListAdapter.VectorViewHolder> {
@@ -64,7 +72,7 @@ public class WebDefenderVectorsRecyclerView extends RecyclerView {
             ImageView mStorageVector;
             ImageView mFontEnumVector;
             int mPosition;
-            int mSelection = mDefaultOptionIndex;
+            int mSelection;
 
             private void updateWebDefender(VectorViewHolder holder, int which, int pos) {
                 int action;
@@ -82,8 +90,14 @@ public class WebDefenderVectorsRecyclerView extends RecyclerView {
                     case 3:
                     default:
                         WebDefender.TrackerDomain domains[] = {
-                                new WebDefender.TrackerDomain(mTrackerDomains[pos].mName)
+                                new WebDefender.TrackerDomain(mTrackerDomains[pos].mName,
+                                        WebDefender.TrackerDomain.PROTECTIVE_ACTION_UNBLOCK,
+                                        WebDefender.TrackerDomain.PROTECTIVE_ACTION_UNBLOCK, true,
+                                        WebDefender.TrackerDomain.TRACKING_METHOD_NONE, false)
                         };
+                        if (mModifiedTrackerDomains.containsKey(domains[0].mName)) {
+                            mModifiedTrackerDomains.remove(domains[0].mName);
+                        }
                         WebDefender.getInstance().resetProtectiveActionsForTrackerDomains(domains);
                         holder.mTitle.setTypeface(null, Typeface.NORMAL);
                         holder.mSummary.setText(
@@ -92,14 +106,15 @@ public class WebDefenderVectorsRecyclerView extends RecyclerView {
                 }
 
                 holder.mTitle.setTypeface(null, Typeface.BOLD);
-
                 String summary = actionToSummary(action);
+                holder.mSummary.setTextColor(getColorForAction(action));
                 holder.mSummary.setText(summary);
 
                 WebDefender.TrackerDomain domains[] = {
-                        new WebDefender.TrackerDomain(mTrackerDomains[pos].mName, action)
+                        new WebDefender.TrackerDomain(mTrackerDomains[pos].mName, action, action,
+                                true, WebDefender.TrackerDomain.TRACKING_METHOD_NONE, false)
                 };
-
+                mModifiedTrackerDomains.put(domains[0].mName, action);
                 WebDefender.getInstance().overrideProtectiveActionsForTrackerDomains(domains);
             }
 
@@ -126,6 +141,7 @@ public class WebDefenderVectorsRecyclerView extends RecyclerView {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
                                             updateWebDefender(holder, which, pos);
+                                            PrefServiceBridge.getInstance().requestReload();
                                             dialog.dismiss();
                                         }
                                     })
@@ -163,19 +179,22 @@ public class WebDefenderVectorsRecyclerView extends RecyclerView {
         @Override
         public void onBindViewHolder(VectorViewHolder holder, int position) {
             holder.mPosition = position;
+            holder.mSelection = mDefaultOptionIndex;
             if (holder.mTitle != null) {
                 holder.mTitle.setTypeface(null, Typeface.NORMAL);
                 holder.mTitle.setText(mTrackerDomains[position].mName);
             }
 
-            int action = (mTrackerDomains[position].mUsesUserDefinedProtectiveAction) ?
-                    mTrackerDomains[position].mUserDefinedProtectiveAction :
-                    mTrackerDomains[position].mProtectiveAction;
-
+            int action = (mTrackerDomains[position].mUsesUserDefinedProtectiveAction)
+                    ? mTrackerDomains[position].mUserDefinedProtectiveAction
+                    : mModifiedTrackerDomains.containsKey(mTrackerDomains[position].mName)
+                    ? mModifiedTrackerDomains.get(mTrackerDomains[position].mName)
+                    : mTrackerDomains[position].mProtectiveAction;
 
             String summary = actionToSummary(action);
 
-            if (mTrackerDomains[position].mUsesUserDefinedProtectiveAction) {
+            if (mTrackerDomains[position].mUsesUserDefinedProtectiveAction ||
+                    mModifiedTrackerDomains.containsKey(mTrackerDomains[position].mName)) {
                 holder.mSelection = Arrays.asList(mRadioButtonOptions).indexOf(summary);
                 if (holder.mTitle != null) {
                     holder.mTitle.setTypeface(null, Typeface.BOLD);
@@ -184,6 +203,7 @@ public class WebDefenderVectorsRecyclerView extends RecyclerView {
 
             if (holder.mSummary != null) {
                 holder.mSummary.setText(summary);
+                holder.mSummary.setTextColor(getColorForAction(action));
             }
 
             if (holder.mCookieVector != null) {
@@ -223,6 +243,24 @@ public class WebDefenderVectorsRecyclerView extends RecyclerView {
 
             return 0;
         }
+    }
+
+    private int getColorForAction(int action) {
+        switch (action) {
+            case WebDefender.TrackerDomain.PROTECTIVE_ACTION_UNBLOCK:
+                return WebDefenderDetailsPreferences.GREEN;
+            case WebDefender.TrackerDomain.PROTECTIVE_ACTION_BLOCK_COOKIES:
+                return WebDefenderDetailsPreferences.YELLOW;
+            case WebDefender.TrackerDomain.PROTECTIVE_ACTION_BLOCK_URL:
+                return WebDefenderDetailsPreferences.RED;
+            default:
+                return WebDefenderDetailsPreferences.GRAY;
+        }
+    }
+
+    public HashMap<String, Integer> getUpdatedDomains() {
+        if (mModifiedTrackerDomains.isEmpty()) return null;
+        return mModifiedTrackerDomains;
     }
 
     public void updateVectorArray(WebDefender.TrackerDomain[] trackerDomains) {

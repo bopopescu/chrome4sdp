@@ -595,11 +595,14 @@ Usage statistics include information such as preferences, button clicks, and mem
       <message name="IDS_WEBSITE_SETTINGS_WEBDEFENDER_DISABLED" desc="The WebDefender settings summary when it is disabled">
         You are not protected against third party tracking domains.
       </message>
+      <message name="IDS_WEBSITE_SETTINGS_WEBDEFENDER_DISABLED_COUNT" desc="The WebDefender settings summary when it is disabled">
+        You are not protected against <ph name="detected">%1$s<ex>25</ex></ph> third party tracking domains.
+      </message>
       <message name="IDS_WEBSITE_SETTINGS_WEBDEFENDER_BRIEF_MESSAGE" desc="The WebDefender brief summary with count">
-        We prevented the possible leakage of trackable information to <ph name="count">%1$d<ex>25</ex></ph> connected domains.
+        Traceable information will not be leaked to <ph name="count">%1$s<ex>25</ex></ph> connected domains.
       </message>
       <message name="IDS_WEBSITE_SETTINGS_WEBDEFENDER_TRACKING_VECTORS" desc="The WebDefender title for listing tracking vectors">
-        Tracking vectors on connected web sites:
+        Tracking vectors on connected domains:
       </message>
       <message name="IDS_WEBSITE_SETTINGS_WEBDEFENDER_COOKIE" desc="The WebDefender title for cookie storage">
         Cookie Storage
@@ -626,7 +629,7 @@ Usage statistics include information such as preferences, button clicks, and mem
         Decide for me
       </message>
       <message name="IDS_WEBSITE_SETTINGS_WEBDEFENDER_TRACKING_LIST" desc="The WebDefender title for listing tracking vector sites">
-        Connected web sites settings:
+        Connected domain settings:
       </message>
       <message name="IDS_WEBSITE_SETTINGS_WEBDEFENDER_TRACKING_NOT_DETECTED" desc="The WebDefender display status for untracked vectors">
         not detected
@@ -770,10 +773,6 @@ particular permission.">
       </message>
 
       <!-- WebRefiner prefernces -->
-      <message name="IDS_WEBREFINER" desc="Title for the WebRefiner setting [CHAR-LIMIT=32]">
-        WebRefiner
-      </message>
-
       <message name="IDS_WEBREFINER_ADS" desc="Number of ads blocked [CHAR-LIMIT=32]">
         advertisement
       </message>

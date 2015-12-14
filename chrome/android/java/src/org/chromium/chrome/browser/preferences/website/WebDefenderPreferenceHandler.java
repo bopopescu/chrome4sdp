@@ -31,6 +31,7 @@ package org.chromium.chrome.browser.preferences.website;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 import org.chromium.chrome.browser.preferences.PrefServiceBridge;
 import org.chromium.content.browser.ContentViewCore;
@@ -92,11 +93,22 @@ public class WebDefenderPreferenceHandler {
 
         @Override
         public void writeToParcel(Parcel dest, int flags) {
+            if (mStatus == null || mStatus.mTrackerDomains == null) {
+                return;
+            }
             int domainCount = mStatus.mTrackerDomains.length;
+            for (int i = 0; i < mStatus.mTrackerDomains.length; i++) {
+                if (TextUtils.isEmpty(mStatus.mTrackerDomains[i].mName)) {
+                    domainCount--;
+                }
+            }
             dest.writeInt(domainCount);
             dest.writeInt(mStatus.mTrackingProtectionEnabled ? 1 : 0);
 
-            for (int i = 0; i < domainCount; i++) {
+            for (int i = 0; i < mStatus.mTrackerDomains.length; i++) {
+                if (TextUtils.isEmpty(mStatus.mTrackerDomains[i].mName)) {
+                    continue;
+                }
                 dest.writeString(mStatus.mTrackerDomains[i].mName);
                 dest.writeInt(mStatus.mTrackerDomains[i].mProtectiveAction);
                 dest.writeInt(mStatus.mTrackerDomains[i].mUserDefinedProtectiveAction);

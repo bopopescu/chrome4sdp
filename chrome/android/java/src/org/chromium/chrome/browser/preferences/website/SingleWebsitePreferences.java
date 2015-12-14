@@ -162,6 +162,8 @@ public class SingleWebsitePreferences extends BrowserPreferenceFragment
         super.onActivityCreated(savedInstanceState);
     }
 
+    protected void setupBranding() { }
+
     /**
      * Given an address and a list of sets of websites, returns a new site with the same origin
      * as |address| which has merged into it the permissions of the matching input sites. If a
@@ -284,6 +286,7 @@ public class SingleWebsitePreferences extends BrowserPreferenceFragment
      */
     private void displaySitePermissions() {
         addPreferencesFromResource(R.xml.single_website_preferences);
+        setupBranding();
         ListAdapter preferences = getPreferenceScreen().getRootAdapter();
         for (int i = 0; i < preferences.getCount(); ++i) {
             Preference preference = (Preference) preferences.getItem(i);

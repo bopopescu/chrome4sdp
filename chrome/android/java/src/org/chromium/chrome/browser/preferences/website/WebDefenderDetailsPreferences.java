@@ -30,6 +30,7 @@
 package org.chromium.chrome.browser.preferences.website;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -43,9 +44,15 @@ import android.graphics.drawable.PaintDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
-import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
+import android.text.TextUtils;
+import android.util.Base64;
+import android.util.Base64InputStream;
+import android.util.Base64OutputStream;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
@@ -60,17 +67,40 @@ import org.chromium.chrome.browser.preferences.PrefServiceBridge;
 import org.chromium.chrome.browser.preferences.TextMessagePreference;
 import org.chromium.content.browser.WebDefender;
 
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Arrays;
+
+import java.util.Comparator;
+import java.util.Formatter;
+import java.util.HashMap;
+
 /**
  * Fragment to show web defender details.
  */
 public class WebDefenderDetailsPreferences extends BrowserPreferenceFragment {
     public static final String EXTRA_WEBDEFENDER_PARCEL = "extra_webdefender_parcel";
+    public static final int GREEN = Color.parseColor("#008F02");
+    public static final int YELLOW = Color.parseColor("#CBB325");
+    public static final int RED = Color.parseColor("#AA232A");
+    public static final int GRAY = Color.GRAY;
     private static final int BAR_GRAPH_HEIGHT = 100;
-    private boolean mIsIncognito = false;
+    private static final String DOMAIN_PREF = "tracker_domains";
+    private boolean mIsIncognito;
     private int mMaxBarGraphWidth;
     private WebDefender.ProtectionStatus mStatus;
+    private HashMap<String, Integer> mUpdatedTrackerDomains;
     private String mTitle;
     private int mSmartProtectColor;
+    private int mWebRefinerBlockedCount;
+    private boolean mWebDefenderEnabled;
+    private boolean mWebRefinerEnabled;
+
+    private WebDefenderVectorsRecyclerView mVectorsRecyclerView;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -83,6 +113,10 @@ public class WebDefenderDetailsPreferences extends BrowserPreferenceFragment {
 
             Object extraSite = arguments.getSerializable(SingleWebsitePreferences.EXTRA_SITE);
             Object extraOrigin = arguments.getSerializable(SingleWebsitePreferences.EXTRA_ORIGIN);
+            mWebDefenderEnabled = arguments.getBoolean(
+                    BrowserSingleWebsitePreferences.WEBDEFENDER_SETTING);
+            mWebRefinerEnabled = arguments.getBoolean(
+                    BrowserSingleWebsitePreferences.WEBREFINER_SETTING);
 
             if (extraSite != null && extraOrigin == null) {
                 Website site = (Website) extraSite;
@@ -91,10 +125,24 @@ public class WebDefenderDetailsPreferences extends BrowserPreferenceFragment {
                 WebsiteAddress siteAddress = WebsiteAddress.create((String) extraOrigin);
                 mTitle = siteAddress.getTitle();
             }
+            mWebRefinerBlockedCount =
+            arguments.getInt(BrowserSingleWebsitePreferences.EXTRA_WEB_REFINER_ADS_INFO, 0)
+            + arguments.getInt(BrowserSingleWebsitePreferences.EXTRA_WEB_REFINER_TRACKER_INFO, 0)
+            + arguments.getInt(BrowserSingleWebsitePreferences.EXTRA_WEB_REFINER_MALWARE_INFO, 0);
             WebDefenderPreferenceHandler.StatusParcel parcel =
                     arguments.getParcelable(EXTRA_WEBDEFENDER_PARCEL);
             if (parcel != null)
                 mStatus = parcel.getStatus();
+        }
+
+        Preference meter = findPreference("webdefender_privacy_meter");
+        TextMessagePreference overview = (TextMessagePreference) findPreference("overview");
+        if (mStatus == null || mStatus.mTrackerDomains == null
+                || mStatus.mTrackerDomains.length == 0) {
+            getPreferenceScreen().removePreference(meter);
+            PreferenceScreen vectorList = (PreferenceScreen) findPreference("vector_list");
+            getPreferenceScreen().removePreference(overview);
+            getPreferenceScreen().removePreference(vectorList);
         }
 
         if (mTitle != null) {
@@ -112,17 +160,40 @@ public class WebDefenderDetailsPreferences extends BrowserPreferenceFragment {
             }
         }
 
-        TextMessagePreference overview = (TextMessagePreference) findPreference("overview");
+        if (mStatus != null && mStatus.mTrackerDomains.length != 0) {
+            overview.setTitle(mWebDefenderEnabled
+                    ? getOverviewMessage(getResources(), mStatus)
+                    : getDisabledMessage(getResources(), mStatus));
+        }
 
-        if (mStatus != null && mStatus.mTrackerDomains.length != 0)
-            overview.setTitle(getOverviewMessage(getResources(), mStatus));
-
-        Preference meter = findPreference("webdefender_privacy_meter");
-        meter.setSummary("on " + mTitle);
+        meter.setSummary(mTitle);
         mSmartProtectColor = getResources().getColor(R.color.smart_protect);
     }
 
-    public static String getOverviewMessage(Resources resources,
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void onStart() {
+        super.onStart();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String domains = prefs.getString(DOMAIN_PREF, "");
+        if (TextUtils.isEmpty(domains)) return;
+        byte[] bytes = domains.getBytes();
+        if (bytes.length == 0)
+            return;
+        ByteArrayInputStream byteArray = new ByteArrayInputStream(bytes);
+        Base64InputStream base64InputStream = new Base64InputStream(byteArray, Base64.DEFAULT);
+        ObjectInputStream in;
+        try {
+            in = new ObjectInputStream(base64InputStream);
+            mUpdatedTrackerDomains = (HashMap<String, Integer>) in.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static CharSequence getOverviewMessage(Resources resources,
                                             WebDefender.ProtectionStatus status) {
         int count = 0;
         for (int i = 0; i < status.mTrackerDomains.length; i++) {
@@ -132,7 +203,11 @@ public class WebDefenderDetailsPreferences extends BrowserPreferenceFragment {
             }
         }
 
-        return resources.getString(R.string.website_settings_webdefender_brief_message,count);
+        return (count > 0)
+                ? Html.fromHtml(new Formatter().format(
+                    resources.getString(R.string.website_settings_webdefender_brief_message),
+                    "<b>" + count + "</b>").toString())
+                : resources.getString(R.string.website_settings_webdefender_enabled);
     }
 
     private void appendActionBarDisplayOptions(ActionBar bar, int extraOptions) {
@@ -216,33 +291,125 @@ public class WebDefenderDetailsPreferences extends BrowserPreferenceFragment {
         imageView.setImageDrawable(drawable);
     }
 
-    public static void setupPrivacyMeterDisplay(View view, boolean enabled,
-                                                WebDefender.ProtectionStatus status) {
-        int possibleTrackerCount = 0;
-        int starRating = 4;
+    public static void setupPrivacyMeterDisplay(View view, boolean webDefenderEnabled,
+                                boolean webRefinerEnabled, WebDefender.ProtectionStatus status,
+                                                int webRefinerBlockedCount) {
+        if (view == null) {
+            return;
+        }
+        int blockedUrlCount = 0;
+        int strippedCount = 0;
+        int possibleConnections = 0;
+        boolean addedProtection = webDefenderEnabled
+                || (webRefinerEnabled && webRefinerBlockedCount > 0);
+        for (WebDefender.TrackerDomain trackerDomain : status.mTrackerDomains) {
+            if (trackerDomain.mProtectiveAction ==
+                    WebDefender.TrackerDomain.PROTECTIVE_ACTION_BLOCK_URL) {
+                blockedUrlCount++;
+            } else if (trackerDomain.mProtectiveAction ==
+                    WebDefender.TrackerDomain.PROTECTIVE_ACTION_BLOCK_COOKIES) {
+                strippedCount++;
+            } else if (trackerDomain.mPotentialTracker) {
+                possibleConnections++;
+            }
+        }
 
-        ImageView imageView = (ImageView) view.findViewById(R.id.star1);
-        createRatingStar(imageView, 50, (starRating >= 1) ? Color.GREEN : Color.GRAY);
+        int rawCount = ((webDefenderEnabled) ? blockedUrlCount + strippedCount : 0) +
+                ((webRefinerEnabled) ? webRefinerBlockedCount : 0);
+        double weightedWebDefenderCount = blockedUrlCount*1.37 + strippedCount;
+        double weightedWebRefinerCount = webRefinerBlockedCount*1.37;
+        double weightedCount = weightedWebDefenderCount + weightedWebRefinerCount;
+        double effectiveWeightedCount =
+                ((webDefenderEnabled) ? blockedUrlCount*1.37 + strippedCount : 0) +
+                ((webRefinerEnabled) ? webRefinerBlockedCount*1.37 : 0);
+        int maxProtectImpact = getPrivacyImpact(weightedCount);
+        int actualImpact = getPrivacyImpact(effectiveWeightedCount);
+        int possibleImpact = getPrivacyImpact(possibleConnections);
+        int unprotectedRating = 5 - maxProtectImpact - possibleImpact;
+        int starRating = (addedProtection)
+                ? 5 - possibleImpact - (maxProtectImpact - actualImpact)
+                : unprotectedRating;
+        int passiveColor = (unprotectedRating <= 1) ? RED :
+                (unprotectedRating <= 4) ? YELLOW : GREEN;
+        if (addedProtection) {
+            int starHeight = 50;
+            int scaleIncrease = 100;
+            int scaleCount = 1;
+            ImageView imageView = (ImageView) view.findViewById(R.id.star1);
+            if ((starRating >= 1)) {
 
-        imageView = (ImageView) view.findViewById(R.id.star2);
-        createRatingStar(imageView, 50, (starRating >= 2) ? Color.GREEN : Color.GRAY);
+                createRatingStar(imageView, (unprotectedRating >= 1)
+                        ? starHeight : (starHeight + (scaleCount++ * scaleIncrease)),
+                        (unprotectedRating >= 1) ? passiveColor : GREEN);
+            } else {
+                createRatingStar(imageView, starHeight, GRAY);
+            }
 
-        imageView = (ImageView) view.findViewById(R.id.star3);
-        createRatingStar(imageView, 50, (starRating >= 3) ? Color.GREEN : Color.GRAY);
+            imageView = (ImageView) view.findViewById(R.id.star2);
+            if ((starRating >= 2)) {
+                createRatingStar(imageView, (unprotectedRating >= 2)
+                                ? starHeight : (starHeight + (scaleCount++ * scaleIncrease)),
+                        (unprotectedRating >= 2) ? passiveColor : GREEN);
+            } else {
+                createRatingStar(imageView, starHeight, GRAY);
+            }
 
-        imageView = (ImageView) view.findViewById(R.id.star4);
-        createRatingStar(imageView, 50, (starRating >= 4) ? Color.GREEN : Color.GRAY);
+            imageView = (ImageView) view.findViewById(R.id.star3);
+            if ((starRating >= 3)) {
+                createRatingStar(imageView, (unprotectedRating >= 3)
+                                ? starHeight : (starHeight + (scaleCount++ * scaleIncrease)),
+                        (unprotectedRating >= 3) ? passiveColor : GREEN);
+            } else {
+                createRatingStar(imageView, starHeight, GRAY);
+            }
 
-        imageView = (ImageView) view.findViewById(R.id.star5);
-        createRatingStar(imageView, 50, (starRating >= 5) ? Color.GREEN : Color.GRAY);
+            imageView = (ImageView) view.findViewById(R.id.star4);
+            if ((starRating >= 4)) {
+                createRatingStar(imageView, (unprotectedRating >= 4)
+                                ? starHeight : (starHeight + (scaleCount++ * scaleIncrease)),
+                        (unprotectedRating >= 4) ? passiveColor : GREEN);
+            } else {
+                createRatingStar(imageView, starHeight, GRAY);
+            }
+
+            imageView = (ImageView) view.findViewById(R.id.star5);
+            if ((starRating >= 5)) {
+                createRatingStar(imageView, (unprotectedRating >= 5)
+                                ? starHeight : (starHeight + (scaleCount * scaleIncrease)),
+                        (unprotectedRating >= 5) ? passiveColor : GREEN);
+            } else {
+                createRatingStar(imageView, starHeight, Color.GRAY);
+            }
+
+        } else {
+            ImageView imageView = (ImageView) view.findViewById(R.id.star1);
+            createRatingStar(imageView, 50, (starRating >= 1) ? passiveColor : GRAY);
+
+            imageView = (ImageView) view.findViewById(R.id.star2);
+            createRatingStar(imageView, 50, (starRating >= 2) ? passiveColor : GRAY);
+
+            imageView = (ImageView) view.findViewById(R.id.star3);
+            createRatingStar(imageView, 50, (starRating >= 3) ? passiveColor : GRAY);
+
+            imageView = (ImageView) view.findViewById(R.id.star4);
+            createRatingStar(imageView, 50, (starRating >= 4) ? passiveColor : GRAY);
+
+            imageView = (ImageView) view.findViewById(R.id.star5);
+            createRatingStar(imageView, 50, (starRating >= 5) ? passiveColor : GRAY);
+        }
 
         TextView textView = (TextView) view.findViewById(R.id.count);
-        if (enabled) {
+        if (addedProtection && rawCount > 0) {
             textView.setVisibility(View.VISIBLE);
-            textView.setText("+10!");
+            String improvement = "+<b>" + rawCount + "</b>!";
+            textView.setText(Html.fromHtml(improvement));
         } else {
-            textView.setVisibility(View.GONE);
+            textView.setVisibility(View.INVISIBLE);
         }
+    }
+
+    private static int getPrivacyImpact(double count) {
+        return Math.max((int) Math.round(Math.log1p(count)) - 1, 0);
     }
 
     @Override
@@ -252,7 +419,10 @@ public class WebDefenderDetailsPreferences extends BrowserPreferenceFragment {
                getResources().getText(R.string.website_settings_webdefender_privacy_meter_title))) {
             View meter = child.findViewById(R.id.webdefender_privacy_meter);
             if (meter != null) {
-                WebDefenderDetailsPreferences.setupPrivacyMeterDisplay(meter, true, mStatus);
+                WebDefenderDetailsPreferences
+                        .setupPrivacyMeterDisplay(meter,
+                                mWebDefenderEnabled, mWebRefinerEnabled,
+                                mStatus, mWebRefinerBlockedCount);
             }
         }
 
@@ -320,8 +490,120 @@ public class WebDefenderDetailsPreferences extends BrowserPreferenceFragment {
             WebDefenderVectorsRecyclerView view =
                     (WebDefenderVectorsRecyclerView) child.findViewById(R.id.webdefender_vectors);
             if (view != null && mStatus != null) {
-                view.updateVectorArray(mStatus.mTrackerDomains);
+                mVectorsRecyclerView = view;
+                mVectorsRecyclerView.setUpdatedDomains(mUpdatedTrackerDomains);
+                view.updateVectorArray(sortDomains(mStatus.mTrackerDomains));
             }
         }
     }
+
+    private WebDefender.TrackerDomain[] sortDomains(WebDefender.TrackerDomain[] trackerDomains) {
+        Comparator<WebDefender.TrackerDomain> trackerDomainComparator =
+                new Comparator<WebDefender.TrackerDomain>() {
+            @Override
+            public int compare(WebDefender.TrackerDomain lhs, WebDefender.TrackerDomain rhs) {
+                if (mUpdatedTrackerDomains != null
+                        && (mUpdatedTrackerDomains.containsKey(lhs.mName)
+                        || mUpdatedTrackerDomains.containsKey(rhs.mName))) {
+                    if (mUpdatedTrackerDomains.containsKey(lhs.mName)
+                            && !mUpdatedTrackerDomains.containsKey(rhs.mName)) {
+                        return -1;
+                    } else {
+                        return 1;
+                    }
+                }
+                //list is reverse sorted to handle the way recyclerview adds elements.
+                else if (lhs.mUsesUserDefinedProtectiveAction || rhs.mUsesUserDefinedProtectiveAction) {
+                    if (lhs.mUsesUserDefinedProtectiveAction
+                            && rhs.mUsesUserDefinedProtectiveAction) {
+                        return 0;
+                    } else {
+                        return (lhs.mUsesUserDefinedProtectiveAction) ? -1 : 1;
+                    }
+                } else if (lhs.mProtectiveAction != rhs.mProtectiveAction) {
+                    if (lhs.mProtectiveAction
+                            == WebDefender.TrackerDomain.PROTECTIVE_ACTION_BLOCK_URL) {
+                        return -1;
+                    } else if (lhs.mProtectiveAction
+                            == WebDefender.TrackerDomain.PROTECTIVE_ACTION_BLOCK_COOKIES
+                            && rhs.mProtectiveAction
+                            != WebDefender.TrackerDomain.PROTECTIVE_ACTION_BLOCK_URL) {
+                        return -1;
+                    } else {
+                        return 1;
+                    }
+                } else if (lhs.mPotentialTracker || rhs.mPotentialTracker) {
+                    if (lhs.mPotentialTracker
+                            && rhs.mPotentialTracker) {
+                        return 0;
+                    } else {
+                        return (lhs.mPotentialTracker) ? -1 : 1;
+                    }
+                } else {
+                    return 0;
+                }
+            }
+        };
+        Arrays.sort(trackerDomains, trackerDomainComparator);
+        return trackerDomains;
+    }
+
+    public static CharSequence getDisabledMessage(Resources resources,
+                                            WebDefender.ProtectionStatus status) {
+        if (status == null || status.mTrackerDomains == null) {
+            return resources.getString(R.string.website_settings_webdefender_disabled);
+        }
+        int count = 0;
+        for (int i = 0; i < status.mTrackerDomains.length; i++) {
+            if (status.mTrackerDomains[i].mProtectiveAction !=
+                    WebDefender.TrackerDomain.PROTECTIVE_ACTION_UNBLOCK) {
+                count++;
+            }
+        }
+
+        return count > 0
+                ? Html.fromHtml(new Formatter().format(
+                resources.getString(R.string.website_settings_webdefender_disabled_count),
+                "<b>" + count + "</b>").toString())
+                : resources.getString(R.string.website_settings_webdefender_disabled);
+    }
+
+    @Override
+    public void onStop () {
+        super.onStop();
+        HashMap<String, Integer> updatedDomains;
+        if (mVectorsRecyclerView != null) {
+            updatedDomains = mVectorsRecyclerView.getUpdatedDomains();
+            if (updatedDomains == null) {
+                return;
+            }
+        } else {
+            return;
+        }
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ObjectOutputStream objectOutputStream;
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        SharedPreferences.Editor editor = prefs.edit();
+
+        try {
+            objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+            objectOutputStream.writeObject(updatedDomains);
+            byte[] data = byteArrayOutputStream.toByteArray();
+            objectOutputStream.close();
+            byteArrayOutputStream.close();
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            Base64OutputStream base64OutputStream = new Base64OutputStream(out, Base64.DEFAULT);
+            base64OutputStream.write(data);
+            base64OutputStream.close();
+            out.close();
+
+            editor.putString(DOMAIN_PREF, new String(out.toByteArray()));
+            editor.apply();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }

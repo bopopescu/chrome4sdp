@@ -71,7 +71,7 @@ public class ContentSettingsResources {
             case ContentSettingsType.CONTENT_SETTINGS_TYPE_PROTECTED_MEDIA_IDENTIFIER:
                 return org.chromium.chrome.R.string.protected_content;
             case ContentSettingsType.CONTENT_SETTINGS_TYPE_WEBREFINER:
-                return org.chromium.chrome.R.string.webrefiner;
+                return R.string.website_settings_webrefiner_title;
             case ContentSettingsType.CONTENT_SETTINGS_TYPE_WEBDEFENDER:
                 return org.chromium.chrome.R.string.webdefender;
             default:
@@ -106,7 +106,7 @@ public class ContentSettingsResources {
             case ContentSettingsType.CONTENT_SETTINGS_TYPE_PROTECTED_MEDIA_IDENTIFIER:
                 return R.string.protected_content;
             case ContentSettingsType.CONTENT_SETTINGS_TYPE_WEBREFINER:
-                return R.string.webrefiner;
+                return R.string.website_settings_webrefiner_title;
             case ContentSettingsType.CONTENT_SETTINGS_TYPE_WEBDEFENDER:
                 return R.string.webdefender;
             default:
