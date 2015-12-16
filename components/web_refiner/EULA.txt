@@ -1,0 +1,189 @@
+                           End User License Agreement
+
+Please read this End User License Agreement ("Agreement") carefully.  This
+Agreement is a binding legal agreement entered into by and between you (or if
+you are entering into this Agreement on behalf of an entity, then the entity
+that you represent) and Qualcomm Technologies, Inc., ("QTI" "we" "our" or "us").
+This is the agreement that applies to your use of the enclosed and/or linked
+application, documentation and any updates or improvements thereof
+(collectively, "Materials").  By using or completing the installation of the
+Materials, you are accepting this Agreement and you are bound by its terms and
+conditions.
+
+A. Acceptance of This Agreement:
+
+1.  You accept when you do any of the following things:
+
+   * Provide electronic acceptance by clicking the below "Accept" button; or
+
+   * Using the Materials.
+
+IF YOU DO NOT AGREE TO THE TERMS OF THIS AGREEMENT, THEN CLICK THE "DO NOT
+ACCEPT" BUTTON AND DO NOT INSTALL OR USE THE MATERIALS.
+
+2. The availability of the Materials is subject to our business policies,
+practices and procedures, which we can change without giving notice to
+you. UNLESS OTHERWISE PROHIBITED BY LAW, WE RESERVE THE RIGHT TO ADD TO OR
+CHANGE THE TERMS AND CONDITIONS OF THIS AGREEMENT AT ANY TIME.
+
+3. Subject to the terms and conditions of this Agreement, QTI hereby grants to
+you a limited non-exclusive, personal, non-transferable, non-sublicensable
+limited copyright license to access, use, run and redistribute (solely as
+incorporated in a software application that you distribute or have distributed
+to end user licensees) the Materials application in object code format only.
+This license is with respect to copyright rights only and specifically excludes
+any and all patent rights of QTI or its affiliates.  Except for the limited
+copyright rights granted to you under this Section A.3 with respect to the use
+of the Materials, you further acknowledge and agree that QTI has no right to
+sublicense or otherwise grant any rights under any other intellectual property
+right, including, without limitation any patent rights of Qualcomm Incorporated.
+For the purposes of this Agreement "intellectual property rights" means all
+current and future worldwide copyrights, trade secrets, patents and other patent
+rights, utility models, mask work rights, trademarks, trade names, service marks
+and all other intellectual property rights, including all applications and
+registrations with respect thererto.
+
+4.  You shall not distribute the Materials on a stand alone basis.  You also
+agree that your use of the Materials won't be for any purpose that is
+illegal. WE CAN, WITHOUT NOTICE, LIMIT, SUSPEND OR END AVAILABILITY OF THE
+MATERIALS OR ANY AGREEMENT WITH YOU FOR GOOD CAUSE, including, but not limited
+to: (a) breach of this Agreement; (b) modification, or reverse engineering of
+the Materials; or (h) use of Materials to violate or infringe upon any rights of
+any kind of QTI or any third party, including, but not limited to, copyright,
+trademark, Agreement, defamation, right of privacy or publicity or any other
+right of any person or entity.  The software portions of the Materials may only
+be used on devices utilizing QTI processors.
+
+5. You shall not attempt, knowingly permit or encourage others to attempt to:
+(a) reverse engineer, reverse compile, decipher, decrypt, or discover the source
+code of or disassemble the Materials, in whole or in part; (b) use any
+mechanical, electronic, or other method to trace, decompile, disassemble or
+decrypt the Materials or encourage others to do so; (c) rent, loan, lease,
+sublicense, transfer, network, reproduce, display, or otherwise distribute the
+Materials; (d) copy, manufacture, translate, modify, adapt, enhance or extend
+the Materials.
+
+6. The Materials may contain or link to certain software and/or materials that
+are written or owned by third parties.  Such third party code and materials are
+licensed under separate or different terms and conditions and are not licensed
+to you under the terms of this Agreement.  You agree to comply with all terms
+and conditions imposed on you in the applicable third party licenses.  Such
+terms and conditions may impose certain obligations on you as a condition to the
+permitted use of such third party code and materials.  QTI does not represent or
+warrant that such third party licensors have or will continue to license or make
+available their code and materials to you.
+
+7. QTI and its licensors retain all right, title, and interest in and to the
+Materials and any updates and improvements thereof, including, without
+limitation, all copyrights, patent rights and trademark rights and all other
+intellectual property rights therein.  This Agreement does not convey to you any
+ownership interest in any of the intellectual property rights of QTI, its
+licensors and Affiliates.  Any rights not expressly granted to you herein are
+hereby reserved by QTI, its licensors and Affiliates.
+
+B. Disclaimers/Limitation of Liability:
+
+1. WE MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING,
+WITHOUT LIMITATION, TO THE EXTENT PERMITTED BY APPLICABLE LAW, REGARDING ANY
+IMPLIED WARRANTIES OF NON-INFRINGEMENT OF THIRD PARTY RIGHTS, MERCHANTABILITY OR
+FITNESS FOR A PARTICULAR PURPOSE CONCERNING THE MATERIALS. WE CAN'T PROMISE
+ACCURACY OR ERROR-FREE SERVICE AND DON'T AUTHORIZE ANYONE TO MAKE ANY WARRANTIES
+ON OUR BEHALF.
+
+2. TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL QTI, ITS
+LICENSORS OR ITS AFFILIATES BE LIABLE FOR ANY CONSEQUENTIAL, SPECIAL, INCIDENTAL
+OR INDIRECT DAMAGES OF ANY KIND ARISING OUT OF THE USE OF THE MATERIALS, OR
+OTHERWISE UNDER OR IN CONNECTION WITH ANY PROVISION OF THIS AGREEMENT
+(INCLUDING, BUT NOT LIMITED TO, LOST DATA, LOST PROFITS OR CONFIDENTIAL OR OTHER
+INFORMATION, FOR BUSINESS INTERRUPTION, FOR PERSONAL INJURY, FOR LOSS OF
+PRIVACY, FOR FAILURE TO MEET ANY DUTY INCLUDING OF GOOD FAITH OR OF REASONABLE
+CARE, FOR NEGLIGENCE AND FOR ANY OTHER PECUNIARY OR OTHER LOSS WHATSOEVER), EVEN
+IF QTI, ITS LICENSORS AND ITS AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
+
+THE ENTIRE LIABILITY (IN THE AGGREGATE) OF QTI, ITS LICENSORS AND ITS AFFILIATES
+UNDER ANY PROVISION OF THIS AGREEMENT AND YOUR EXCLUSIVE REMEDY HEREUNDER SHALL
+BE LIMITED TO FIFTY DOLLARS ($50).  THE FOREGOING LIMITATION, SHALL APPLY TO THE
+MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, EVEN IF ANY REMEDY FAILS ITS
+ESSENTIAL PURPOSE.
+
+C. Miscellaneous:
+
+1. The Materials are available for individuals age 13 years or older. If you are
+13 or older but under the age of 18, you should review these terms and
+conditions with your parent or guardian to make sure that you and your parent or
+guardian understand these terms and conditions. If you are downloading for an
+organization, you are representing that you are authorized to bind it, and where
+the context requires, "you" means the organization.
+
+2. If you are acting on behalf of an agency or instrumentality of the
+U.S. government, the Materials, are "commercial computer software" and developed
+exclusively at private expense by QTI and its licensors.  Pursuant to FAR 12.212
+or DFARS 227 7202 and their successors, as applicable, use, reproduction and
+disclosure of the software is governed by the terms of this Agreement.
+
+3. Nothing under this Agreement or the fact that you have access to and use of
+the Materials give you any right, title or interest or license to reproduce,
+modify or otherwise use our or any third party trademarks, service marks,
+graphics, or logos.
+
+4. This Agreement shall commence upon the earlier of the date that you first use
+the Materials or the date that you accept this agreement and shall continue
+until terminated in accordance with Section 5 below.
+
+5. This Agreement shall terminate immediately, without notice, if you fail to
+comply with any term of this Agreement.  In addition, QTI may terminate this
+Agreement at any time upon notice to you or by posting notice on QTI's website.
+Upon termination, you agree to immediately cease using the Materials.  Sections
+A.4, A.7 and Articles B and C shall survive the expiration or termination of
+this Agreement.
+
+6. You acknowledge that all hardware, software, source code and technology
+(collectively, "Products") obtained from QTI are subject to the US government
+export control and economic sanctions laws. You assure that You, Your
+subsidiaries and affiliates will not directly or indirectly export, re-export,
+transfer or release (collectively, "export") any Products or direct product
+thereof to any destination, person, entity or end use prohibited or restricted
+under US laws without prior US government authorization to the extent required
+by applicable regulation. The US government maintains embargoes and sanctions
+against certain countries, currently Cuba, Iran, North Korea, Sudan and Syria,
+but any amendments to the countries under a US embargo or sanction shall
+apply. You acknowledge that other countries may have trade laws pertaining to
+import, use, export or distribution of Products, and that compliance with the
+same is Your responsibility. You further acknowledge that you are not a person
+or entity that is listed on any United States Government list of prohibited or
+restricted parties. This section shall survive the expiration or termination of
+this Agreement.
+
+7. A waiver of any part of this Agreement in one instance is not a waiver of any
+part or any other instance. You are not permitted to assign this Agreement or
+any of your rights or duties under it. We may assign all or part of this
+Agreement without notice.
+
+8. It is expressly understood that this Agreement is non-exclusive for both
+parties.  Except as specifically agreed otherwise, this Agreement does not grant
+either party any exclusive privileges or rights.
+
+9. If any part of this Agreement is held invalid, that part may be severed from
+this Agreement while the remainder of the Agreement continues in effect. This
+Agreement and the documents to which it refers form the entire agreement between
+us on their subjects. You can't rely on any other documents and you have no
+other rights with respect to the Materials or this Agreement, except as
+specifically provided by law. This Agreement is not for the benefit of any third
+party except our parents, affiliates, subsidiaries, agents, assigns and
+predecessors and successors in interest. This Agreement and all disputes between
+us (whether or not based on this Agreement) are governed by the laws of the
+state of California, without regard to that state's conflict of laws principles.
+Any claim arising out of or related to this Agreement must be brought
+exclusively in a federal or state court located in San Diego County, California
+and you consent to the jurisdiction and venue of such courts.  The United
+Nations convention on Contracts for the International Sale of Goods is expressly
+disclaimed and shall not apply.  You hereby acknowledge and agree that the
+restrictions, limitations, conditions and exclusions imposed in this Agreement
+on the rights granted in this Agreement are not a derogation of the benefits of
+such rights.  This Agreement is the entire and exclusive agreement between QTI
+and You with respect to the Materials and supersedes all prior agreements
+between QTI and you, along with any other communications (whether written or
+oral) between QTI and you.
+
+
