@@ -180,7 +180,24 @@ public class BrowserNewTabPage extends NewTabPage
 
             mNTPTabLayout = (TabLayout) mNTPLinearLayout.findViewById(R.id.browser_ntp_tablayout);
             if (mNTPTabLayout != null) {
+                final ViewPager pager = mPager;
                 mNTPTabLayout.setupWithViewPager(mPager);
+                mNTPTabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                    @Override
+                    public void onTabSelected(TabLayout.Tab tab) {
+                        pager.setCurrentItem(tab.getPosition());
+                    }
+
+                    @Override
+                    public void onTabUnselected(TabLayout.Tab tab) {
+
+                    }
+
+                    @Override
+                    public void onTabReselected(TabLayout.Tab tab) {
+                        pager.setCurrentItem(tab.getPosition());
+                    }
+                });
                 updateSearchEngineArtifacts();
             }
         } else {

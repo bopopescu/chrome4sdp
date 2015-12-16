@@ -118,8 +118,6 @@ public class NativePageFactory {
             Tab tab, TabModelSelector tabModelSelector, Activity activity,
             boolean isIncognito) {
         NativePage page;
-        boolean chromium = CommandLine.getInstance()
-                .hasSwitch(ChromeSwitches.ENABLE_SUPPRESSED_CHROMIUM_FEATURES);
 
         switch (nativePageType(url, candidatePage, isIncognito)) {
             case NONE:
@@ -128,18 +126,18 @@ public class NativePageFactory {
                 page = candidatePage;
                 break;
             case NTP:
-                if (tab == null || chromium)
+                if (tab == null)
                     page = sNativePageBuilder.buildNewTabPage(activity, tab, tabModelSelector);
                 else
                     page = sNativePageBuilder.buildNewTabPage(activity, tab, tabModelSelector, url);
                 break;
             case BOOKMARKS:
-                if (tab != null && !chromium && tab.isNativePage() &&
+                if (tab != null && !isIncognito && tab.isNativePage() &&
                         tab.getNativePage() instanceof BrowserNewTabPage) {
                     BrowserNewTabPage ntp = (BrowserNewTabPage) tab.getNativePage();
                     ntp.showBookmarksPage();
                     page = ntp;
-                } else if (tab != null && !isIncognito && !chromium) {
+                } else if (tab != null && !isIncognito) {
                     page = sNativePageBuilder.buildNewTabPage(activity, tab, tabModelSelector, url);
                 } else {
                     page = sNativePageBuilder.buildBookmarksPage(activity, tab, tabModelSelector);
@@ -147,12 +145,12 @@ public class NativePageFactory {
                 if (page == null) return null;  // Enhanced Bookmarks page is not shown on phone
                 break;
             case RECENT_TABS:
-                if (tab != null && !chromium && tab.isNativePage() &&
+                if (tab != null && !isIncognito && tab.isNativePage() &&
                         tab.getNativePage() instanceof BrowserNewTabPage) {
                     BrowserNewTabPage ntp = (BrowserNewTabPage) tab.getNativePage();
                     ntp.showRecentTabs();
                     page = ntp;
-                } else if (tab != null && !isIncognito && !chromium) {
+                } else if (tab != null && !isIncognito) {
                     page = sNativePageBuilder.buildNewTabPage(activity, tab, tabModelSelector, url);
                 } else {
                     page = sNativePageBuilder.buildRecentTabsPage(activity, tab);
