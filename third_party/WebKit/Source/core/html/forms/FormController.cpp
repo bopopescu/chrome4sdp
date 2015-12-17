@@ -531,7 +531,14 @@ void FormController::restoreControlStateFor(HTMLFormControlElementWithState& con
 
 void FormController::restoreControlStateIn(HTMLFormElement& form)
 {
-    const FormAssociatedElement::List& elements = form.associatedElements();
+    // Copy associatedElements because onchange() event handlers called when restoring
+    // form control state might change associated elements
+    const FormAssociatedElement::List& associatedElements = form.associatedElements();
+    FormAssociatedElement::List elements;
+    elements.reserveCapacity(associatedElements.size());
+    for (unsigned i = 0; i < associatedElements.size(); ++i)
+        elements.append(associatedElements[i]);
+
     for (const auto& element : elements) {
         if (!element->isFormControlElementWithState())
             continue;
