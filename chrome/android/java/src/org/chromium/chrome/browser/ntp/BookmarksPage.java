@@ -589,4 +589,8 @@ public class BookmarksPage implements NativePage, InvalidationAwareThumbnailProv
         ViewUtils.captureBitmap(mPageView, canvas);
         mPageView.updateThumbnailState();
     }
+
+    public void onExternalCapture() {
+        mPageView.updateThumbnailState();
+    }
 }

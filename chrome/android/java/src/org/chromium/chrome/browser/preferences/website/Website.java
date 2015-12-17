@@ -463,10 +463,11 @@ public class Website implements Serializable {
      */
     public void setWebRefinerPermission(ContentSetting value) {
         if (value == null) {
-            WebRefinerPreferenceHandler.useDefaultPermissionForOrigins(getAddress().getOrigin());
+            WebRefinerPreferenceHandler.useDefaultPermissionForOrigins(getAddress().getOrigin(),
+                    false);
         } else {
             WebRefinerPreferenceHandler.setWebRefinerSettingForOrigin(getAddress().getOrigin(),
-                value == ContentSetting.ALLOW);
+                value == ContentSetting.ALLOW, false);
         }
         if (mWebRefinerInfo != null) {
             mWebRefinerInfo.setContentSetting(value);
@@ -505,10 +506,11 @@ public class Website implements Serializable {
      */
     public void setWebDefenderPermission(ContentSetting value) {
         if (value == null) {
-            WebDefenderPreferenceHandler.useDefaultPermissionForOrigins(getAddress().getOrigin());
+            WebDefenderPreferenceHandler.useDefaultPermissionForOrigins(getAddress().getOrigin(),
+                    false);
         } else {
             WebDefenderPreferenceHandler.setWebDefenderSettingForOrigin(getAddress().getOrigin(),
-                    value == ContentSetting.ALLOW);
+                    value == ContentSetting.ALLOW, false);
         }
         if (mWebDefenderInfo != null) {
             mWebDefenderInfo.setContentSetting(value);

@@ -708,6 +708,13 @@ public class NewTabPageView extends FrameLayout
         mSnapshotMostVisitedChanged = false;
     }
 
+    public void onExternalCapture() {
+        mSnapshotWidth = getWidth();
+        mSnapshotHeight = getHeight();
+        mSnapshotScrollY = mScrollView.getScrollY();
+        mSnapshotMostVisitedChanged = false;
+    }
+
     // OnLayoutChangeListener overrides
 
     @Override

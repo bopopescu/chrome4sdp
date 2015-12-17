@@ -271,4 +271,13 @@ public class RecentTabsPage
         mSnapshotWidth = mView.getWidth();
         mSnapshotHeight = mView.getHeight();
     }
+
+    public void onExternalCapture() {
+        mSnapshotContentChanged = false;
+        mSnapshotListPosition = mListView.getFirstVisiblePosition();
+        View topItem = mListView.getChildAt(0);
+        mSnapshotListTop = topItem == null ? 0 : topItem.getTop();
+        mSnapshotWidth = mView.getWidth();
+        mSnapshotHeight = mView.getHeight();
+    }
 }

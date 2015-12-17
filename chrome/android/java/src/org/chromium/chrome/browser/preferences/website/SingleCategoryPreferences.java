@@ -126,11 +126,10 @@ public class SingleCategoryPreferences extends BrowserPreferenceFragment
                                 SingleWebsitePreferences.mergePermissionInfoForTopLevelOrigin(
                                 site.getAddress(),
                                 allSites);
-                        if (mCategory.showAllSites() || mCategory.showStorageSites())
-                            websites.add(new WebsitePreference(getActivity(), combinedSite,
-                                    mCategory));
-                        else if (siteIsRelevant(site)) { //If this site has the right permission
-                            websites.add(new WebsitePreference(getActivity(), combinedSite,
+                            if (siteIsRelevant(site) && (mSearch.isEmpty()
+                                    || combinedSite.getTitle().contains(mSearch))) {
+                                //If this site has the right permissions add it to the list.
+                                websites.add(new WebsitePreference(getActivity(), combinedSite,
                                     mCategory));
                         }
                         mergedSites.add(site.getAddress().toString());
@@ -205,6 +204,7 @@ public class SingleCategoryPreferences extends BrowserPreferenceFragment
     }
 
     private boolean siteIsRelevant(Website site) {
+        if (mCategory.showAllSites() || mCategory.showStorageSites()) return true;
         if (mCategory.showCookiesSites()) {
             return site.getCookiePermission() != null;
         } else if (mCategory.showCameraSites()) {

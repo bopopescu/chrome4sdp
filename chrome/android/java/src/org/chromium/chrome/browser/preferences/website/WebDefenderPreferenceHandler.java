@@ -181,23 +181,25 @@ public class WebDefenderPreferenceHandler {
         WebDefender.getInstance().setDefaultPermission(enabled);
     }
 
-    public static void useDefaultPermissionForOrigins(String origin) {
+    public static void useDefaultPermissionForOrigins(String origin, boolean isIncognito) {
         if (!isInitialized()) return;
         String[] origins = new String[1];
         origins[0] = origin;
-        WebDefender.getInstance().setPermissionForOrigins(origins, WebRefiner.PERMISSION_USE_DEFAULT, false);
+        WebDefender.getInstance().setPermissionForOrigins(origins,
+                WebRefiner.PERMISSION_USE_DEFAULT, isIncognito);
     }
 
-    public static void setWebDefenderSettingForOrigin(String origin, boolean enabled) {
+    public static void setWebDefenderSettingForOrigin(String origin, boolean enabled,
+                                                      boolean isIncognito) {
         if (!isInitialized()) return;
         String[] origins = new String[1];
         origins[0] = origin;
         int permission = enabled ? WebRefiner.PERMISSION_ENABLE : WebRefiner.PERMISSION_DISABLE;
-        WebDefender.getInstance().setPermissionForOrigins(origins, permission, false);
+        WebDefender.getInstance().setPermissionForOrigins(origins, permission, isIncognito);
     }
 
     public static void addIncognitoOrigin(String origin, ContentSetting permission) {
-        setWebDefenderSettingForOrigin(origin, permission == ContentSetting.ALLOW);
+        setWebDefenderSettingForOrigin(origin, permission == ContentSetting.ALLOW, true);
         if (mIncognitoPermissions == null) {
             mIncognitoPermissions = new HashMap<>();
         }
@@ -215,11 +217,14 @@ public class WebDefenderPreferenceHandler {
     public static void clearIncognitoOrigin(String origin) {
         if (mIncognitoPermissions != null && mIncognitoPermissions.containsKey(origin)) {
             mIncognitoPermissions.remove(origin);
+            useDefaultPermissionForOrigins(origin, true);
         }
     }
 
     public static void onIncognitoSessionFinish() {
         mIncognitoPermissions = null;
+        if (WebDefender.isInitialized())
+            WebDefender.getInstance().resetAllIncognitoPermissions();
     }
 
     public static StatusParcel getStatus(ContentViewCore cvc) {

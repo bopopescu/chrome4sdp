@@ -32,15 +32,20 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import org.chromium.chrome.R;
@@ -54,6 +59,7 @@ import org.chromium.chrome.browser.search_engines.TemplateUrlService.TemplateUrl
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tabmodel.TabModelSelector;
 import org.chromium.chrome.browser.toolbar.ToolbarFavicon;
+import org.chromium.chrome.browser.util.ViewUtils;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -67,8 +73,10 @@ public class BrowserNewTabPage extends NewTabPage
     private final Activity mActivity;
 
     private final ViewPager mPager;
+    private final FloatingActionButton mSearch;
 
     private String mTabTitles[];
+    private int mLastCaptureIndex = -1;
     private final HashMap<String, NativePage> mNativeViewMap;
 
     @SuppressLint("ValidFragment")
@@ -141,6 +149,11 @@ public class BrowserNewTabPage extends NewTabPage
         if (view != null) {
             view.setPadding(view.getPaddingLeft(),0,view.getPaddingRight(),view.getPaddingBottom());
         }
+        view = newTabPageView.findViewById(R.id.ntp_scrollview);
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams)view.getLayoutParams();
+        layoutParams.setMargins(layoutParams.leftMargin, layoutParams.topMargin,
+                layoutParams.rightMargin, 0);
+        view.setLayoutParams(layoutParams);
         mNativeViewMap.put(mTabTitles[0], this);
 
         // Remove NTP chromium style tab bar
@@ -172,6 +185,26 @@ public class BrowserNewTabPage extends NewTabPage
         mNativeViewMap.put(mTabTitles[2], recentTabsPage);
 
         mNTPLinearLayout = (LinearLayout) inflater.inflate(R.layout.browser_new_tab_page, null);
+
+        mSearch = (FloatingActionButton) mNTPLinearLayout.findViewById(R.id.ntp_search);
+
+        mSearch.getDrawable().setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_IN);
+        mSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mNewTabPageManager.focusSearchBox(false, null);
+            }
+        });
+        mSearch.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (mNewTabPageManager.isVoiceSearchEnabled()) {
+                    mNewTabPageManager.focusSearchBox(true, null);
+                    return true;
+                }
+                return false;
+            }
+        });
 
         mPager = (ViewPager) mNTPLinearLayout.findViewById(R.id.browser_ntp_views);
         if (mPager != null) {
@@ -220,7 +253,7 @@ public class BrowserNewTabPage extends NewTabPage
     private class LargeIconForNTP implements LargeIconCallback {
         @Override
         public void onLargeIconAvailable(Bitmap icon, int fallbackColor) {
-            int color = mActivity.getResources().getColor(R.color.accent);
+            int color;
             if (TemplateUrlService.getInstance().isDefaultSearchEngineGoogle()) {
                 color = ToolbarFavicon.OVERRIDE_SEARCHENGINE_COLOR;
             } else {
@@ -231,6 +264,7 @@ public class BrowserNewTabPage extends NewTabPage
                 }
             }
             mNTPTabLayout.setBackgroundColor(color);
+            mSearch.setBackgroundTintList(ColorStateList.valueOf(color));
         }
     }
 
@@ -344,6 +378,7 @@ public class BrowserNewTabPage extends NewTabPage
 
     @Override
     public boolean shouldCaptureThumbnail() {
+        if (mPager.getCurrentItem() != mLastCaptureIndex) return true;
         NativePage page = getCurrentNativePage();
         if (page instanceof BrowserNewTabPage) {
             return super.shouldCaptureThumbnail();
@@ -356,14 +391,17 @@ public class BrowserNewTabPage extends NewTabPage
     @Override
     public void captureThumbnail(Canvas canvas) {
         NativePage page = getCurrentNativePage();
+        mLastCaptureIndex = mPager.getCurrentItem();
+        ViewUtils.captureBitmap(mNTPLinearLayout, canvas);
+        //Update the captures for each page. Ugly but minimal code change.
         if (page instanceof BrowserNewTabPage) {
-            super.captureThumbnail(canvas);
-            return;
+            ((NewTabPageView) super.getView()).onExternalCapture();
+            //update view bounds for this guy
+        } else if (page instanceof BookmarksPage) {
+            ((BookmarksPage)page).onExternalCapture();
+        } else if (page instanceof RecentTabsPage) {
+            ((RecentTabsPage)page).onExternalCapture();
         }
-
-        InvalidationAwareThumbnailProvider provider = getCurrentThumbnailProvider(page);
-        if (provider != null)
-            provider.captureThumbnail(canvas);
     }
 
 

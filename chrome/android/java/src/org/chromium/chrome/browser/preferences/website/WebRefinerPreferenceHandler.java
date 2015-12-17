@@ -98,12 +98,13 @@ public class WebRefinerPreferenceHandler {
         WebRefiner.getInstance().setDefaultPermission(enabled);
     }
 
-    static public void setWebRefinerSettingForOrigin(String origin, boolean enabled) {
+    static public void setWebRefinerSettingForOrigin(String origin,
+                                                     boolean enabled, boolean isIncognito) {
         if (!WebRefiner.isInitialized()) return;
         String[] origins = new String[1];
         origins[0] = origin;
         int permission = enabled ? WebRefiner.PERMISSION_ENABLE : WebRefiner.PERMISSION_DISABLE;
-        WebRefiner.getInstance().setPermissionForOrigins(origins, permission, false);
+        WebRefiner.getInstance().setPermissionForOrigins(origins, permission, isIncognito);
     }
 
     public static int getBlockedURLCount(ContentViewCore contentViewCore) {
@@ -116,11 +117,12 @@ public class WebRefinerPreferenceHandler {
         return WebRefiner.getInstance().getPageInfo(contentViewCore);
     }
 
-    public static void useDefaultPermissionForOrigins(String origin) {
+    public static void useDefaultPermissionForOrigins(String origin, boolean isIncognito) {
         if (!WebRefiner.isInitialized()) return;
         String[] origins = new String[1];
         origins[0] = origin;
-        WebRefiner.getInstance().setPermissionForOrigins(origins, WebRefiner.PERMISSION_USE_DEFAULT, false);
+        WebRefiner.getInstance()
+                .setPermissionForOrigins(origins, WebRefiner.PERMISSION_USE_DEFAULT, isIncognito);
     }
 
     public static boolean isInitialized() {
@@ -128,7 +130,7 @@ public class WebRefinerPreferenceHandler {
     }
 
     public static void addIncognitoOrigin(String origin, ContentSetting permission) {
-        setWebRefinerSettingForOrigin(origin, permission == ContentSetting.ALLOW);
+        setWebRefinerSettingForOrigin(origin, permission == ContentSetting.ALLOW, true);
         if (mIncognitoPermissions == null) {
             mIncognitoPermissions = new HashMap<>();
         }
@@ -146,10 +148,13 @@ public class WebRefinerPreferenceHandler {
     public static void clearIncognitoOrigin(String origin) {
         if (mIncognitoPermissions != null && mIncognitoPermissions.containsKey(origin)) {
             mIncognitoPermissions.remove(origin);
+            useDefaultPermissionForOrigins(origin, true);
         }
     }
 
     public static void onIncognitoSessionFinish() {
         mIncognitoPermissions = null;
+        if (WebRefiner.isInitialized())
+            WebRefiner.getInstance().resetAllIncognitoPermissions();
     }
 }
