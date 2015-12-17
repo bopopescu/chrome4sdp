@@ -355,6 +355,7 @@ public class CompositorViewHolder extends FrameLayout
         }
 
         setContentViewMotionEventOffsets(e, false);
+        mIsKeyboardShowing = UiUtils.isKeyboardShowing(getContext(), this);
         return mLayoutManager.onInterceptTouchEvent(e, mIsKeyboardShowing);
     }
 
