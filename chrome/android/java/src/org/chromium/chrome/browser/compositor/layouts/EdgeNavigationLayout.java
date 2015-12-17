@@ -559,7 +559,8 @@ public class EdgeNavigationLayout extends Layout
 
         Tab tab = mTabModelSelector.getCurrentTab();
         if (tab != null && tab.isNativePage()) {
-            mTabContentManager.cacheTabThumbnail(tab);
+            //Only do this for native pages since shouldignorenavigation will handle it for others
+            captureBeforeNavigation(mCurrHistoryIndex, tab, mTabContentManager);
         }
 
         mCurrentView = newLayoutView(mTabModelSelector.getCurrentTabId());
