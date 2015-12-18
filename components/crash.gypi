@@ -13,6 +13,9 @@
         'crash/app/crash_reporter_client.cc',
         'crash/app/crash_reporter_client.h',
       ],
+      'dependencies': [
+        'components.gyp:version_info',
+      ],
       'include_dirs': [
         '..',
         '../breakpad/src',
