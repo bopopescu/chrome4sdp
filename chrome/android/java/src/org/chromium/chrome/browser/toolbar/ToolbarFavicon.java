@@ -210,7 +210,7 @@ public class ToolbarFavicon implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (mFaviconView == v) {
+        if (mFaviconView == v && mTab != null) {
             NativePage page = mTab.getNativePage();
             if (page instanceof NewTabPage) {
                 new AlertDialog.Builder(v.getContext())

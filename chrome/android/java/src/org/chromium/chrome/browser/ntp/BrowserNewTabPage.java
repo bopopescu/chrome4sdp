@@ -28,7 +28,6 @@
 */
 package org.chromium.chrome.browser.ntp;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -79,8 +78,7 @@ public class BrowserNewTabPage extends NewTabPage
     private int mLastCaptureIndex = -1;
     private final HashMap<String, NativePage> mNativeViewMap;
 
-    @SuppressLint("ValidFragment")
-    private class NTPPageFragment extends Fragment {
+    public class NTPPageFragment extends Fragment {
         View mPage;
 
         public NTPPageFragment(View page) {
