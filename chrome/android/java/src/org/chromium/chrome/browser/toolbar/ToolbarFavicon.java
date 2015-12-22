@@ -62,6 +62,7 @@ import org.chromium.chrome.browser.preferences.PreferencesLauncher;
 import org.chromium.chrome.browser.preferences.PrefServiceBridge;
 import org.chromium.chrome.browser.preferences.SearchEnginePreference;
 import org.chromium.chrome.browser.preferences.website.BrowserSingleWebsitePreferences;
+import org.chromium.chrome.browser.preferences.website.WebDefenderPreferenceHandler;
 import org.chromium.chrome.browser.preferences.website.WebRefinerPreferenceHandler;
 import org.chromium.chrome.browser.profiles.Profile;
 import org.chromium.chrome.browser.search_engines.TemplateUrlService;
@@ -71,6 +72,7 @@ import org.chromium.chrome.browser.tab.EmptyTabObserver;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.browser.tab.TabObserver;
 import org.chromium.chrome.browser.widget.RoundedIconGenerator;
+import org.chromium.content.browser.WebDefender;
 import org.chromium.content_public.browser.LoadUrlParams;
 
 import java.util.List;
@@ -128,7 +130,7 @@ public class ToolbarFavicon implements View.OnClickListener {
                 //onContentChanged notifies us when the nativePages are modified/swapped
                 @Override
                 public void onContentChanged(Tab tab) {
-                    if (mFavicon == null) refreshFavicon();
+                    refreshFavicon();
                 }
 
                 @Override
@@ -331,10 +333,27 @@ public class ToolbarFavicon implements View.OnClickListener {
     }
 
     private void refreshBlockedCount() {
-        if (mBlockedCountSet == true || mTab == null ||
+        if (mBlockedCountSet || mTab == null ||
                 mTab.getContentViewCore() == null) return ;
         int count = WebRefinerPreferenceHandler.getBlockedURLCount(
                 mTab.getContentViewCore());
+        WebDefenderPreferenceHandler.StatusParcel statusParcel =
+                WebDefenderPreferenceHandler.getStatus(mTab.getContentViewCore());
+        if (statusParcel != null ) {
+            WebDefender.ProtectionStatus protectionStatus = statusParcel.getStatus();
+            if (protectionStatus != null && protectionStatus.mTrackerDomains != null
+                    && protectionStatus.mTrackerDomains.length > 0) {
+                for (WebDefender.TrackerDomain trackerDomain : protectionStatus.mTrackerDomains) {
+                    if (trackerDomain.mProtectiveAction ==
+                            WebDefender.TrackerDomain.PROTECTIVE_ACTION_BLOCK_URL ||
+                            trackerDomain.mProtectiveAction ==
+                                    WebDefender.TrackerDomain.PROTECTIVE_ACTION_BLOCK_COOKIES) {
+                        count++;
+                    }
+                }
+            }
+        }
+
         if (mFaviconView != null)
             mFaviconView.setBadgeBlockedObjectsCount(count);
         if (count > 0)
