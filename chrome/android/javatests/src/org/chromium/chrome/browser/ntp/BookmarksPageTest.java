@@ -6,6 +6,7 @@ package org.chromium.chrome.browser.ntp;
 
 import android.test.suitebuilder.annotation.LargeTest;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -20,6 +21,7 @@ import org.chromium.chrome.browser.UrlConstants;
 import org.chromium.chrome.browser.bookmark.AddEditBookmarkFragment;
 import org.chromium.chrome.browser.bookmark.ManageBookmarkActivity;
 import org.chromium.chrome.browser.bookmark.SelectBookmarkFolderFragment;
+import org.chromium.chrome.browser.ntp.BrowserBookmarksRecyclerView;
 import org.chromium.chrome.browser.tab.Tab;
 import org.chromium.chrome.test.ChromeTabbedActivityTestBase;
 import org.chromium.chrome.test.util.ActivityUtils;
@@ -48,7 +50,7 @@ public class BookmarksPageTest extends ChromeTabbedActivityTestBase {
     private static final String MOBILE_BOOKMARKS_TITLE = "Mobile bookmarks";
     private static final String BOOKMARKS_TITLE = "Bookmarks";
 
-    private ListView mBookmarksList;
+    private BrowserBookmarksRecyclerView mBookmarksList;
     private LinearLayout mHierarchyLayout;
 
     @Override
@@ -97,10 +99,11 @@ public class BookmarksPageTest extends ChromeTabbedActivityTestBase {
                    tab.getNativePage() instanceof BrowserNewTabPage);
         mHierarchyLayout = (LinearLayout) getActivity().findViewById(
                 R.id.bookmark_folder_structure);
-        mBookmarksList = (ListView) getActivity().findViewById(R.id.bookmarks_list_view);
+        mBookmarksList = (BrowserBookmarksRecyclerView)
+            getActivity().findViewById(R.id.bookmarks_list_view);
     }
 
-    private void openBookmarkInCurrentTab(final BookmarkItemView itemView)
+    private void openBookmarkInCurrentTab(final View itemView)
             throws InterruptedException {
         ChromeTabUtils.waitForTabPageLoaded(getActivity().getActivityTab(), new Runnable() {
             @Override
@@ -114,7 +117,7 @@ public class BookmarksPageTest extends ChromeTabbedActivityTestBase {
 
     private void addBookmarkAndLongClickForContextMenu() throws InterruptedException {
         addBookmark();
-        BookmarkItemView itemView = (BookmarkItemView) BookmarkTestUtils.getViewWithText(
+        View itemView = (View) BookmarkTestUtils.getViewWithText(
                 mBookmarksList, TEST_PAGE_TITLE);
         TouchCommon.longPressView(itemView, itemView.getWidth() / 2, itemView.getHeight() / 2);
     }
@@ -153,7 +156,7 @@ public class BookmarksPageTest extends ChromeTabbedActivityTestBase {
                 return (BookmarkTestUtils.getViewWithText(mBookmarksList, folderToSelect) != null);
             }
         });
-        final BookmarkItemView itemView = (BookmarkItemView) BookmarkTestUtils.getViewWithText(
+        final View itemView = (View) BookmarkTestUtils.getViewWithText(
                 mBookmarksList, folderToSelect);
         TouchCommon.singleClickView(itemView);
         assertEquals(folderToSelect, getCurrentFolderTitle());
@@ -181,7 +184,7 @@ public class BookmarksPageTest extends ChromeTabbedActivityTestBase {
         // Assert "About" item is listed in the bookmarks list.
         assertTrue(isItemPresentInBookmarksList(TEST_PAGE_TITLE));
         // Click the item "About".
-        openBookmarkInCurrentTab((BookmarkItemView) BookmarkTestUtils.getViewWithText(
+        openBookmarkInCurrentTab((View) BookmarkTestUtils.getViewWithText(
                 mBookmarksList, TEST_PAGE_TITLE));
     }
 
@@ -224,7 +227,7 @@ public class BookmarksPageTest extends ChromeTabbedActivityTestBase {
     @LargeTest
     public void testContextMenuOptionOpenInANewTab() throws InterruptedException {
         addBookmark();
-        BookmarkItemView itemView = (BookmarkItemView) BookmarkTestUtils.getViewWithText(
+        View itemView = (View) BookmarkTestUtils.getViewWithText(
                 mBookmarksList, TEST_PAGE_TITLE);
         invokeContextMenuAndOpenInANewTab(itemView, BookmarkItemView.ID_OPEN_IN_NEW_TAB, false,
                 TEST_PAGE);
@@ -233,7 +236,7 @@ public class BookmarksPageTest extends ChromeTabbedActivityTestBase {
     @LargeTest
     public void testContextMenuOptionOpenInAnIncognitoTab() throws InterruptedException {
         addBookmark();
-        BookmarkItemView itemView = (BookmarkItemView) BookmarkTestUtils.getViewWithText(
+        View itemView = (View) BookmarkTestUtils.getViewWithText(
                 mBookmarksList, TEST_PAGE_TITLE);
         invokeContextMenuAndOpenInANewTab(itemView, BookmarkItemView.ID_OPEN_IN_INCOGNITO_TAB, true,
                 TEST_PAGE);

@@ -59,6 +59,8 @@ public class BookmarksPageView extends LinearLayout implements BookmarksCallback
     private int mSnapshotBookmarksListTop;
     private int mSnapshotBookmarksHierarchyScrollX;
 
+    BrowserBookmarksRecyclerView mBrowserBookmarksRecyclerView;
+
     /**
      * Manages the view interaction with the rest of the system.
      */
@@ -157,7 +159,14 @@ public class BookmarksPageView extends LinearLayout implements BookmarksCallback
         mHierarchyContainer.setSmoothScrollingEnabled(true);
         mHierarchyLayout = (LinearLayout) findViewById(R.id.bookmark_folder_structure);
 
-        mBookmarksList = (BookmarksListView) findViewById(R.id.bookmarks_list_view);
+        View view = findViewById(R.id.bookmarks_list_view);
+        if (view instanceof BrowserBookmarksRecyclerView) {
+            mBrowserBookmarksRecyclerView = (BrowserBookmarksRecyclerView) view;
+            mBookmarksList = mBrowserBookmarksRecyclerView.getList();
+        } else {
+            mBookmarksList = (BookmarksListView) view;
+        }
+
         mBookmarksList.setAdapter(mAdapter);
 
         mEmptyView = (TextView) findViewById(R.id.bookmarks_empty_view);
@@ -177,6 +186,8 @@ public class BookmarksPageView extends LinearLayout implements BookmarksCallback
      */
     void initialize(BookmarksPageManager manager) {
         mManager = manager;
+        if (mBrowserBookmarksRecyclerView != null)
+            mBrowserBookmarksRecyclerView.setManager(mManager);
     }
 
     @Override
