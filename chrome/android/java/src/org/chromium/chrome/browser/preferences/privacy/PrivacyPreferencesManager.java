@@ -281,7 +281,7 @@ public class PrivacyPreferencesManager implements CrashReportingPermissionManage
      * @return boolean whether the screen capture blocking is enabled.
      */
     public boolean isBlockScreenObserversEnabled() {
-        return mSharedPreferences.getBoolean(PREF_BLOCK_SCREEN_OBSERVERS, true);
+        return mSharedPreferences.getBoolean(PREF_BLOCK_SCREEN_OBSERVERS, false);
     }
 
 

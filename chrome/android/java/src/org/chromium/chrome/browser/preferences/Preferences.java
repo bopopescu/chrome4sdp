@@ -25,6 +25,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 
 import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.CommandLine;
@@ -36,6 +37,7 @@ import org.chromium.chrome.browser.ChromeApplication;
 import org.chromium.chrome.browser.ChromeSwitches;
 import org.chromium.chrome.browser.help.HelpAndFeedback;
 import org.chromium.chrome.browser.profiles.Profile;
+import org.chromium.chrome.browser.preferences.privacy.PrivacyPreferencesManager;
 
 /**
  * The Chrome settings activity.
@@ -138,6 +140,11 @@ public class Preferences extends AppCompatActivity implements
         ApiCompatibilityUtils.setTaskDescription(this, res.getString(R.string.app_name),
                 BitmapFactory.decodeResource(res, R.mipmap.app_icon),
                 res.getColor(R.color.default_primary_color));
+
+        if (PrivacyPreferencesManager.getInstance(this).isBlockScreenObserversEnabled()) {
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                                 WindowManager.LayoutParams.FLAG_SECURE);
+        }
     }
 
     // OnPreferenceStartFragmentCallback:
@@ -168,6 +175,15 @@ public class Preferences extends AppCompatActivity implements
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PREFERENCE_FRAGMENT_REQUEST && resultCode == RESULT_OK) {
             setResult(resultCode, data);
+            if (data.getExtras().containsKey("Secure")){
+                if (data.getBooleanExtra("Secure", false)){
+                    getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                                         WindowManager.LayoutParams.FLAG_SECURE);
+                }
+                else {
+                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+                }
+            }
         }
     }
 

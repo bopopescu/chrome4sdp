@@ -14,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.content.Intent;
+import android.view.WindowManager;
 
 import org.chromium.base.CommandLine;
 import org.chromium.chrome.R;
@@ -181,6 +182,11 @@ public class PrivacyPreferences extends BrowserPreferenceFragment
             if (showClearBrowsingData) showClearBrowsingDialog();
         }
         updateSummaries();
+
+        if (PrivacyPreferencesManager.getInstance(getActivity()).isBlockScreenObserversEnabled()) {
+            getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                                               WindowManager.LayoutParams.FLAG_SECURE);
+        }
     }
 
     @Override
@@ -208,6 +214,13 @@ public class PrivacyPreferences extends BrowserPreferenceFragment
             getActivity().setResult(getActivity().RESULT_OK, resultIntent);
             PrivacyPreferencesManager.getInstance(getActivity()).setBlockScreenObservers(
                     (boolean) newValue);
+            if ((boolean) newValue) {
+                getActivity().getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE,
+                                                   WindowManager.LayoutParams.FLAG_SECURE);
+            }
+            else {
+                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
+            }
         } else if (PREF_SAFE_BROWSING.equals(key)) {
             PrefServiceBridge.getInstance().setSafeBrowsingEnabled((boolean) newValue);
         } else if (PREF_SAFE_BROWSING_EXTENDED_REPORTING.equals(key)) {
