@@ -29,17 +29,14 @@
 package org.chromium.chrome.browser.ntp;
 
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentManager;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
-import android.support.v13.app.FragmentStatePagerAdapter;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -78,38 +75,19 @@ public class BrowserNewTabPage extends NewTabPage
     private int mLastCaptureIndex = -1;
     private final HashMap<String, NativePage> mNativeViewMap;
 
-    public class NTPPageFragment extends Fragment {
-        View mPage;
-
-        public NTPPageFragment(View page) {
-            super();
-            mPage = page;
-            page.requestFocus();
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            if (mPage.getParent() != null) {
-                ((ViewGroup)mPage.getParent()).removeView(mPage);
-            }
-
-            return mPage;
-        }
-    }
-
-    private class NTPFramgmentPageAdapter extends FragmentStatePagerAdapter {
-        public NTPFramgmentPageAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
+    private class NTPPageAdapter extends PagerAdapter {
         @Override
         public int getCount() {
             return Math.min(mTabTitles.length, mNativeViewMap.size());
         }
 
         @Override
-        public Fragment getItem(int position) {
+        public boolean isViewFromObject(View view, Object object) {
+            return object == view;
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup collection, int position) {
             if (position >= mTabTitles.length)
                 return null;
 
@@ -117,8 +95,14 @@ public class BrowserNewTabPage extends NewTabPage
             View view = page.getView();
             if (page instanceof BrowserNewTabPage)
                 view = BrowserNewTabPage.super.getView();
+            view.requestFocus();
+            collection.addView(view);
+            return view;
+        }
 
-            return new NTPPageFragment(view);
+        @Override
+        public void destroyItem(ViewGroup collection, int position, Object view) {
+            collection.removeView((View)view);
         }
 
         @Override
@@ -207,7 +191,7 @@ public class BrowserNewTabPage extends NewTabPage
         mPager = (ViewPager) mNTPLinearLayout.findViewById(R.id.browser_ntp_views);
         if (mPager != null) {
             mPager.setId(tab.getId() + 1);
-            mPager.setAdapter(new NTPFramgmentPageAdapter(activity.getFragmentManager()));
+            mPager.setAdapter(new NTPPageAdapter());
 
             mNTPTabLayout = (TabLayout) mNTPLinearLayout.findViewById(R.id.browser_ntp_tablayout);
             if (mNTPTabLayout != null) {
