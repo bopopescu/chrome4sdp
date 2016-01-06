@@ -127,7 +127,7 @@ deps = {
   'src/swe/swe_core':
     (Var('webtech_devx_url')) + '/swe-core.git@25dd03c56762d43652d9e61831b25d226c222af7',
   'src/components/web_refiner':
-    (Var('webtech_devx_url')) + '/web-refiner.git' + '@' + '47026ff4ed85ed786996113ffe125d641f62b02d',
+    (Var('webtech_devx_url')) + '/web-refiner.git' + '@' + 'b50d1c961dcb6d66119d991c4a29b9fbddffff69',
   'src/third_party/libnetxt':
     (Var('webtech_devx_url')) + '/libnetxt.git' + '@' + '2a9759a2c160c98e411ca4816b9f52c9f49deb42',
 }
