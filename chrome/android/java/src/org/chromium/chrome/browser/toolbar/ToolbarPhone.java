@@ -542,8 +542,10 @@ public class ToolbarPhone extends ToolbarLayout
         if (mVisualState == VisualState.NEW_TAB_NORMAL) {
             return getMeasuredWidth();
         } else if (ApiCompatibilityUtils.isLayoutRtl(this)) {
-            return getMeasuredWidth() - (mHomeButton.getVisibility() != GONE
-                    ? mHomeButton.getMeasuredWidth() : mToolbarSidePadding);
+            int rightBound = getMeasuredWidth() - (mFaviconView.getMeasuredWidth() != 0
+                    ? mFaviconView.getMeasuredWidth() : mToolbarSidePadding);
+            rightBound -= mHomeButton.getVisibility() != GONE ? mHomeButton.getMeasuredWidth() : 0;
+            return rightBound;
         } else {
             int margin = Math.max(
                     mToolbarSidePadding, mToolbarButtonsContainer.getMeasuredWidth());
@@ -880,6 +882,19 @@ public class ToolbarPhone extends ToolbarLayout
             drawChild(canvas, mHomeButton, SystemClock.uptimeMillis());
             mHomeButton.setAlpha(previousAlpha);
         }
+
+        if (mFaviconView.getView().getVisibility() != View.GONE) {
+            previousAlpha = mFaviconView.getView().getAlpha();
+            mFaviconView.getView().setAlpha(previousAlpha * floatAlpha);
+            if (mFaviconView.getView().getAlpha() != 0) {
+                canvas.save();
+                translateCanvasToView(this, mFaviconView.getView(), canvas);
+                mFaviconView.getView().draw(canvas);
+                canvas.restore();
+            }
+            mFaviconView.getView().setAlpha(previousAlpha);
+        }
+
 
         // Draw the location/URL bar.
         previousAlpha = mPhoneLocationBar.getAlpha();

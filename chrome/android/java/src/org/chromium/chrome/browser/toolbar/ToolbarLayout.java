@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 
+import org.chromium.base.ApiCompatibilityUtils;
 import org.chromium.base.VisibleForTesting;
 import org.chromium.chrome.R;
 import org.chromium.chrome.browser.appmenu.AppMenuButtonHelper;
@@ -468,6 +469,13 @@ abstract class ToolbarLayout extends FrameLayout implements Toolbar {
                 container.getHeight() - container.getPaddingBottom());
         ViewUtils.getRelativeDrawPosition(
                 this, getLocationBar().getContainerView(), mTempPosition);
+        if (ApiCompatibilityUtils.isLayoutRtl(this)) {
+            outRect.set(mTempPosition[0], outRect.top, getWidth(), outRect.bottom);
+            mTempPosition[0] = 0;
+        } else {
+            outRect.set(0, outRect.top, outRect.right + mTempPosition[0], outRect.bottom);
+            mTempPosition[0] = 0;
+        }
         outRect.offset(mTempPosition[0], mTempPosition[1]);
     }
 
