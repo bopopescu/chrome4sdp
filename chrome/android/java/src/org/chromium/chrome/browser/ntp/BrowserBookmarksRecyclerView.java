@@ -61,12 +61,16 @@ public class BrowserBookmarksRecyclerView extends RecyclerView {
     private BaseAdapter mAdapter;
     private BookmarksPageView.BookmarksPageManager mManager;
     private BookmarkItemView.DrawingData mDrawingData;
+    private int mMaxWidth;
+    private int mMinMargin;
 
     private static final int ICON_CORNER_RADIUS_DP = 4;
     private static final int ICON_TEXT_SIZE_DP = 20;
     private static final int ICON_MIN_SIZE_DP = 48;
     private static final int GRID_SPAN_COUNT = 4;
     private static final int GRID_ITEM_ANIMATION_MS = 250;
+    private static final int MAX_BOOKMARKS_VIEW_WIDTH_DP = 550;
+    private static final int MIN_MARGIN_DP = 6;
 
     public BrowserBookmarksRecyclerView(Context context, AttributeSet attributeSet) {
         super(context);
@@ -75,6 +79,9 @@ public class BrowserBookmarksRecyclerView extends RecyclerView {
         if (mLayoutManager == null) mLayoutManager =
                 new GridLayoutManager(context, GRID_SPAN_COUNT);
         this.setLayoutManager(mLayoutManager);
+        float density = getResources().getDisplayMetrics().density;
+        mMaxWidth = Math.round(MAX_BOOKMARKS_VIEW_WIDTH_DP * density);
+        mMinMargin = Math.round(MIN_MARGIN_DP * density);
     }
 
     /*
@@ -86,6 +93,23 @@ public class BrowserBookmarksRecyclerView extends RecyclerView {
         float itemWidth = getResources().getDimension(R.dimen.icon_most_visited_tile_width)
                 + getResources().getDimension(R.dimen.icon_most_visited_max_horizontal_spacing);
         int width = MeasureSpec.getSize(widthSpec);
+        int excessWidth = width - mMaxWidth;
+        int horizontalPadding = mMinMargin;
+
+        if (excessWidth > 0) {
+            horizontalPadding += excessWidth / 2;
+            width = mMaxWidth;
+        }
+
+        View folderView = getRootView().findViewById(R.id.folder_structure_scroll_view);
+
+        setPadding(horizontalPadding, 0, horizontalPadding, 0);
+
+        if (folderView != null) {
+            folderView.setPadding(horizontalPadding, folderView.getPaddingTop(),
+                    horizontalPadding, folderView.getPaddingBottom());
+        }
+
         if (width != 0) {
             int spanCount = Math.round(width / itemWidth);
             if (spanCount > 0) {
@@ -103,7 +127,7 @@ public class BrowserBookmarksRecyclerView extends RecyclerView {
         if (mDrawingData == null) mDrawingData = new BookmarkItemView.DrawingData(getContext());
     }
 
-    public class BookmarksInternalListView extends BookmarksListView {
+    private class BookmarksInternalListView extends BookmarksListView {
 
         public BookmarksInternalListView(Context context, AttributeSet attrs) {
             super(context, attrs);
@@ -126,7 +150,7 @@ public class BrowserBookmarksRecyclerView extends RecyclerView {
 
     private class BrowserBookmarksViewAdapter extends Adapter {
 
-        public class BookmarkItemHolder extends RecyclerView.ViewHolder {
+        private class BookmarkItemHolder extends RecyclerView.ViewHolder {
             private TextView mTitle;
             private ImageView mThumbnail;
             private BookmarksBridge.BookmarkItem mBookmarkItem;
